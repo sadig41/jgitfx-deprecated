@@ -24,7 +24,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="768.0" prefWidth="1024.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1">
+<BorderPane fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="768.0" prefWidth="1024.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1">
    <top>
       <VBox BorderPane.alignment="CENTER">
          <children>
@@ -66,7 +66,7 @@
                   <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
                </VBox.margin>
             </StackPane>
-            <Separator prefWidth="200.0" />
+            <Separator />
          </children>
       </VBox>
    </top>
@@ -77,51 +77,46 @@
               <panes>
                 <TitledPane fx:id="repoOverviewPane" animated="false" text="Repository Overview">
                      <content>
-                        <VBox prefHeight="200.0" prefWidth="100.0">
+                        <VBox spacing="8.0">
                            <children>
-                              <TitledPane animated="false" contentDisplay="RIGHT" expanded="false" text="Local" textAlignment="JUSTIFY">
+                              <TitledPane animated="false" contentDisplay="RIGHT" text="Local" textAlignment="JUSTIFY">
                                  <graphic>
                                     <Label text="0/0" />
                                  </graphic>
                                  <content>
-                                    <TreeView prefHeight="200.0" prefWidth="200.0" />
+                                    <TreeView maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
                                  </content>
                               </TitledPane>
-                              <TitledPane animated="false" contentDisplay="RIGHT" expanded="false" text="Remote" textAlignment="JUSTIFY">
+                              <TitledPane animated="false" contentDisplay="RIGHT" text="Remote" textAlignment="JUSTIFY">
                                  <graphic>
                                     <Label text="0/0" />
                                  </graphic>
                                  <content>
-                                    <TreeView prefHeight="200.0" prefWidth="200.0" />
+                                    <TreeView maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
                                  </content>
                               </TitledPane>
-                              <TitledPane animated="false" contentDisplay="RIGHT" expanded="false" text="Pull Requests" textAlignment="JUSTIFY">
+                              <TitledPane animated="false" contentDisplay="RIGHT" text="Pull Requests" textAlignment="JUSTIFY">
                                  <graphic>
                                     <Label text="0" />
                                  </graphic>
                                  <content>
-                                    <TableView prefHeight="200.0" prefWidth="200.0">
-                                      <columns>
-                                        <TableColumn prefWidth="75.0" text="C1" />
-                                        <TableColumn prefWidth="75.0" text="C2" />
-                                      </columns>
-                                    </TableView>
+                                    <ListView maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
                                  </content>
                               </TitledPane>
-                              <TitledPane animated="false" contentDisplay="RIGHT" expanded="false" text="Tags" textAlignment="JUSTIFY">
+                              <TitledPane animated="false" contentDisplay="RIGHT" text="Tags" textAlignment="JUSTIFY">
                                  <graphic>
                                     <Label text="0/0" />
                                  </graphic>
                                  <content>
-                                    <ListView prefHeight="200.0" prefWidth="200.0" />
+                                    <ListView maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
                                  </content>
                               </TitledPane>
-                              <TitledPane animated="false" contentDisplay="RIGHT" expanded="false" text="Submodules" textAlignment="JUSTIFY">
+                              <TitledPane animated="false" contentDisplay="RIGHT" text="Submodules" textAlignment="JUSTIFY">
                                  <graphic>
                                     <Label text="0" />
                                  </graphic>
                                  <content>
-                                    <ListView prefHeight="200.0" prefWidth="200.0" />
+                                    <ListView maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
                                  </content>
                               </TitledPane>
                            </children>
@@ -130,12 +125,25 @@
                 </TitledPane>
                 <TitledPane animated="false" text="Repositories">
                      <content>
-                        <TreeView fx:id="repositoryTree" prefHeight="200.0" prefWidth="200.0" />
+                        <TreeView fx:id="repositoryTree" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
                      </content>
                 </TitledPane>
               </panes>
             </Accordion>
-            <StackPane />
+            <SplitPane dividerPositions="0.75" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0">
+              <items>
+                  <TableView prefHeight="200.0" prefWidth="200.0" tableMenuButtonVisible="true">
+                    <columns>
+                      <TableColumn editable="false" prefWidth="191.0" sortable="false" text="Graph" />
+                      <TableColumn editable="false" prefWidth="417.0" sortable="false" text="Commit" />
+                    </columns>
+                     <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                     </columnResizePolicy>
+                  </TableView>
+                  <TextArea editable="false" prefHeight="200.0" prefWidth="200.0" />
+              </items>
+            </SplitPane>
             <VBox spacing="8.0">
                <children>
                   <Label contentDisplay="RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Commit message" wrapText="true">
@@ -168,7 +176,7 @@
                         <Label text="hash code" GridPane.columnIndex="1" GridPane.rowIndex="4" />
                      </children>
                   </GridPane>
-                  <Separator prefWidth="200.0" />
+                  <Separator />
                   <StackPane VBox.vgrow="ALWAYS">
                      <children>
                         <TableView maxHeight="1.7976931348623157E308" visible="false">
@@ -182,16 +190,22 @@
                               <Label text="Unstaged Files:" />
                               <TableView maxHeight="1.7976931348623157E308" VBox.vgrow="ALWAYS">
                                 <columns>
-                                  <TableColumn prefWidth="75.0" text="C1" />
-                                  <TableColumn prefWidth="75.0" text="C2" />
+                                  <TableColumn editable="false" maxWidth="40.0" minWidth="32.0" prefWidth="-1.0" text="Type" />
+                                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefWidth="-1.0" text="File" />
                                 </columns>
+                                 <columnResizePolicy>
+                                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                 </columnResizePolicy>
                               </TableView>
                               <Label text="Staged Files:" />
                               <TableView maxHeight="1.7976931348623157E308" VBox.vgrow="ALWAYS">
                                 <columns>
-                                  <TableColumn prefWidth="75.0" text="C1" />
-                                  <TableColumn prefWidth="75.0" text="C2" />
+                                  <TableColumn editable="false" maxWidth="40.0" minWidth="32.0" prefWidth="-1.0" text="Type" />
+                                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefWidth="-1.0" text="File" />
                                 </columns>
+                                 <columnResizePolicy>
+                                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                 </columnResizePolicy>
                               </TableView>
                               <Label text="Commit message:" />
                               <TextField promptText="Summary" />
