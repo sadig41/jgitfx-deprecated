@@ -1,0 +1,13 @@
+.hg/
+target/
+bin/
+.idea/
+
+*.classpath
+*.project
+.settings/
+*._trace
+*.class
+*.xtendbin
+*.hg*
+*.iml
