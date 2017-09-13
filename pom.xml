@@ -15,4 +15,25 @@
 		<version>1.2.1</version>
 	</parent>
 
+	<dependencies>
+
+		<dependency>
+			<groupId>org.eclipse.xtend</groupId>
+			<artifactId>org.eclipse.xtend.lib</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>net.bbmsoft</groupId>
+			<artifactId>fxtended</artifactId>
+			<version>1.4.3</version>
+		</dependency>
+
+		<dependency>
+			<groupId>net.bbmsoft</groupId>
+			<artifactId>fxtended-runtime</artifactId>
+			<version>1.3.4</version>
+		</dependency>
+		
+	</dependencies>
+	
 </project>
