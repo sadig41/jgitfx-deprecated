@@ -194,8 +194,8 @@
                                 </columns>
                               </TableView>
                               <Label text="Commit message:" />
-                              <TextField />
-                              <TextArea maxHeight="1.7976931348623157E308" VBox.vgrow="ALWAYS" />
+                              <TextField promptText="Summary" />
+                              <TextArea maxHeight="1.7976931348623157E308" promptText="Description" VBox.vgrow="ALWAYS" />
                            </children>
                         </VBox>
                      </children>
