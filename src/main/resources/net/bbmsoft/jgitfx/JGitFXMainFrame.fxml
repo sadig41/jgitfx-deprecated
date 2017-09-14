@@ -148,39 +148,39 @@
                            <contextMenu>
                               <ContextMenu>
                                 <items>
-                                    <MenuItem mnemonicParsing="false" onAction="#undoSelected" text="Undo">
+                                    <MenuItem fx:id="undoContextMenuItem" disable="true" mnemonicParsing="false" onAction="#undoSelected" text="Undo">
                                        <accelerator>
                                           <KeyCodeCombination alt="UP" code="Z" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                                        </accelerator>
                                     </MenuItem>
-                                    <MenuItem mnemonicParsing="false" onAction="#redoSelected" text="Redo">
+                                    <MenuItem fx:id="redoContextMenuItem" disable="true" mnemonicParsing="false" onAction="#redoSelected" text="Redo">
                                        <accelerator>
                                           <KeyCodeCombination alt="UP" code="Z" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
                                        </accelerator>
                                     </MenuItem>
-                                    <SeparatorMenuItem mnemonicParsing="false" />
-                                  <MenuItem mnemonicParsing="false" onAction="#pullSelected" text="Pull">
+                                    <SeparatorMenuItem disable="true" mnemonicParsing="false" />
+                                  <MenuItem fx:id="pullContextMenuItem" disable="true" mnemonicParsing="false" onAction="#pullSelected" text="Pull">
                                        <accelerator>
                                           <KeyCodeCombination alt="UP" code="DOWN" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                                        </accelerator>
                                     </MenuItem>
-                                    <MenuItem mnemonicParsing="false" onAction="#pushSelected" text="Push">
+                                    <MenuItem fx:id="pushContextMenuItem" disable="true" mnemonicParsing="false" onAction="#pushSelected" text="Push">
                                        <accelerator>
                                           <KeyCodeCombination alt="UP" code="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                                        </accelerator>
                                     </MenuItem>
-                                    <MenuItem mnemonicParsing="false" onAction="#branchSelected" text="Branch">
+                                    <MenuItem fx:id="branchContextMenuItem" disable="true" mnemonicParsing="false" onAction="#branchSelected" text="Branch">
                                        <accelerator>
                                           <KeyCodeCombination alt="UP" code="B" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                                        </accelerator>
                                     </MenuItem>
-                                    <SeparatorMenuItem mnemonicParsing="false" />
-                                    <MenuItem mnemonicParsing="false" onAction="#stashSelected" text="Stash">
+                                    <SeparatorMenuItem disable="true" mnemonicParsing="false" />
+                                    <MenuItem fx:id="stashContextMenuItem" disable="true" mnemonicParsing="false" onAction="#stashSelected" text="Stash">
                                        <accelerator>
                                           <KeyCodeCombination alt="UP" code="S" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                                        </accelerator>
                                     </MenuItem>
-                                    <MenuItem mnemonicParsing="false" onAction="#popSelected" text="Pop">
+                                    <MenuItem fx:id="popContextMenuItem" disable="true" mnemonicParsing="false" onAction="#popSelected" text="Pop">
                                        <accelerator>
                                           <KeyCodeCombination alt="UP" code="P" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                                        </accelerator>

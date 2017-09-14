@@ -18,8 +18,11 @@ public class CommitInfoAnimator implements ChangeListener<RevCommit>{
 	private final Label hashLabel;
 	private final Label parentHashLabel;
 	private final ToggleButton expandButton;
+	
+	private RevCommit currentCommit;
 
 	public CommitInfoAnimator(Label commitMessageLabel, Label authorLabel, Label emailLabel, Label timeLabel, Label hashLabel, Label parentHashLabel, ToggleButton expandButton) {
+		
 		this.commitMessageLabel = commitMessageLabel;
 		this.authorLabel = authorLabel;
 		this.emailLabel = emailLabel;
@@ -27,18 +30,48 @@ public class CommitInfoAnimator implements ChangeListener<RevCommit>{
 		this.hashLabel = hashLabel;
 		this.parentHashLabel = parentHashLabel;
 		this.expandButton = expandButton;
+		
+		this.expandButton.selectedProperty().addListener((o, ov, nv) -> expandCommitMessage(nv));
+	}
+
+	private void expandCommitMessage(boolean expanded) {
+		
+		this.expandButton.setText(expanded ? "-" : "+");
+		this.commitMessageLabel.setText(expanded ? getExpandedCommitMessage() : getCompactCommitMessage());
+	}
+
+	private String getCompactCommitMessage() {
+		if(this.currentCommit == null) {
+			return null;
+		}
+		
+		return this.currentCommit.getFullMessage();
+	}
+
+	private String getExpandedCommitMessage() {
+		if(this.currentCommit == null) {
+			return null;
+		}
+		
+		return this.currentCommit.getShortMessage();
 	}
 
 	@Override
 	public void changed(ObservableValue<? extends RevCommit> observable, RevCommit oldValue, RevCommit newValue) {
 		
-		if(newValue != null) {
-			this.commitMessageLabel.setText(newValue.getShortMessage());
-			this.authorLabel.setText(newValue.getAuthorIdent().getName());
-			this.emailLabel.setText(newValue.getAuthorIdent().getEmailAddress());
-			this.timeLabel.setText(new Date(newValue.getCommitTime() * 1000L).toString());
-			this.hashLabel.setText(newValue.getId().toString());
-			this.parentHashLabel.setText(newValue.getParentCount() > 0 ? newValue.getParent(0).getId().toString() : "-");
+		this.currentCommit = newValue;
+		updatePanel();
+	}
+
+	private void updatePanel() {
+		
+		if(this.currentCommit != null) {
+			this.commitMessageLabel.setText(this.currentCommit.getShortMessage());
+			this.authorLabel.setText(this.currentCommit.getAuthorIdent().getName());
+			this.emailLabel.setText(this.currentCommit.getAuthorIdent().getEmailAddress());
+			this.timeLabel.setText(new Date(this.currentCommit.getCommitTime() * 1000L).toString());
+			this.hashLabel.setText(this.currentCommit.getId().toString());
+			this.parentHashLabel.setText(this.currentCommit.getParentCount() > 0 ? this.currentCommit.getParent(0).getId().toString() : "-");
 			this.expandButton.setText("+");
 		} else {
 			this.commitMessageLabel.setText(null);
@@ -50,12 +83,14 @@ public class CommitInfoAnimator implements ChangeListener<RevCommit>{
 			this.expandButton.setText("+");
 		}
 		
-		this.commitMessageLabel.setDisable(newValue == null);
-		this.authorLabel.setDisable(newValue == null);
-		this.emailLabel.setDisable(newValue == null);
-		this.timeLabel.setDisable(newValue == null);
-		this.hashLabel.setDisable(newValue == null);
-		this.parentHashLabel.setDisable(newValue == null);
-		this.expandButton.setDisable(newValue == null);
+		boolean noCommit = this.currentCommit == null;
+		
+		this.commitMessageLabel.setDisable(noCommit);
+		this.authorLabel.setDisable(noCommit);
+		this.emailLabel.setDisable(noCommit);
+		this.timeLabel.setDisable(noCommit);
+		this.hashLabel.setDisable(noCommit);
+		this.parentHashLabel.setDisable(noCommit);
+		this.expandButton.setDisable(noCommit);
 	}
 }

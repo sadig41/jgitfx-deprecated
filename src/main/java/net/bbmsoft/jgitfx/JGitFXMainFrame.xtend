@@ -12,6 +12,8 @@ import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import javafx.fxml.FXML
 import javafx.scene.control.Label
+import javafx.scene.control.MenuItem
+import javafx.scene.control.SelectionMode
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView
 import javafx.scene.control.TitledPane
@@ -57,6 +59,14 @@ class JGitFXMainFrame extends BorderPane {
 	@FXML Label hashLabel
 	@FXML Label parentHashLabel
 	@FXML ToggleButton expandCommitMessageButton
+	
+	@FXML MenuItem undoContextMenuItem
+	@FXML MenuItem redoContextMenuItem
+	@FXML MenuItem pullContextMenuItem
+	@FXML MenuItem pushContextMenuItem
+	@FXML MenuItem branchContextMenuItem
+	@FXML MenuItem stashContextMenuItem
+	@FXML MenuItem popContextMenuItem
 
 	@BindableProperty Runnable cloneAction
 	@BindableProperty Runnable batchCloneAction
@@ -105,9 +115,26 @@ class JGitFXMainFrame extends BorderPane {
 			}
 		]
 		
+		this.repositoryTree.selectionModel.selectionMode = SelectionMode.MULTIPLE
+		this.repositoryTree.selectionModel.selectedItems > [updateRepositoryTreeContextMenu]
+		
 		this.historyTable.selectionModel.selectedItemProperty.addListener(new CommitInfoAnimator(this.commitMessageLabel, this.authorLabel, this.emailLabel, this.timeLabel, this.hashLabel, this.parentHashLabel, this.expandCommitMessageButton))
 
 		Platform.runLater[this.repositoriesList.expanded = true]
+	}
+	
+	private def updateRepositoryTreeContextMenu() {
+		
+		val size = this.repositoryTree.selectionModel.selectedItems.size
+		
+		this.undoContextMenuItem.disable = size <= 0 || size > 1
+		this.redoContextMenuItem.disable = size <= 0 || size > 1
+		this.pullContextMenuItem.disable = size <= 0
+		this.pushContextMenuItem.disable = size <= 0
+		this.branchContextMenuItem.disable = size <= 0 || size > 1
+		this.stashContextMenuItem.disable = size <= 0 || size > 1
+		this.popContextMenuItem.disable = size <= 0 || size > 1
+		
 	}
 
 	def updateRepo(Observable repoHandler) {
