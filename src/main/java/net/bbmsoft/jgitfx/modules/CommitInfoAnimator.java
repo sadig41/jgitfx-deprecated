@@ -4,11 +4,9 @@ import java.util.Date;
 
 import org.eclipse.jgit.revwalk.RevCommit;
 
-import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Label;
-import javafx.scene.control.ToggleButton;
 
 public class CommitInfoAnimator implements ChangeListener<RevCommit> {
 
@@ -18,12 +16,11 @@ public class CommitInfoAnimator implements ChangeListener<RevCommit> {
 	private final Label timeLabel;
 	private final Label hashLabel;
 	private final Label parentHashLabel;
-	private final ToggleButton expandButton;
 
 	private RevCommit currentCommit;
 
 	public CommitInfoAnimator(Label commitMessageLabel, Label authorLabel, Label emailLabel, Label timeLabel,
-			Label hashLabel, Label parentHashLabel, ToggleButton expandButton) {
+			Label hashLabel, Label parentHashLabel) {
 
 		this.commitMessageLabel = commitMessageLabel;
 		this.authorLabel = authorLabel;
@@ -31,33 +28,6 @@ public class CommitInfoAnimator implements ChangeListener<RevCommit> {
 		this.timeLabel = timeLabel;
 		this.hashLabel = hashLabel;
 		this.parentHashLabel = parentHashLabel;
-		this.expandButton = expandButton;
-
-		this.expandButton.selectedProperty().addListener((o, ov, nv) -> expandCommitMessage(nv));
-
-		this.expandButton.prefWidthProperty().bind(this.expandButton.heightProperty());
-	}
-
-	private void expandCommitMessage(boolean expanded) {
-
-		this.expandButton.setText(expanded ? "-" : "+");
-		this.commitMessageLabel.setText(expanded ? getExpandedCommitMessage() : getCompactCommitMessage());
-	}
-
-	private String getCompactCommitMessage() {
-		if (this.currentCommit == null) {
-			return null;
-		}
-
-		return this.currentCommit.getShortMessage();
-	}
-
-	private String getExpandedCommitMessage() {
-		if (this.currentCommit == null) {
-			return null;
-		}
-
-		return this.currentCommit.getFullMessage();
 	}
 
 	@Override
@@ -70,15 +40,13 @@ public class CommitInfoAnimator implements ChangeListener<RevCommit> {
 	private void updatePanel() {
 
 		if (this.currentCommit != null) {
-			this.commitMessageLabel.setText(this.currentCommit.getShortMessage());
+			this.commitMessageLabel.setText(this.currentCommit.getFullMessage().trim());
 			this.authorLabel.setText(this.currentCommit.getAuthorIdent().getName());
 			this.emailLabel.setText(this.currentCommit.getAuthorIdent().getEmailAddress());
 			this.timeLabel.setText(new Date(this.currentCommit.getCommitTime() * 1000L).toString());
-			this.hashLabel.setText(this.currentCommit.getId().toString());
+			this.hashLabel.setText(this.currentCommit.getId().name());
 			this.parentHashLabel.setText(
-					this.currentCommit.getParentCount() > 0 ? this.currentCommit.getParent(0).getId().toString() : "-");
-			this.expandButton.setText("+");
-			this.expandButton.setSelected(false);
+					this.currentCommit.getParentCount() > 0 ? this.currentCommit.getParent(0).getId().name() : "-");
 		} else {
 			this.commitMessageLabel.setText(null);
 			this.authorLabel.setText(null);
@@ -86,7 +54,6 @@ public class CommitInfoAnimator implements ChangeListener<RevCommit> {
 			this.timeLabel.setText(null);
 			this.hashLabel.setText(null);
 			this.parentHashLabel.setText(null);
-			this.expandButton.setText("+");
 		}
 
 		boolean noCommit = this.currentCommit == null;
@@ -98,7 +65,5 @@ public class CommitInfoAnimator implements ChangeListener<RevCommit> {
 		this.hashLabel.setDisable(noCommit);
 		this.parentHashLabel.setDisable(noCommit);
 
-		this.expandButton.setDisable(
-				noCommit || this.currentCommit.getShortMessage().equals(this.currentCommit.getFullMessage().trim()));
 	}
 }

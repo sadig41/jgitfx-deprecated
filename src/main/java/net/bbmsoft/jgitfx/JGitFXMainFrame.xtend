@@ -17,7 +17,6 @@ import javafx.scene.control.SelectionMode
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView
 import javafx.scene.control.TitledPane
-import javafx.scene.control.ToggleButton
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.scene.layout.BorderPane
@@ -58,7 +57,6 @@ class JGitFXMainFrame extends BorderPane {
 	@FXML Label timeLabel
 	@FXML Label hashLabel
 	@FXML Label parentHashLabel
-	@FXML ToggleButton expandCommitMessageButton
 	
 	@FXML MenuItem undoContextMenuItem
 	@FXML MenuItem redoContextMenuItem
@@ -118,7 +116,7 @@ class JGitFXMainFrame extends BorderPane {
 		this.repositoryTree.selectionModel.selectionMode = SelectionMode.MULTIPLE
 		this.repositoryTree.selectionModel.selectedItems > [updateRepositoryTreeContextMenu]
 		
-		this.historyTable.selectionModel.selectedItemProperty.addListener(new CommitInfoAnimator(this.commitMessageLabel, this.authorLabel, this.emailLabel, this.timeLabel, this.hashLabel, this.parentHashLabel, this.expandCommitMessageButton))
+		this.historyTable.selectionModel.selectedItemProperty.addListener(new CommitInfoAnimator(this.commitMessageLabel, this.authorLabel, this.emailLabel, this.timeLabel, this.hashLabel, this.parentHashLabel))
 
 		Platform.runLater[this.repositoriesList.expanded = true]
 	}
