@@ -293,7 +293,7 @@
                   <Separator />
                   <StackPane VBox.vgrow="ALWAYS">
                      <children>
-                        <TableView maxHeight="1.7976931348623157E308" visible="false">
+                        <TableView fx:id="changedFilesOverview" maxHeight="1.7976931348623157E308" visible="false">
                           <columns>
                             <TableColumn prefWidth="75.0" text="C1" />
                             <TableColumn prefWidth="75.0" text="C2" />

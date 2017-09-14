@@ -22,10 +22,12 @@ import javafx.scene.control.TreeView
 import javafx.scene.layout.BorderPane
 import net.bbmsoft.fxtended.annotations.app.FXMLRoot
 import net.bbmsoft.fxtended.annotations.binding.BindableProperty
+import net.bbmsoft.jgitfx.modules.ChangedFilesAnimator
 import net.bbmsoft.jgitfx.modules.CommitInfoAnimator
 import net.bbmsoft.jgitfx.modules.Preferences
 import net.bbmsoft.jgitfx.modules.RepositoryHandler
 import net.bbmsoft.jgitfx.modules.RepositoryTableVisualizer
+import net.bbmsoft.jgitfx.modules.StagingAnimator
 import net.bbmsoft.jgitfx.wrappers.RepositoryWrapper
 import org.controlsfx.control.BreadCrumbBar
 import org.eclipse.jgit.lib.Repository
@@ -44,6 +46,9 @@ class JGitFXMainFrame extends BorderPane {
 	@FXML TableColumn<RevCommit, String> commitMessageColumn
 	@FXML TableColumn<RevCommit, String> authorColumn
 	@FXML TableColumn<RevCommit, String> timeColumn
+	
+	@FXML TableView<File> changedFilesOverview
+	
 	@FXML TreeView<RepositoryWrapper> repositoryTree
 
 	@FXML TitledPane repositoryOverview
@@ -117,6 +122,8 @@ class JGitFXMainFrame extends BorderPane {
 		this.repositoryTree.selectionModel.selectedItems > [updateRepositoryTreeContextMenu]
 		
 		this.historyTable.selectionModel.selectedItemProperty.addListener(new CommitInfoAnimator(this.commitMessageLabel, this.authorLabel, this.emailLabel, this.timeLabel, this.hashLabel, this.parentHashLabel))
+		this.historyTable.selectionModel.selectedItemProperty.addListener(new ChangedFilesAnimator(this.changedFilesOverview)[this.repositoryHandler?.repository])
+		this.historyTable.selectionModel.selectedItemProperty.addListener(new StagingAnimator())
 
 		Platform.runLater[this.repositoriesList.expanded = true]
 	}
@@ -176,7 +183,9 @@ class JGitFXMainFrame extends BorderPane {
 			readEnvironment
 		]
 
+		// TODO show error message when opening the repo fails
 		val repository = builder.build
+		
 		this.repositoryMap.put(dir, repository)
 		new RepositoryWrapper(repository)
 	}

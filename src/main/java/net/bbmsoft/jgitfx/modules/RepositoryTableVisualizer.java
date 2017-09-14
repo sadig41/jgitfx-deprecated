@@ -27,9 +27,9 @@ public class RepositoryTableVisualizer {
 
 		this.table = table;
 
-		// branchColumn.setCellValueFactory(cdf -> {
-		// return new SimpleStringProperty(cdf.getValue().getBranch());
-		// });
+//		 branchColumn.setCellValueFactory(cdf -> {
+//		 return new SimpleStringProperty(cdf.getValue().getBranch());
+//		 });
 
 		commitMessageColumn.setCellValueFactory(cdf -> {
 			return new SimpleStringProperty(cdf.getValue().getShortMessage());
