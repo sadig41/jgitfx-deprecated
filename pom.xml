@@ -40,6 +40,22 @@
 			<version>4.8.0.201706111038-r</version>
 		</dependency>
 
+		<dependency>
+			<groupId>net.bbmsoft</groupId>
+			<artifactId>bbm-utils</artifactId>
+			<version>1.1.4-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.8.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+		</dependency>
 	</dependencies>
 
 </project>
