@@ -10,7 +10,7 @@ public class RepositoryWrapper {
 
 	public RepositoryWrapper(Repository repository) {
 		this.repository = repository;
-		this.name = this.repository.getDirectory().getName();
+		this.name = this.repository.getWorkTree().getName();
 		this.fullName = String.format("%s (%s)", this.name, this.repository.getDirectory().getAbsolutePath());
 	}
 

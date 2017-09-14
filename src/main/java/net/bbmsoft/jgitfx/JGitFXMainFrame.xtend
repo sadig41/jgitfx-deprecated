@@ -10,14 +10,18 @@ import javafx.beans.Observable
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import javafx.fxml.FXML
+import javafx.scene.control.TableColumn
+import javafx.scene.control.TableView
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.scene.layout.BorderPane
 import net.bbmsoft.fxtended.annotations.app.FXMLRoot
 import net.bbmsoft.fxtended.annotations.binding.BindableProperty
 import net.bbmsoft.jgitfx.modules.RepositoryHandler
+import net.bbmsoft.jgitfx.modules.RepositoryTableVisualizer
 import net.bbmsoft.jgitfx.wrappers.RepositoryWrapper
 import org.eclipse.jgit.lib.Repository
+import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
@@ -25,6 +29,11 @@ import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtension
 @FXMLRoot
 class JGitFXMainFrame extends BorderPane {
 
+	@FXML TableView<RevCommit> historyTable
+	@FXML TableColumn<RevCommit, String> branchColumn
+	@FXML TableColumn<RevCommit, String> commitMessageColumn
+	@FXML TableColumn<RevCommit, String> authorColumn
+	@FXML TableColumn<RevCommit, String> timeColumn
 	@FXML TreeView<RepositoryWrapper> repositoryTree
 
 	@BindableProperty Runnable cloneAction
@@ -42,8 +51,11 @@ class JGitFXMainFrame extends BorderPane {
 	TreeItem<RepositoryWrapper> rootRepoTreeItem
 
 	@BindableProperty RepositoryHandler repositoryHandler
+	
+	RepositoryTableVisualizer historyVisualizer
 
 	override initialize(URL location, ResourceBundle resources) {
+		this.historyVisualizer = new RepositoryTableVisualizer(this.historyTable, this.branchColumn, this.commitMessageColumn, this.authorColumn, this.timeColumn)
 		this.repositoryMap = new HashMap
 		this.repositoriesListener = [updateRepoTree]
 		this.repositoryListener = [updateRepo]
@@ -63,6 +75,7 @@ class JGitFXMainFrame extends BorderPane {
 		if (repoHandler instanceof RepositoryHandler) {
 			// TODO
 			println('''Updating view of «repoHandler?.repository»''')
+			this.historyVisualizer.repository = repoHandler.repository
 		}
 	}
 
@@ -88,7 +101,19 @@ class JGitFXMainFrame extends BorderPane {
 	}
 
 	private def RepositoryWrapper loadRepo(File dir) {
-		val repository = new FileRepositoryBuilder().setGitDir(dir).readEnvironment.findGitDir.build
+		
+		
+		val builder = new FileRepositoryBuilder => [
+			mustExist = true
+			if('.git'.equals(dir.name)) {
+				gitDir = dir
+			} else {
+				workTree = dir
+			}
+			readEnvironment
+		]
+		
+		val repository = builder.build
 		this.repositoryMap.put(dir, repository)
 		new RepositoryWrapper(repository)
 	}
