@@ -113,7 +113,7 @@
             <StackPane alignment="CENTER_LEFT">
                <children>
                   <BreadCrumbBar fx:id="breadcrumb" minHeight="-Infinity" minWidth="-Infinity" pickOnBounds="false" />
-                  <HBox alignment="CENTER" spacing="12.0" StackPane.alignment="CENTER" pickOnBounds="false" >
+                  <HBox alignment="CENTER" pickOnBounds="false" spacing="12.0" StackPane.alignment="CENTER">
                      <children>
                       <Button alignment="CENTER" mnemonicParsing="false" onAction="#undo" text="Undo" textAlignment="CENTER" wrapText="true" />
                         <Button alignment="CENTER" mnemonicParsing="false" onAction="#redo" text="Redo" wrapText="true" />
@@ -254,7 +254,7 @@
                         <VBox prefHeight="200.0" prefWidth="100.0" spacing="8.0">
                            <children>
                               <Label text="Unstaged Files:" />
-                              <TableView maxHeight="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+                              <TableView maxHeight="1.7976931348623157E308" prefHeight="300.0" VBox.vgrow="ALWAYS">
                                 <columns>
                                   <TableColumn editable="false" maxWidth="40.0" minWidth="32.0" prefWidth="-1.0" text="Type" />
                                   <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefWidth="-1.0" text="File" />
@@ -264,7 +264,7 @@
                                  </columnResizePolicy>
                               </TableView>
                               <Label text="Staged Files:" />
-                              <TableView maxHeight="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+                              <TableView maxHeight="1.7976931348623157E308" prefHeight="300.0" VBox.vgrow="ALWAYS">
                                 <columns>
                                   <TableColumn editable="false" maxWidth="40.0" minWidth="32.0" prefWidth="-1.0" text="Type" />
                                   <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefWidth="-1.0" text="File" />
@@ -276,6 +276,7 @@
                               <Label text="Commit message:" />
                               <TextField promptText="Summary" />
                               <TextArea maxHeight="1.7976931348623157E308" promptText="Description" VBox.vgrow="ALWAYS" />
+                              <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="46.0" mnemonicParsing="false" text="Commit" />
                            </children>
                         </VBox>
                      </children>

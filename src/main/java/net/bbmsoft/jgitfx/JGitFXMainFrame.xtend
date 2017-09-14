@@ -19,7 +19,6 @@ import javafx.scene.control.TreeView
 import javafx.scene.layout.BorderPane
 import net.bbmsoft.fxtended.annotations.app.FXMLRoot
 import net.bbmsoft.fxtended.annotations.binding.BindableProperty
-import net.bbmsoft.jgitfx.modules.AppDirectoryProvider
 import net.bbmsoft.jgitfx.modules.Preferences
 import net.bbmsoft.jgitfx.modules.RepositoryHandler
 import net.bbmsoft.jgitfx.modules.RepositoryTableVisualizer
@@ -69,10 +68,14 @@ class JGitFXMainFrame extends BorderPane {
 	RepositoryTableVisualizer historyVisualizer
 
 	Preferences prefs
+	
+	new(Preferences prefs) {
+		this()
+		this.prefs = prefs
+	}
 
 	override initialize(URL location, ResourceBundle resources) {
 
-		this.prefs = Preferences.loadFromFile(AppDirectoryProvider.getFilePathFromAppDirectory('config.json'))
 		this.historyVisualizer = new RepositoryTableVisualizer(this.historyTable, this.branchColumn,
 			this.commitMessageColumn, this.authorColumn, this.timeColumn)
 		this.repositoryMap = new HashMap
