@@ -11,14 +11,17 @@ import javafx.beans.Observable
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import javafx.fxml.FXML
+import javafx.scene.control.Label
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView
 import javafx.scene.control.TitledPane
+import javafx.scene.control.ToggleButton
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.scene.layout.BorderPane
 import net.bbmsoft.fxtended.annotations.app.FXMLRoot
 import net.bbmsoft.fxtended.annotations.binding.BindableProperty
+import net.bbmsoft.jgitfx.modules.CommitInfoAnimator
 import net.bbmsoft.jgitfx.modules.Preferences
 import net.bbmsoft.jgitfx.modules.RepositoryHandler
 import net.bbmsoft.jgitfx.modules.RepositoryTableVisualizer
@@ -46,6 +49,14 @@ class JGitFXMainFrame extends BorderPane {
 	@FXML TitledPane repositoriesList
 
 	@FXML BreadCrumbBar<RepositoryWrapper> breadcrumb
+	
+	@FXML Label commitMessageLabel
+	@FXML Label authorLabel
+	@FXML Label emailLabel
+	@FXML Label timeLabel
+	@FXML Label hashLabel
+	@FXML Label parentHashLabel
+	@FXML ToggleButton expandCommitMessageButton
 
 	@BindableProperty Runnable cloneAction
 	@BindableProperty Runnable batchCloneAction
@@ -93,6 +104,8 @@ class JGitFXMainFrame extends BorderPane {
 				this.repositoryTree.selectionModel.selectedItem?.value?.repository?.open
 			}
 		]
+		
+		this.historyTable.selectionModel.selectedItemProperty.addListener(new CommitInfoAnimator(this.commitMessageLabel, this.authorLabel, this.emailLabel, this.timeLabel, this.hashLabel, this.parentHashLabel, this.expandCommitMessageButton))
 
 		Platform.runLater[this.repositoriesList.expanded = true]
 	}
@@ -144,7 +157,7 @@ class JGitFXMainFrame extends BorderPane {
 	}
 
 	def undo() {
-		this.repositoryHandler?.undo
+		undo(this.repositoryHandler)
 	}
 
 	def redo() {
@@ -169,6 +182,78 @@ class JGitFXMainFrame extends BorderPane {
 
 	def pop() {
 		this.repositoryHandler?.pop
+	}
+	
+	private def undo(RepositoryHandler repos) {
+		repos?.undo
+	}
+
+	private def redo(RepositoryHandler repos) {
+		repos?.redo
+	}
+
+	private def pull(RepositoryHandler ... repos) {
+		repos?.forEach[pull]
+	}
+
+	private def push(RepositoryHandler ... repos) {
+		repos?.forEach[push]
+	}
+
+	private def branch(RepositoryHandler repos) {
+		repos?.branch
+	}
+
+	private def stash(RepositoryHandler repos) {
+		repos?.stash
+	}
+
+	private def pop(RepositoryHandler repos) {
+		repos?.pop
+	}
+	
+	private def RepositoryHandler getHandlerForSelected() {
+		this.repositoryTree.selectionModel.selectedItem?.value?.repository?.getHandler
+	}
+	
+	private def RepositoryHandler[] getHandlersForSelected() {
+		this.repositoryTree.selectionModel.selectedItems.map[value?.repository?.getHandler]
+	}
+	
+	private def RepositoryHandler getHandler(Repository repository) {
+		getHandler(repository, null)
+	}
+	
+	private def RepositoryHandler getHandler(Repository repository, InvalidationListener listener) {
+		new RepositoryHandler(repository, listener)
+	}
+	
+	def undoSelected() {
+		undo(handlerForSelected)
+	}
+
+	def redoSelected() {
+		redo(handlerForSelected)
+	}
+
+	def pullSelected() {
+		pull(handlersForSelected)
+	}
+
+	def pushSelected() {
+		push(handlersForSelected)
+	}
+
+	def branchSelected() {
+		branch(handlerForSelected)
+	}
+
+	def stashSelected() {
+		stash(handlerForSelected)
+	}
+
+	def popSelected() {
+		pop(handlerForSelected)
 	}
 
 	def cloneRepo() {

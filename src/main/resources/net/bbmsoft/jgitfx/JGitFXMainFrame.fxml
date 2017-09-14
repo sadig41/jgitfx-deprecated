@@ -3,6 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Accordion?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Menu?>
@@ -16,6 +17,7 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.TreeView?>
 <?import javafx.scene.input.KeyCodeCombination?>
 <?import javafx.scene.layout.BorderPane?>
@@ -27,7 +29,9 @@
 <?import javafx.scene.layout.VBox?>
 <?import org.controlsfx.control.BreadCrumbBar?>
 
-<fx:root fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="768.0" prefWidth="1024.0" type="BorderPane" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="768.0" prefWidth="1024.0" type="BorderPane" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1">
+   
+   
    <top>
       <VBox BorderPane.alignment="CENTER">
          <children>
@@ -140,7 +144,50 @@
               <panes>
                 <TitledPane fx:id="repositoriesList" animated="false" expanded="true" text="Repositories">
                      <content>
-                        <TreeView fx:id="repositoryTree" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
+                        <TreeView fx:id="repositoryTree" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+                           <contextMenu>
+                              <ContextMenu>
+                                <items>
+                                    <MenuItem mnemonicParsing="false" onAction="#undoSelected" text="Undo">
+                                       <accelerator>
+                                          <KeyCodeCombination alt="UP" code="Z" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                                       </accelerator>
+                                    </MenuItem>
+                                    <MenuItem mnemonicParsing="false" onAction="#redoSelected" text="Redo">
+                                       <accelerator>
+                                          <KeyCodeCombination alt="UP" code="Z" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
+                                       </accelerator>
+                                    </MenuItem>
+                                    <SeparatorMenuItem mnemonicParsing="false" />
+                                  <MenuItem mnemonicParsing="false" onAction="#pullSelected" text="Pull">
+                                       <accelerator>
+                                          <KeyCodeCombination alt="UP" code="DOWN" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                                       </accelerator>
+                                    </MenuItem>
+                                    <MenuItem mnemonicParsing="false" onAction="#pushSelected" text="Push">
+                                       <accelerator>
+                                          <KeyCodeCombination alt="UP" code="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                                       </accelerator>
+                                    </MenuItem>
+                                    <MenuItem mnemonicParsing="false" onAction="#branchSelected" text="Branch">
+                                       <accelerator>
+                                          <KeyCodeCombination alt="UP" code="B" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                                       </accelerator>
+                                    </MenuItem>
+                                    <SeparatorMenuItem mnemonicParsing="false" />
+                                    <MenuItem mnemonicParsing="false" onAction="#stashSelected" text="Stash">
+                                       <accelerator>
+                                          <KeyCodeCombination alt="UP" code="S" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                                       </accelerator>
+                                    </MenuItem>
+                                    <MenuItem mnemonicParsing="false" onAction="#popSelected" text="Pop">
+                                       <accelerator>
+                                          <KeyCodeCombination alt="UP" code="P" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                                       </accelerator>
+                                    </MenuItem>
+                                </items>
+                              </ContextMenu>
+                           </contextMenu></TreeView>
                      </content>
                 </TitledPane>
                 <TitledPane fx:id="repositoryOverview" animated="false" text="Repository Overview">
@@ -212,9 +259,9 @@
             </SplitPane>
             <VBox spacing="8.0">
                <children>
-                  <Label contentDisplay="RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Commit message" wrapText="true">
+                  <Label fx:id="commitMessageLabel" contentDisplay="RIGHT" disable="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Commit message" wrapText="true">
                      <graphic>
-                        <Button maxHeight="1.7976931348623157E308" mnemonicParsing="false" text="+" />
+                        <ToggleButton fx:id="expandCommitMessageButton" disable="true" maxHeight="1.7976931348623157E308" mnemonicParsing="false" text="+" />
                      </graphic>
                   </Label>
                   <GridPane hgap="8.0">
@@ -232,14 +279,14 @@
                      <children>
                         <Label minWidth="-Infinity" text="Author:" />
                         <Label minWidth="-Infinity" text="E-Mail:" GridPane.rowIndex="1" />
-                        <Label minWidth="-Infinity" text="Date:" GridPane.rowIndex="2" />
+                        <Label minWidth="-Infinity" text="Time:" GridPane.rowIndex="2" />
                         <Label minWidth="-Infinity" text="Commit:" GridPane.rowIndex="3" />
                         <Label minWidth="-Infinity" text="Parent:" GridPane.rowIndex="4" />
-                        <Label text="author" GridPane.columnIndex="1" />
-                        <Label text="email" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                        <Label text="date" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                        <Label text="lorem ipsum dolor sit amet consectetur noi" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                        <Label text="hash code" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                        <Label fx:id="authorLabel" disable="true" GridPane.columnIndex="1" />
+                        <Label fx:id="emailLabel" disable="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <Label fx:id="timeLabel" disable="true" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                        <Label fx:id="hashLabel" disable="true" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                        <Label fx:id="parentHashLabel" disable="true" GridPane.columnIndex="1" GridPane.rowIndex="4" />
                      </children>
                   </GridPane>
                   <Separator />

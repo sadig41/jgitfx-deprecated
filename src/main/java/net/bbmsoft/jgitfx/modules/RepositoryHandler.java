@@ -13,9 +13,15 @@ public class RepositoryHandler implements Observable {
 	private final Repository repository;
 	private final List<InvalidationListener> listeners;
 
+	public RepositoryHandler(Repository repository) {
+		this(repository, null);
+	}
+
 	public RepositoryHandler(Repository repository, InvalidationListener listener) {
 		this.listeners = new ArrayList<>();
-		this.listeners.add(listener);
+		if (listener != null) {
+			this.listeners.add(listener);
+		}
 		this.repository = repository;
 		this.invalidate();
 	}
