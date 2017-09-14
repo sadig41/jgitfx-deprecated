@@ -18,8 +18,8 @@ class JGitFX extends Subapplication {
 		val persistor = new JsonFilePersistor
 		val repoRegistry = new PersistingRepositoryRegistry(persistor)
 		
-		if(repoRegistry.registeredRepositories.isEmpty) {
-			repoRegistry.registeredRepositories.add = new File('test-repo')
+		if(repoRegistry.registeredRepositories.isEmpty && System.getProperty('test.repo') !== null) {
+			repoRegistry.registeredRepositories.add = new File(System.getProperty('test.repo'))
 		}
 		
 		scene = new Scene(new JGitFXMainFrame => [
