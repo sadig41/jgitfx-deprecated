@@ -7,9 +7,15 @@ public class RepositoryWrapper {
 	private final Repository repository;
 	private final String name;
 	private final String fullName;
+	private final boolean longName;
 
 	public RepositoryWrapper(Repository repository) {
+		this(repository, true);
+	}
+
+	public RepositoryWrapper(Repository repository, boolean longName) {
 		this.repository = repository;
+		this.longName = longName;
 		this.name = this.repository.getWorkTree().getName();
 		this.fullName = String.format("%s (%s)", this.name, this.repository.getDirectory().getAbsolutePath());
 	}
@@ -42,10 +48,10 @@ public class RepositoryWrapper {
 	public Repository getRepository() {
 		return repository;
 	}
-	
+
 	@Override
 	public String toString() {
-		return fullName;
+		return longName ? fullName : name;
 	}
 
 }
