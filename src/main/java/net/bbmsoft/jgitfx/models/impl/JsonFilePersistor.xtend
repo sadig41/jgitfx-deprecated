@@ -2,17 +2,26 @@ package net.bbmsoft.jgitfx.models.impl
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonDeserializationContext
+import com.google.gson.JsonDeserializer
+import com.google.gson.JsonElement
+import com.google.gson.JsonParseException
+import com.google.gson.JsonPrimitive
+import com.google.gson.JsonSerializationContext
+import com.google.gson.JsonSerializer
+import com.google.gson.reflect.TypeToken
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
+import java.io.Reader
+import java.lang.reflect.Type
 import java.nio.file.Paths
 import java.util.Collections
 import java.util.List
 import java.util.function.Consumer
 import java.util.function.Function
 import net.bbmsoft.bbm.utils.Persistor
-import java.io.Reader
-import com.google.gson.reflect.TypeToken
+import java.io.Flushable
 
 class JsonFilePersistor implements Persistor<List<File>> {
 
@@ -43,8 +52,10 @@ class JsonFilePersistor implements Persistor<List<File>> {
 		this.appendableSupplier = appendableSupplier
 		this.readerSupplier = readerSupplier
 
-		val builder = new GsonBuilder
-		if(prettyPrint) builder.setPrettyPrinting
+		val builder = new GsonBuilder => [
+			if(prettyPrint) setPrettyPrinting
+			registerTypeAdapter(File, new FileAdaptor)
+		]
 		this.gson = builder.create
 
 		if (reposFile !== null) {
@@ -67,14 +78,32 @@ class JsonFilePersistor implements Persistor<List<File>> {
 		if (!this.reposFile.exists) {
 			loadCallback.accept(Collections.emptyList)
 		} else {
-			val fileType = new TypeToken<List<File>>() {}.getType();
+			val fileType = new TypeToken<List<File>>() {
+			}.getType();
 			val List<File> list = this.gson.fromJson(this.readerSupplier.apply(this.reposFile), fileType)
-			loadCallback.accept(list)
+			loadCallback.accept(list ?: Collections.emptyList)
 		}
 	}
 
 	override persist(List<File> object, ExceptionHandler exceptionHandler) {
-		this.gson.toJson(object, this.appendableSupplier.apply(this.reposFile))
+		val appenable = this.appendableSupplier.apply(this.reposFile)
+		this.gson.toJson(object, appenable)
+		if(appenable instanceof Flushable) {
+			appenable.flush
+		}
+	}
+
+	static class FileAdaptor implements JsonSerializer<File>, JsonDeserializer<File> {
+
+		override serialize(File src, Type typeOfSrc, JsonSerializationContext context) {
+			new JsonPrimitive(src?.absolutePath ?: '')
+		}
+
+		override deserialize(JsonElement json, Type typeOfT,
+			JsonDeserializationContext context) throws JsonParseException {
+			new File(json.asString)
+		}
+
 	}
 
 }

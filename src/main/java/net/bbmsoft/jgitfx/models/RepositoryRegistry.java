@@ -1,9 +1,10 @@
 package net.bbmsoft.jgitfx.models;
 
 import java.io.File;
-import java.util.List;
+
+import javafx.collections.ObservableList;
 
 public interface RepositoryRegistry {
 
-	public List<File> getRegisteredRepositories();
+	public ObservableList<File> getRegisteredRepositories();
 }

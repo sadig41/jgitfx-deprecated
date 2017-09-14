@@ -3,7 +3,9 @@ package net.bbmsoft.jgitfx
 import javafx.scene.Scene
 import javafx.stage.Stage
 import net.bbmsoft.fxtended.annotations.app.launcher.Subapplication
-import net.bbmsoft.jgitfx.models.impl.FakeRepositoryRegistry
+import net.bbmsoft.jgitfx.models.impl.JsonFilePersistor
+import net.bbmsoft.jgitfx.models.impl.PersistingRepositoryRegistry
+import java.io.File
 
 class JGitFX extends Subapplication {
 	
@@ -13,7 +15,12 @@ class JGitFX extends Subapplication {
 	
 	override start(Stage it) throws Exception {
 		
-		val repoRegistry = new FakeRepositoryRegistry
+		val persistor = new JsonFilePersistor
+		val repoRegistry = new PersistingRepositoryRegistry(persistor)
+		
+		if(repoRegistry.registeredRepositories.isEmpty) {
+			repoRegistry.registeredRepositories.add = new File('test-repo')
+		}
 		
 		scene = new Scene(new JGitFXMainFrame => [
 			
@@ -30,7 +37,7 @@ class JGitFX extends Subapplication {
 			quitAction = [println('quit')]
 			aboutAction = [println('about')]
 			
-			registeredRepositories.all = repoRegistry.registeredRepositories
+			registeredRepositories = repoRegistry.registeredRepositories
 		])
 		
 		show

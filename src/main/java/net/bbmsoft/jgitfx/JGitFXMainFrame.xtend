@@ -3,6 +3,7 @@ package net.bbmsoft.jgitfx
 import java.io.File
 import java.net.URL
 import java.util.ResourceBundle
+import javafx.beans.InvalidationListener
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import javafx.fxml.FXML
@@ -13,7 +14,6 @@ import net.bbmsoft.fxtended.annotations.app.FXMLRoot
 import net.bbmsoft.fxtended.annotations.binding.BindableProperty
 import net.bbmsoft.jgitfx.wrappers.RepositoryWrapper
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
-import org.eclipse.xtend.lib.annotations.Accessors
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
 
@@ -35,32 +35,44 @@ class JGitFXMainFrame extends BorderPane {
 	@BindableProperty Runnable quitAction
 	@BindableProperty Runnable aboutAction
 
-	@Accessors(PUBLIC_GETTER) final ObservableList<File> registeredRepositories = FXCollections.observableArrayList
-	
+	@BindableProperty ObservableList<File> registeredRepositories
+
+	InvalidationListener repositoriesListener
+
 	TreeItem<RepositoryWrapper> rootRepoTreeItem
 
 	override initialize(URL location, ResourceBundle resources) {
+		this.repositoriesListener = [updateRepoTree]
+		this.registeredRepositories = FXCollections.observableArrayList
+		this.registeredRepositoriesProperty >> [o, ov, nv|updateRepositoriesListener(ov, nv)]
 		this.rootRepoTreeItem = new TreeItem
 		this.repositoryTree.root = rootRepoTreeItem
 		this.repositoryTree.showRoot = false
-		this.registeredRepositories >> [updateRepoTree]
+	}
+
+	def updateRepositoriesListener(ObservableList<File> oldList, ObservableList<File> newList) {
+		oldList?.removeListener(this.repositoriesListener)
+		newList?.addListener(this.repositoriesListener)
+		updateRepoTree
 	}
 
 	private def updateRepoTree() {
-		
-		this.registeredRepositories.forEach[this.rootRepoTreeItem.children.add = loadRepoTreeItem]
+		val repos = newArrayList
+		this.registeredRepositories.forEach[repos.add = loadRepoTreeItem]
+		this.rootRepoTreeItem.children.all = repos
 	}
-	
+
 	private def TreeItem<RepositoryWrapper> loadRepoTreeItem(File repoDir) {
-		new TreeItem(loadRepo(repoDir))	=> [addSubrepos]
+		new TreeItem(loadRepo(repoDir)) => [addSubrepos]
 	}
-	
+
 	private def addSubrepos(TreeItem<RepositoryWrapper> repoItem) {
 		// TODO add subrepos
 	}
-	
+
 	private def RepositoryWrapper loadRepo(File dir) {
-		new RepositoryWrapper(new FileRepositoryBuilder().setGitDir(dir).readEnvironment.findGitDir.build)
+		val repository = new FileRepositoryBuilder().setGitDir(dir).readEnvironment.findGitDir.build
+		new RepositoryWrapper(repository)
 	}
 
 	def undo() {
