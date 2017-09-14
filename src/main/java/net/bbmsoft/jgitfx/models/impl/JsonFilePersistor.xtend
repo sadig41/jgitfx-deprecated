@@ -13,15 +13,16 @@ import com.google.gson.reflect.TypeToken
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
+import java.io.Flushable
 import java.io.Reader
 import java.lang.reflect.Type
-import java.nio.file.Paths
 import java.util.Collections
 import java.util.List
 import java.util.function.Consumer
 import java.util.function.Function
 import net.bbmsoft.bbm.utils.Persistor
-import java.io.Flushable
+import net.bbmsoft.bbm.utils.Persistor.ExceptionHandler
+import net.bbmsoft.jgitfx.modules.AppDirectoryProvider
 
 class JsonFilePersistor implements Persistor<List<File>> {
 
@@ -61,15 +62,7 @@ class JsonFilePersistor implements Persistor<List<File>> {
 		if (reposFile !== null) {
 			this.reposFile = reposFile
 		} else {
-			val home = System.getProperty('user.home')
-			val dir = Paths.get(home).resolve('.jgitfx')
-			val jgitfxDir = dir.toFile
-			if (!jgitfxDir.exists) {
-				jgitfxDir.mkdirs
-			}
-
-			val file = dir.resolve('repositories')
-			this.reposFile = file.toFile
+			this.reposFile = AppDirectoryProvider.getFilePathFromAppDirectory('repositories.json')
 		}
 	}
 

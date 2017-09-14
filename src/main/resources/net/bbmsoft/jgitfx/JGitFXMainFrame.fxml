@@ -48,6 +48,11 @@
                            <accelerator>
                               <KeyCodeCombination alt="UP" code="C" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                            </accelerator></MenuItem>
+                        <MenuItem mnemonicParsing="false" onAction="#batchCloneRepo" text="Batch clone repos...">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="C" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
+                           </accelerator>
+                        </MenuItem>
                         <SeparatorMenuItem mnemonicParsing="false" />
                         <MenuItem mnemonicParsing="false" onAction="#quit" text="Quit">
                            <accelerator>
@@ -130,9 +135,14 @@
    <center>
       <SplitPane dividerPositions="0.2, 0.8" BorderPane.alignment="CENTER">
          <items>
-            <Accordion prefWidth="200.0">
+            <Accordion>
               <panes>
-                <TitledPane fx:id="repoOverviewPane" animated="false" text="Repository Overview">
+                <TitledPane fx:id="repositoriesList" animated="false" expanded="true" text="Repositories">
+                     <content>
+                        <TreeView fx:id="repositoryTree" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
+                     </content>
+                </TitledPane>
+                <TitledPane fx:id="repositoryOverview" animated="false" text="Repository Overview">
                      <content>
                         <VBox spacing="8.0">
                            <children>
@@ -178,11 +188,6 @@
                               </TitledPane>
                            </children>
                         </VBox>
-                     </content>
-                </TitledPane>
-                <TitledPane animated="false" text="Repositories">
-                     <content>
-                        <TreeView fx:id="repositoryTree" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
                      </content>
                 </TitledPane>
               </panes>

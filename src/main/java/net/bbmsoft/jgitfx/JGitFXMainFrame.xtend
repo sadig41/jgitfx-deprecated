@@ -12,6 +12,7 @@ import javafx.collections.ObservableList
 import javafx.fxml.FXML
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView
+import javafx.scene.control.TitledPane
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.scene.layout.BorderPane
@@ -25,6 +26,9 @@ import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
+import javafx.application.Platform
+import net.bbmsoft.jgitfx.modules.Preferences
+import net.bbmsoft.jgitfx.modules.AppDirectoryProvider
 
 @FXMLRoot
 class JGitFXMainFrame extends BorderPane {
@@ -35,8 +39,12 @@ class JGitFXMainFrame extends BorderPane {
 	@FXML TableColumn<RevCommit, String> authorColumn
 	@FXML TableColumn<RevCommit, String> timeColumn
 	@FXML TreeView<RepositoryWrapper> repositoryTree
+	
+	@FXML TitledPane repositoryOverview
+	@FXML TitledPane repositoriesList
 
 	@BindableProperty Runnable cloneAction
+	@BindableProperty Runnable batchCloneAction
 	@BindableProperty Runnable initAction
 	@BindableProperty Runnable openAction
 	@BindableProperty Runnable quitAction
@@ -53,8 +61,12 @@ class JGitFXMainFrame extends BorderPane {
 	@BindableProperty RepositoryHandler repositoryHandler
 	
 	RepositoryTableVisualizer historyVisualizer
+	
+	Preferences prefs
 
 	override initialize(URL location, ResourceBundle resources) {
+		
+		this.prefs = Preferences.loadFromFile(AppDirectoryProvider.getFilePathFromAppDirectory('config.json'))
 		this.historyVisualizer = new RepositoryTableVisualizer(this.historyTable, this.branchColumn, this.commitMessageColumn, this.authorColumn, this.timeColumn)
 		this.repositoryMap = new HashMap
 		this.repositoriesListener = [updateRepoTree]
@@ -69,6 +81,8 @@ class JGitFXMainFrame extends BorderPane {
 				this.repositoryTree.selectionModel.selectedItem?.value?.repository?.open
 			}
 		]
+		
+		Platform.runLater[this.repositoriesList.expanded = true]
 	}
 
 	def updateRepo(Observable repoHandler) {
@@ -149,6 +163,10 @@ class JGitFXMainFrame extends BorderPane {
 	def cloneRepo() {
 		this.cloneAction?.run
 	}
+	
+	def batchCloneRepo() {
+		this.batchCloneAction?.run
+	}
 
 	def initRepo() {
 		this.initAction?.run
@@ -180,6 +198,9 @@ class JGitFXMainFrame extends BorderPane {
 		this.repositoryHandler?.removeListener(this.repositoryListener)
 		this.repositoryHandler = new RepositoryHandler(repository, this.repositoryListener)
 		// TODO
+		if(prefs.switchToRepositoryOverview) {
+			this.repositoryOverview.expanded = true
+		}
 		true
 	}
 

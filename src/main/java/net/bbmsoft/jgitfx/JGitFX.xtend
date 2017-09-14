@@ -27,6 +27,7 @@ class JGitFX extends Subapplication {
 		stage.scene = new Scene(new JGitFXMainFrame => [
 			
 			cloneAction = [println('clone')]
+			batchCloneAction = [println('batch clone')]
 			initAction = [println('init')]
 			openAction = [opener.openRepo(stage, repoRegistry)[repo|open(repo)]]
 			quitAction = [println('quit')]
