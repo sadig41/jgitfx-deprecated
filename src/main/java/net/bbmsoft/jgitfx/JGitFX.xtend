@@ -26,13 +26,6 @@ class JGitFX extends Subapplication {
 		
 		stage.scene = new Scene(new JGitFXMainFrame => [
 			
-			undoAction = [println('undo')]
-			redoAction = [println('redo')]
-			pullAction = [println('pull')]
-			pushAction = [println('push')]
-			branchAction = [println('branch')]
-			stashAction = [println('stash')]
-			popAction = [println('pop')]
 			cloneAction = [println('clone')]
 			initAction = [println('init')]
 			openAction = [opener.openRepo(stage, repoRegistry)[repo|open(repo)]]
