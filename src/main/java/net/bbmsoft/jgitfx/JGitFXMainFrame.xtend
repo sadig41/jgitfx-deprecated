@@ -16,6 +16,9 @@ import net.bbmsoft.jgitfx.wrappers.RepositoryWrapper
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
+import org.eclipse.jgit.lib.Repository
+import java.util.Map
+import java.util.HashMap
 
 @FXMLRoot
 class JGitFXMainFrame extends BorderPane {
@@ -36,18 +39,25 @@ class JGitFXMainFrame extends BorderPane {
 	@BindableProperty Runnable aboutAction
 
 	@BindableProperty ObservableList<File> registeredRepositories
+	Map<File, Repository> repositoryMap
 
 	InvalidationListener repositoriesListener
 
 	TreeItem<RepositoryWrapper> rootRepoTreeItem
 
 	override initialize(URL location, ResourceBundle resources) {
+		this.repositoryMap = new HashMap
 		this.repositoriesListener = [updateRepoTree]
 		this.registeredRepositories = FXCollections.observableArrayList
 		this.registeredRepositoriesProperty >> [o, ov, nv|updateRepositoriesListener(ov, nv)]
 		this.rootRepoTreeItem = new TreeItem
 		this.repositoryTree.root = rootRepoTreeItem
 		this.repositoryTree.showRoot = false
+		this.repositoryTree.onMouseClicked = [
+			if (clickCount == 2) {
+				this.repositoryTree.selectionModel.selectedItem?.value?.repository?.open
+			}
+		]
 	}
 
 	def updateRepositoriesListener(ObservableList<File> oldList, ObservableList<File> newList) {
@@ -57,6 +67,7 @@ class JGitFXMainFrame extends BorderPane {
 	}
 
 	private def updateRepoTree() {
+		this.repositoryMap.clear
 		val repos = newArrayList
 		this.registeredRepositories.forEach[repos.add = loadRepoTreeItem]
 		this.rootRepoTreeItem.children.all = repos
@@ -72,6 +83,7 @@ class JGitFXMainFrame extends BorderPane {
 
 	private def RepositoryWrapper loadRepo(File dir) {
 		val repository = new FileRepositoryBuilder().setGitDir(dir).readEnvironment.findGitDir.build
+		this.repositoryMap.put(dir, repository)
 		new RepositoryWrapper(repository)
 	}
 
@@ -122,4 +134,20 @@ class JGitFXMainFrame extends BorderPane {
 	def about() {
 		this.aboutAction?.run
 	}
+
+	def boolean open(File repoDir) {
+		val repo = this.repositoryMap.get(repoDir)
+		if (repo !== null) {
+			open(repo)
+		} else {
+			false
+		}
+	}
+
+	def boolean open(Repository repository) {
+		// TODO
+		println('''Opening repo «repository.directory.absolutePath»''')
+		true
+	}
+
 }

@@ -28,5 +28,13 @@ class PersistingRepositoryRegistry implements RepositoryRegistry {
 	override getRegisteredRepositories() {
 		return this.repositories
 	}
+	
+	override registerRepository(File repositoryFile) {
+		if(!this.repositories.contains(repositoryFile)) {
+			this.repositories.add(repositoryFile)
+		} else {
+			false
+		}
+	}
 
 }

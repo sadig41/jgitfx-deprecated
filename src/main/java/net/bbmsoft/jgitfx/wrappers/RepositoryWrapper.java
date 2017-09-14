@@ -39,7 +39,7 @@ public class RepositoryWrapper {
 		return true;
 	}
 
-	public Repository getRpository() {
+	public Repository getRepository() {
 		return repository;
 	}
 	

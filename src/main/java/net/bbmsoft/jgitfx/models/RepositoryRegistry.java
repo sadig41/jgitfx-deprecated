@@ -7,4 +7,6 @@ import javafx.collections.ObservableList;
 public interface RepositoryRegistry {
 
 	public ObservableList<File> getRegisteredRepositories();
+	
+	public boolean registerRepository(File repositoryFile);
 }
