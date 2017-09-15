@@ -35,6 +35,8 @@ import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
+import org.eclipse.jgit.diff.DiffEntry
+import org.eclipse.jgit.diff.DiffEntry.ChangeType
 
 @FXMLRoot
 class JGitFXMainFrame extends BorderPane {
@@ -47,7 +49,9 @@ class JGitFXMainFrame extends BorderPane {
 	@FXML TableColumn<RevCommit, String> authorColumn
 	@FXML TableColumn<RevCommit, String> timeColumn
 	
-	@FXML TableView<File> changedFilesOverview
+	@FXML TableView<DiffEntry> changedFilesOverview
+	@FXML TableColumn<DiffEntry, ChangeType> commitTypeColumn
+	@FXML TableColumn<DiffEntry, String> commitFileColumn
 	
 	@FXML TreeView<RepositoryWrapper> repositoryTree
 
@@ -122,7 +126,7 @@ class JGitFXMainFrame extends BorderPane {
 		this.repositoryTree.selectionModel.selectedItems > [updateRepositoryTreeContextMenu]
 		
 		this.historyTable.selectionModel.selectedItemProperty.addListener(new CommitInfoAnimator(this.commitMessageLabel, this.authorLabel, this.emailLabel, this.timeLabel, this.hashLabel, this.parentHashLabel))
-		this.historyTable.selectionModel.selectedItemProperty.addListener(new ChangedFilesAnimator(this.changedFilesOverview)[this.repositoryHandler?.repository])
+		this.historyTable.selectionModel.selectedItemProperty.addListener(new ChangedFilesAnimator(this.changedFilesOverview, this.commitTypeColumn, this.commitFileColumn)[this.repositoryHandler?.repository])
 		this.historyTable.selectionModel.selectedItemProperty.addListener(new StagingAnimator())
 
 		Platform.runLater[this.repositoriesList.expanded = true]
