@@ -21,6 +21,9 @@ import javafx.beans.property.SimpleBooleanProperty
 import net.bbmsoft.fxtended.annotations.binding.BindableProperty
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
+import javafx.beans.property.ObjectProperty
+import javafx.beans.property.SimpleObjectProperty
+import com.google.gson.reflect.TypeToken
 
 class Preferences {
 
@@ -30,6 +33,7 @@ class Preferences {
 
 	@BindableProperty boolean switchToRepositoryOverview = true
 	@BindableProperty boolean maximized = false
+	@BindableProperty File lastOpened = null
 
 	new(File persistenceFile) {
 		this.init(persistenceFile)
@@ -46,6 +50,7 @@ class Preferences {
 	private def registerListeners() {
 		this.switchToRepositoryOverviewProperty > [persist]
 		this.maximizedProperty > [persist]
+		this.lastOpenedProperty > [persist]
 	}
 
 	def toJson() {
@@ -75,7 +80,10 @@ class Preferences {
 
 	private static def buildGson() {
 		(new GsonBuilder => [
+			val filePropertyType = new TypeToken<ObjectProperty<File>>() {
+			}.getType();
 			registerTypeAdapter(BooleanProperty, new BooleanPropertyAdapter)
+			registerTypeAdapter(filePropertyType, new FilePropertyAdaptor)
 			setPrettyPrinting
 		]).create
 	}
@@ -94,6 +102,24 @@ class Preferences {
 					false
 				}
 			new SimpleBooleanProperty(value)
+		}
+
+	}
+	
+	static class FilePropertyAdaptor implements JsonSerializer<ObjectProperty<File>>, JsonDeserializer<ObjectProperty<File>> {
+
+		override serialize(ObjectProperty<File> src, Type typeOfSrc, JsonSerializationContext context) {
+			new JsonPrimitive(src.get.absolutePath)
+		}
+
+		override deserialize(JsonElement json, Type typeOfT,
+			JsonDeserializationContext context) throws JsonParseException {
+			val value = try {
+					new File(json.asString)
+				} catch (Throwable th) {
+					null
+				}
+			new SimpleObjectProperty<File>(value)
 		}
 
 	}

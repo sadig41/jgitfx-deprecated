@@ -37,12 +37,11 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
 import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
+import net.bbmsoft.jgitfx.wrappers.RepositoryWrapper.DummyWrapper
 
 @FXMLRoot
 class JGitFXMainFrame extends BorderPane {
-
-	private static final String BREADCRUMB_ROOT_FILE = 'JGitFX'
-
+	
 	@FXML TableView<RevCommit> historyTable
 	@FXML TableColumn<RevCommit, String> branchColumn
 	@FXML TableColumn<RevCommit, String> commitMessageColumn
@@ -83,13 +82,12 @@ class JGitFXMainFrame extends BorderPane {
 	@BindableProperty Runnable aboutAction
 
 	@BindableProperty ObservableList<File> registeredRepositories
-	Map<File, Repository> repositoryMap
+	Map<File, TreeItem<RepositoryWrapper>> repositoryMap
 
 	InvalidationListener repositoriesListener
 	InvalidationListener repositoryListener
 
 	TreeItem<RepositoryWrapper> rootRepoTreeItem
-	TreeItem<RepositoryWrapper> breadCrumbRoot
 
 	@BindableProperty RepositoryHandler repositoryHandler
 
@@ -111,14 +109,13 @@ class JGitFXMainFrame extends BorderPane {
 		this.repositoryListener = [updateRepo]
 		this.registeredRepositories = FXCollections.observableArrayList
 		this.registeredRepositoriesProperty >> [o, ov, nv|updateRepositoriesListener(ov, nv)]
-		this.breadCrumbRoot = new TreeItem(new File(BREADCRUMB_ROOT_FILE))
-		this.breadcrumb.selectedCrumb = this.breadCrumbRoot
-		this.rootRepoTreeItem = new TreeItem
+		this.rootRepoTreeItem = new TreeItem(new DummyWrapper('JGitFX'))
+		this.breadcrumb.selectedCrumb = this.rootRepoTreeItem
 		this.repositoryTree.root = rootRepoTreeItem
 		this.repositoryTree.showRoot = false
 		this.repositoryTree.onMouseClicked = [
 			if (clickCount == 2) {
-				this.repositoryTree.selectionModel.selectedItem?.value?.repository?.open
+				this.repositoryTree.selectionModel.selectedItem?.open
 			}
 		]
 		
@@ -190,7 +187,7 @@ class JGitFXMainFrame extends BorderPane {
 		// TODO show error message when opening the repo fails
 		val repository = builder.build
 		
-		this.repositoryMap.put(dir, repository)
+		this.repositoryMap.put(dir, new TreeItem(new RepositoryWrapper(repository)))
 		new RepositoryWrapper(repository)
 	}
 
@@ -327,21 +324,15 @@ class JGitFXMainFrame extends BorderPane {
 		}
 	}
 
-	private def TreeItem<RepositoryWrapper> buildCrumb(Repository repo) {
-		// TODO include hierarchy
-		new TreeItem(new RepositoryWrapper(repo, false)) => [
-			this.breadCrumbRoot.children.all = #[it]
-		]
-	}
-
-	def boolean open(Repository repository) {
-		println('''Opening repo «repository.directory.absolutePath»''')
+	def boolean open(TreeItem<RepositoryWrapper> repoItem) {
+		val repository = repoItem.value.repository
 		this.repositoryHandler?.removeListener(this.repositoryListener)
 		this.repositoryHandler = new RepositoryHandler(repository, this.repositoryListener)
-		val treeItem = buildCrumb(repository)
-		this.breadcrumb.selectedCrumb = treeItem
+		this.breadcrumb.selectedCrumb = repoItem
+		this.prefs.lastOpened = repository.directory
 		if (prefs.switchToRepositoryOverview) {
-			this.repositoryOverview.expanded = true
+			// delay so it also works on startup
+			Platform.runLater[this.repositoryOverview.expanded = true]
 		}
 		true
 	}

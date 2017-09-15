@@ -38,6 +38,10 @@ class JGitFX extends Subapplication {
 			aboutAction = [println('about')]
 
 			registeredRepositories = repoRegistry.registeredRepositories
+			
+			if(prefs.lastOpened !== null) {
+				open(prefs.lastOpened)
+			}
 		])
 		
 		stage.maximized = prefs.maximized
