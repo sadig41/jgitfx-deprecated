@@ -20,6 +20,8 @@ import javafx.scene.control.TitledPane
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.scene.layout.BorderPane
+import net.bbmsoft.bbm.utils.Lockable
+import net.bbmsoft.bbm.utils.concurrent.TasksView
 import net.bbmsoft.fxtended.annotations.app.FXMLRoot
 import net.bbmsoft.fxtended.annotations.binding.BindableProperty
 import net.bbmsoft.jgitfx.modules.ChangedFilesAnimator
@@ -29,43 +31,45 @@ import net.bbmsoft.jgitfx.modules.RepositoryHandler
 import net.bbmsoft.jgitfx.modules.RepositoryTableVisualizer
 import net.bbmsoft.jgitfx.modules.StagingAnimator
 import net.bbmsoft.jgitfx.wrappers.RepositoryWrapper
+import net.bbmsoft.jgitfx.wrappers.RepositoryWrapper.DummyWrapper
 import org.controlsfx.control.BreadCrumbBar
+import org.eclipse.jgit.diff.DiffEntry
+import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
-import org.eclipse.jgit.diff.DiffEntry
-import org.eclipse.jgit.diff.DiffEntry.ChangeType
-import net.bbmsoft.jgitfx.wrappers.RepositoryWrapper.DummyWrapper
+import java.util.concurrent.ExecutorService
+import org.eclipse.xtend.lib.annotations.Accessors
 
 @FXMLRoot
 class JGitFXMainFrame extends BorderPane {
-	
+
 	@FXML TableView<RevCommit> historyTable
 	@FXML TableColumn<RevCommit, String> branchColumn
 	@FXML TableColumn<RevCommit, String> commitMessageColumn
 	@FXML TableColumn<RevCommit, String> authorColumn
 	@FXML TableColumn<RevCommit, String> timeColumn
-	
+
 	@FXML TableView<DiffEntry> changedFilesOverview
 	@FXML TableColumn<DiffEntry, ChangeType> commitTypeColumn
 	@FXML TableColumn<DiffEntry, String> commitFileColumn
-	
+
 	@FXML TreeView<RepositoryWrapper> repositoryTree
 
 	@FXML TitledPane repositoryOverview
 	@FXML TitledPane repositoriesList
 
 	@FXML BreadCrumbBar<RepositoryWrapper> breadcrumb
-	
+
 	@FXML Label commitMessageLabel
 	@FXML Label authorLabel
 	@FXML Label emailLabel
 	@FXML Label timeLabel
 	@FXML Label hashLabel
 	@FXML Label parentHashLabel
-	
+
 	@FXML MenuItem undoContextMenuItem
 	@FXML MenuItem redoContextMenuItem
 	@FXML MenuItem pullContextMenuItem
@@ -73,6 +77,9 @@ class JGitFXMainFrame extends BorderPane {
 	@FXML MenuItem branchContextMenuItem
 	@FXML MenuItem stashContextMenuItem
 	@FXML MenuItem popContextMenuItem
+
+	@Accessors(PUBLIC_GETTER)
+	@FXML TasksView tasksView
 
 	@BindableProperty Runnable cloneAction
 	@BindableProperty Runnable batchCloneAction
@@ -94,10 +101,21 @@ class JGitFXMainFrame extends BorderPane {
 	RepositoryTableVisualizer historyVisualizer
 
 	Preferences prefs
-	
-	new(Preferences prefs) {
+	Lockable locker
+
+	ExecutorService gitWorker
+
+	new(Preferences prefs, ExecutorService gitWorker) {
 		this()
+		this.gitWorker = gitWorker
 		this.prefs = prefs
+		this.tasksView.executor = this.gitWorker
+		this.locker = new Lockable() {
+
+			override lock() {}
+
+			override unlock() {}
+		}
 	}
 
 	override initialize(URL location, ResourceBundle resources) {
@@ -118,21 +136,26 @@ class JGitFXMainFrame extends BorderPane {
 				this.repositoryTree.selectionModel.selectedItem?.open
 			}
 		]
-		
+
 		this.repositoryTree.selectionModel.selectionMode = SelectionMode.MULTIPLE
 		this.repositoryTree.selectionModel.selectedItems > [updateRepositoryTreeContextMenu]
-		
-		this.historyTable.selectionModel.selectedItemProperty.addListener(new CommitInfoAnimator(this.commitMessageLabel, this.authorLabel, this.emailLabel, this.timeLabel, this.hashLabel, this.parentHashLabel))
-		this.historyTable.selectionModel.selectedItemProperty.addListener(new ChangedFilesAnimator(this.changedFilesOverview, this.commitTypeColumn, this.commitFileColumn)[this.repositoryHandler?.repository])
+
+		this.historyTable.selectionModel.selectedItemProperty.addListener(
+			new CommitInfoAnimator(this.commitMessageLabel, this.authorLabel, this.emailLabel, this.timeLabel,
+				this.hashLabel, this.parentHashLabel))
+		this.historyTable.selectionModel.selectedItemProperty.addListener(
+			new ChangedFilesAnimator(this.changedFilesOverview, this.commitTypeColumn, this.commitFileColumn) [
+				this.repositoryHandler?.repository
+			])
 		this.historyTable.selectionModel.selectedItemProperty.addListener(new StagingAnimator())
 
 		Platform.runLater[this.repositoriesList.expanded = true]
 	}
-	
+
 	private def updateRepositoryTreeContextMenu() {
-		
+
 		val size = this.repositoryTree.selectionModel.selectedItems.size
-		
+
 		this.undoContextMenuItem.disable = size <= 0 || size > 1
 		this.redoContextMenuItem.disable = size <= 0 || size > 1
 		this.pullContextMenuItem.disable = size <= 0
@@ -140,7 +163,7 @@ class JGitFXMainFrame extends BorderPane {
 		this.branchContextMenuItem.disable = size <= 0 || size > 1
 		this.stashContextMenuItem.disable = size <= 0 || size > 1
 		this.popContextMenuItem.disable = size <= 0 || size > 1
-		
+
 	}
 
 	def updateRepo(Observable repoHandler) {
@@ -186,7 +209,7 @@ class JGitFXMainFrame extends BorderPane {
 
 		// TODO show error message when opening the repo fails
 		val repository = builder.build
-		
+
 		this.repositoryMap.put(dir, new TreeItem(new RepositoryWrapper(repository)))
 		new RepositoryWrapper(repository)
 	}
@@ -218,7 +241,7 @@ class JGitFXMainFrame extends BorderPane {
 	def pop() {
 		this.repositoryHandler?.pop
 	}
-	
+
 	private def undo(RepositoryHandler repos) {
 		repos?.undo
 	}
@@ -246,23 +269,23 @@ class JGitFXMainFrame extends BorderPane {
 	private def pop(RepositoryHandler repos) {
 		repos?.pop
 	}
-	
+
 	private def RepositoryHandler getHandlerForSelected() {
 		this.repositoryTree.selectionModel.selectedItem?.value?.repository?.getHandler
 	}
-	
+
 	private def RepositoryHandler[] getHandlersForSelected() {
 		this.repositoryTree.selectionModel.selectedItems.map[value?.repository?.getHandler]
 	}
-	
+
 	private def RepositoryHandler getHandler(Repository repository) {
 		getHandler(repository, null)
 	}
-	
+
 	private def RepositoryHandler getHandler(Repository repository, InvalidationListener listener) {
-		new RepositoryHandler(repository, listener)
+		new RepositoryHandler(repository, this.tasksView, this.locker, listener)
 	}
-	
+
 	def undoSelected() {
 		undo(handlerForSelected)
 	}
@@ -327,7 +350,7 @@ class JGitFXMainFrame extends BorderPane {
 	def boolean open(TreeItem<RepositoryWrapper> repoItem) {
 		val repository = repoItem.value.repository
 		this.repositoryHandler?.removeListener(this.repositoryListener)
-		this.repositoryHandler = new RepositoryHandler(repository, this.repositoryListener)
+		this.repositoryHandler = new RepositoryHandler(repository, this.tasksView, this.locker, this.repositoryListener)
 		this.breadcrumb.selectedCrumb = repoItem
 		this.prefs.lastOpened = repository.directory
 		if (prefs.switchToRepositoryOverview) {

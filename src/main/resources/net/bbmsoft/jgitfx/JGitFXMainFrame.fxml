@@ -26,6 +26,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import net.bbmsoft.bbm.utils.concurrent.TasksView?>
 <?import org.controlsfx.control.BreadCrumbBar?>
 
 <fx:root fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="768.0" prefWidth="1024.0" type="BorderPane" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1">
@@ -253,7 +254,12 @@
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                      </columnResizePolicy>
                   </TableView>
-                  <TextArea editable="false" prefHeight="200.0" prefWidth="200.0" />
+                  <VBox>
+                     <children>
+                        <TextArea editable="false" VBox.vgrow="ALWAYS" />
+                        <TasksView fx:id="tasksView" />
+                     </children>
+                  </VBox>
               </items>
             </SplitPane>
             <VBox spacing="8.0">

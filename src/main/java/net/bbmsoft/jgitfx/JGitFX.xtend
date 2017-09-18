@@ -1,16 +1,22 @@
 package net.bbmsoft.jgitfx
 
 import java.io.File
+import java.util.concurrent.ExecutorService
 import javafx.scene.Scene
 import javafx.stage.Stage
 import net.bbmsoft.fxtended.annotations.app.launcher.Subapplication
 import net.bbmsoft.jgitfx.models.impl.JsonFilePersistor
 import net.bbmsoft.jgitfx.models.impl.PersistingRepositoryRegistry
 import net.bbmsoft.jgitfx.modules.AppDirectoryProvider
+import net.bbmsoft.jgitfx.modules.GitWorkerExecutorManager
 import net.bbmsoft.jgitfx.modules.Preferences
 import net.bbmsoft.jgitfx.modules.RepositoryOpener
+
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
+
 class JGitFX extends Subapplication {
+
+	final ExecutorService gitWorker = new GitWorkerExecutorManager
 
 	def static void main(String[] args) {
 		launch
@@ -27,22 +33,26 @@ class JGitFX extends Subapplication {
 		}
 
 		val prefs = Preferences.loadFromFile(AppDirectoryProvider.getFilePathFromAppDirectory('config.json'))
-
-		stage.scene = new Scene(new JGitFXMainFrame(prefs) => [
-
-			cloneAction = [println('clone')]
-			batchCloneAction = [println('batch clone')]
-			initAction = [println('init')]
-			openAction = [opener.openRepo(stage, repoRegistry)[repo|open(repo)]]
-			quitAction = [println('quit')]
-			aboutAction = [println('about')]
-
-			registeredRepositories = repoRegistry.registeredRepositories
-			
-			if(prefs.lastOpened !== null) {
-				open(prefs.lastOpened)
-			}
-		])
+		
+		val jGitFXMainFrame = new JGitFXMainFrame(prefs, this.gitWorker) => [
+		
+					cloneAction = [println('clone')]
+					batchCloneAction = [println('batch clone')]
+					initAction = [println('init')]
+					openAction = [opener.openRepo(stage, repoRegistry)[repo|open(repo)]]
+					quitAction = [println('quit')]
+					aboutAction = [println('about')]
+		
+					registeredRepositories = repoRegistry.registeredRepositories
+					
+					if(prefs.lastOpened !== null) {
+						open(prefs.lastOpened)
+					}
+				]
+				
+		stage.scene = new Scene(jGitFXMainFrame)
+		
+		repoRegistry.taskHelper = jGitFXMainFrame.tasksView
 		
 		stage.maximized = prefs.maximized
 		stage.maximizedProperty > [
