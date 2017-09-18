@@ -3,6 +3,16 @@ package net.bbmsoft.jgitfx.modules;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.CanceledException;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.InvalidConfigurationException;
+import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.api.errors.NoHeadException;
+import org.eclipse.jgit.api.errors.RefNotAdvertisedException;
+import org.eclipse.jgit.api.errors.RefNotFoundException;
+import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.api.errors.WrongRepositoryStateException;
 import org.eclipse.jgit.lib.Repository;
 
 import javafx.beans.InvalidationListener;
@@ -11,6 +21,7 @@ import javafx.beans.Observable;
 public class RepositoryHandler implements Observable {
 
 	private final Repository repository;
+	private final Git git;
 	private final List<InvalidationListener> listeners;
 
 	public RepositoryHandler(Repository repository) {
@@ -23,6 +34,7 @@ public class RepositoryHandler implements Observable {
 			this.listeners.add(listener);
 		}
 		this.repository = repository;
+		this.git = Git.wrap(repository);
 		this.invalidate();
 	}
 
@@ -42,6 +54,36 @@ public class RepositoryHandler implements Observable {
 
 	public void pull() {
 		System.out.println("Performing 'pull' on " + repository);
+		try {
+			this.git.pull().call();
+		} catch (WrongRepositoryStateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvalidConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvalidRemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CanceledException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (RefNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (RefNotAdvertisedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoHeadException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TransportException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (GitAPIException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		this.invalidate();
 	}
 
