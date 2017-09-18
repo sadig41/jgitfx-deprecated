@@ -43,7 +43,7 @@
 		<dependency>
 			<groupId>net.bbmsoft</groupId>
 			<artifactId>bbm-utils</artifactId>
-			<version>1.1.4-SNAPSHOT</version>
+			<version>1.1.4</version>
 		</dependency>
 
 		<dependency>

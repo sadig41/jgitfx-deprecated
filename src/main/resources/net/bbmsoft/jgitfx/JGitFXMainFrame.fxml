@@ -244,7 +244,7 @@
                   <TableView fx:id="historyTable" prefHeight="200.0" prefWidth="200.0" tableMenuButtonVisible="true">
                     <columns>
                       <TableColumn editable="false" prefWidth="191.0" sortable="false" text="Graph" />
-                        <TableColumn fx:id="branchColumn" editable="false" prefWidth="75.0" sortable="false" text="Branch" />
+                        <TableColumn fx:id="branchColumn" editable="false" prefWidth="75.0" sortable="false" text="Refs" />
                       <TableColumn fx:id="commitMessageColumn" editable="false" prefWidth="417.0" sortable="false" text="Commit" />
                         <TableColumn fx:id="authorColumn" editable="false" prefWidth="75.0" sortable="false" text="Author" />
                         <TableColumn fx:id="timeColumn" editable="false" prefWidth="75.0" text="Time" />
