@@ -26,8 +26,8 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import net.bbmsoft.bbm.utils.concurrent.TasksView?>
 <?import org.controlsfx.control.BreadCrumbBar?>
+<?import org.controlsfx.control.TaskProgressView?>
 
 <fx:root fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="768.0" prefWidth="1024.0" type="BorderPane" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1">
    
@@ -257,7 +257,7 @@
                   <VBox>
                      <children>
                         <TextArea editable="false" VBox.vgrow="ALWAYS" />
-                        <TasksView fx:id="tasksView" />
+                        <TaskProgressView fx:id="tasksView" />
                      </children>
                   </VBox>
               </items>

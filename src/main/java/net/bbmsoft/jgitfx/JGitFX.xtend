@@ -52,7 +52,7 @@ class JGitFX extends Subapplication {
 				
 		stage.scene = new Scene(jGitFXMainFrame)
 		
-		repoRegistry.taskHelper = jGitFXMainFrame.tasksView
+		repoRegistry.taskHelper = jGitFXMainFrame.taskHelper
 		
 		stage.maximized = prefs.maximized
 		stage.maximizedProperty > [

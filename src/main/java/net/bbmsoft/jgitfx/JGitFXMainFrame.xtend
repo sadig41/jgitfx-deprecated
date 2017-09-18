@@ -5,11 +5,13 @@ import java.net.URL
 import java.util.HashMap
 import java.util.Map
 import java.util.ResourceBundle
+import java.util.concurrent.ExecutorService
 import javafx.application.Platform
 import javafx.beans.InvalidationListener
 import javafx.beans.Observable
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
+import javafx.concurrent.Task
 import javafx.fxml.FXML
 import javafx.scene.control.Label
 import javafx.scene.control.MenuItem
@@ -21,11 +23,12 @@ import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.scene.layout.BorderPane
 import net.bbmsoft.bbm.utils.Lockable
-import net.bbmsoft.bbm.utils.concurrent.TasksView
+import net.bbmsoft.bbm.utils.concurrent.TaskHelper
 import net.bbmsoft.fxtended.annotations.app.FXMLRoot
 import net.bbmsoft.fxtended.annotations.binding.BindableProperty
 import net.bbmsoft.jgitfx.modules.ChangedFilesAnimator
 import net.bbmsoft.jgitfx.modules.CommitInfoAnimator
+import net.bbmsoft.jgitfx.modules.GitTaskHelper
 import net.bbmsoft.jgitfx.modules.Preferences
 import net.bbmsoft.jgitfx.modules.RepositoryHandler
 import net.bbmsoft.jgitfx.modules.RepositoryTableVisualizer
@@ -33,15 +36,15 @@ import net.bbmsoft.jgitfx.modules.StagingAnimator
 import net.bbmsoft.jgitfx.wrappers.RepositoryWrapper
 import net.bbmsoft.jgitfx.wrappers.RepositoryWrapper.DummyWrapper
 import org.controlsfx.control.BreadCrumbBar
+import org.controlsfx.control.TaskProgressView
 import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
+import org.eclipse.xtend.lib.annotations.Accessors
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
-import java.util.concurrent.ExecutorService
-import org.eclipse.xtend.lib.annotations.Accessors
 
 @FXMLRoot
 class JGitFXMainFrame extends BorderPane {
@@ -78,8 +81,8 @@ class JGitFXMainFrame extends BorderPane {
 	@FXML MenuItem stashContextMenuItem
 	@FXML MenuItem popContextMenuItem
 
-	@Accessors(PUBLIC_GETTER)
-	@FXML TasksView tasksView
+	@FXML TaskProgressView<Task<?>> tasksView
+	@Accessors(PUBLIC_GETTER) TaskHelper taskHelper
 
 	@BindableProperty Runnable cloneAction
 	@BindableProperty Runnable batchCloneAction
@@ -103,13 +106,10 @@ class JGitFXMainFrame extends BorderPane {
 	Preferences prefs
 	Lockable locker
 
-	ExecutorService gitWorker
-
 	new(Preferences prefs, ExecutorService gitWorker) {
 		this()
-		this.gitWorker = gitWorker
 		this.prefs = prefs
-		this.tasksView.executor = this.gitWorker
+		this.taskHelper = new GitTaskHelper(gitWorker, this.tasksView);
 		this.locker = new Lockable() {
 
 			override lock() {}
@@ -283,7 +283,7 @@ class JGitFXMainFrame extends BorderPane {
 	}
 
 	private def RepositoryHandler getHandler(Repository repository, InvalidationListener listener) {
-		new RepositoryHandler(repository, this.tasksView, this.locker, listener)
+		new RepositoryHandler(repository, this.taskHelper, this.locker, listener)
 	}
 
 	def undoSelected() {
@@ -350,7 +350,7 @@ class JGitFXMainFrame extends BorderPane {
 	def boolean open(TreeItem<RepositoryWrapper> repoItem) {
 		val repository = repoItem.value.repository
 		this.repositoryHandler?.removeListener(this.repositoryListener)
-		this.repositoryHandler = new RepositoryHandler(repository, this.tasksView, this.locker, this.repositoryListener)
+		this.repositoryHandler = new RepositoryHandler(repository, this.taskHelper, this.locker, this.repositoryListener)
 		this.breadcrumb.selectedCrumb = repoItem
 		this.prefs.lastOpened = repository.directory
 		if (prefs.switchToRepositoryOverview) {
