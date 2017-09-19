@@ -18,26 +18,22 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.TextProgressMonitor;
 import org.eclipse.jgit.transport.CredentialsProvider;
 
-import net.bbmsoft.bbm.utils.Lockable;
 import net.bbmsoft.bbm.utils.concurrent.TaskHelper;
+import net.bbmsoft.jgitfx.event.EventPublisher;
+import net.bbmsoft.jgitfx.messaging.Message;
 import net.bbmsoft.jgitfx.messaging.MessageType;
-import net.bbmsoft.jgitfx.messaging.Messenger;
 import net.bbmsoft.jgitfx.modules.RepositoryHandler.Task;
 
 public class PullHandler extends RepositoryActionHandler<PullResult> {
 
-	public PullHandler(Runnable updateCallback, Messenger messenger) {
-		super(updateCallback, messenger);
+	public PullHandler(Runnable updateCallback, EventPublisher eventPublisher) {
+		super(updateCallback, eventPublisher);
 	}
 
-	public void pull(Git git, Lockable lock, TaskHelper taskHelper, String remote,
+	public void pull(Git git, TaskHelper taskHelper, String remote,
 			CredentialsProvider credetialsProvider) {
 
 		Repository repository = git.getRepository();
-
-		if (lock != null) {
-			lock.lock();
-		}
 
 		String label = "Pulling " + repository.getWorkTree().getName() + "...";
 
@@ -46,7 +42,7 @@ public class PullHandler extends RepositoryActionHandler<PullResult> {
 		Task<PullResult> pullTask = new PullTask(() -> doPull(git, remote, credetialsProvider, progressMonitor),
 				repository, remote);
 
-		taskHelper.submitTask(pullTask, label, r -> done(r, lock), e -> logException(e));
+		taskHelper.submitTask(pullTask, label, r -> done(r), e -> logException(e));
 	}
 
 	private PullResult doPull(Git git, String remote, CredentialsProvider credetialsProvider,
@@ -85,7 +81,7 @@ public class PullHandler extends RepositoryActionHandler<PullResult> {
 			String title = "Pulling form " + remote + " failed!";
 			Throwable cause = getRoot((Throwable) e, th -> th.getCause());
 			String body = cause.getLocalizedMessage();
-			showMessage(type, title, body);
+			publish(type, new Message(title, body));
 		} catch (GitAPIException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

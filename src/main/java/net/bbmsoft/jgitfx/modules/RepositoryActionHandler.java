@@ -2,18 +2,17 @@ package net.bbmsoft.jgitfx.modules;
 
 import java.util.function.Function;
 
-import net.bbmsoft.bbm.utils.Lockable;
-import net.bbmsoft.jgitfx.messaging.MessageType;
-import net.bbmsoft.jgitfx.messaging.Messenger;
+import net.bbmsoft.jgitfx.event.EventBroker.Topic;
+import net.bbmsoft.jgitfx.event.EventPublisher;
 
-public abstract class RepositoryActionHandler<R> implements Messenger {
+public abstract class RepositoryActionHandler<R> {
 	
 	private final Runnable updateCallback;
-	private final Messenger messenger;
+	private final EventPublisher eventPublisher;
 
-	public RepositoryActionHandler(Runnable updateCallback, Messenger messenger) {
+	public RepositoryActionHandler(Runnable updateCallback, EventPublisher publisher) {
 		this.updateCallback = updateCallback;
-		this.messenger = messenger;
+		this.eventPublisher = publisher;
 	}
 
 	protected void logException(Exception e) {
@@ -21,13 +20,10 @@ public abstract class RepositoryActionHandler<R> implements Messenger {
 		e.printStackTrace();
 	}
 	
-	protected void done(R result, Lockable lock) {
+	protected void done(R result) {
 		
 		this.evaluateResult(result);
 		
-		if (lock != null) {
-			lock.unlock();
-		}
 		if(this.updateCallback != null) {
 			this.updateCallback.run();
 		}
@@ -35,9 +31,8 @@ public abstract class RepositoryActionHandler<R> implements Messenger {
 
 	protected abstract void evaluateResult(R result);
 	
-	@Override
-	public void showMessage(MessageType type, String title, String body) {
-		this.messenger.showMessage(type, title, body);
+	protected <T> void publish(Topic<T> topic, T payload) {
+		this.eventPublisher.publish(topic, payload);
 	}
 	
 	protected <T> T getRoot(T child, Function<T, T> parentProvider) {

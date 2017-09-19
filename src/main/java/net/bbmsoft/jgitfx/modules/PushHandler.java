@@ -15,31 +15,27 @@ import org.eclipse.jgit.api.errors.WrongRepositoryStateException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.PushResult;
 
-import net.bbmsoft.bbm.utils.Lockable;
 import net.bbmsoft.bbm.utils.concurrent.TaskHelper;
+import net.bbmsoft.jgitfx.event.EventPublisher;
+import net.bbmsoft.jgitfx.messaging.Message;
 import net.bbmsoft.jgitfx.messaging.MessageType;
-import net.bbmsoft.jgitfx.messaging.Messenger;
 import net.bbmsoft.jgitfx.modules.RepositoryHandler.Task;
 
 public class PushHandler extends RepositoryActionHandler<Iterable<PushResult>> {
 
-	public PushHandler(Runnable updateCallback, Messenger messenger) {
-		super(updateCallback, messenger);
+	public PushHandler(Runnable updateCallback, EventPublisher eventPublisher) {
+		super(updateCallback, eventPublisher);
 	}
 
-	public void push(Git git, Lockable lock, TaskHelper taskHelper, String remote) {
+	public void push(Git git, TaskHelper taskHelper, String remote) {
 
 		Repository repository = git.getRepository();
-
-		if (lock != null) {
-			lock.lock();
-		}
 
 		String label = "Pushing " + repository.getWorkTree().getName() + "...";
 
 		Task<Iterable<PushResult>> pushTask = new PushTask(() -> doPush(git, remote), repository, remote);
 
-		taskHelper.submitTask(pushTask, label, r -> done(r, lock), e -> logException(e));
+		taskHelper.submitTask(pushTask, label, r -> done(r), e -> logException(e));
 	}
 
 	private Iterable<PushResult> doPush(Git git, String remote) {
@@ -71,7 +67,7 @@ public class PushHandler extends RepositoryActionHandler<Iterable<PushResult>> {
 			String title = "Pushing to " + remote + " failed!";
 			Throwable cause = getRoot((Throwable) e, th -> th.getCause());
 			String body = cause.getLocalizedMessage();
-			showMessage(type, title, body);
+			publish(type, new Message(title, body));
 		} catch (GitAPIException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

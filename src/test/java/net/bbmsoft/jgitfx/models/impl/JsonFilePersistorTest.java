@@ -11,6 +11,8 @@ import java.util.UUID;
 
 import org.junit.Test;
 
+import net.bbmsoft.jgitfx.registry.impl.JsonFilePersistor;
+
 public class JsonFilePersistorTest {
 
 	@Test

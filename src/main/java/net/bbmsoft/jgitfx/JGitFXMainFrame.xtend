@@ -1,15 +1,14 @@
 package net.bbmsoft.jgitfx
 
-import java.io.File
 import java.net.URL
 import java.util.HashMap
+import java.util.List
 import java.util.Map
 import java.util.ResourceBundle
 import java.util.concurrent.ExecutorService
 import javafx.application.Platform
 import javafx.beans.InvalidationListener
 import javafx.beans.Observable
-import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import javafx.concurrent.Task
 import javafx.fxml.FXML
@@ -26,14 +25,14 @@ import net.bbmsoft.bbm.utils.Lockable
 import net.bbmsoft.bbm.utils.concurrent.TaskHelper
 import net.bbmsoft.fxtended.annotations.app.FXMLRoot
 import net.bbmsoft.fxtended.annotations.binding.BindableProperty
-import net.bbmsoft.jgitfx.messaging.Messenger
+import net.bbmsoft.jgitfx.event.EventBroker
 import net.bbmsoft.jgitfx.modules.ChangedFilesAnimator
 import net.bbmsoft.jgitfx.modules.CommitInfoAnimator
-import net.bbmsoft.jgitfx.modules.GitTaskHelper
 import net.bbmsoft.jgitfx.modules.Preferences
 import net.bbmsoft.jgitfx.modules.RepositoryHandler
 import net.bbmsoft.jgitfx.modules.RepositoryTableVisualizer
 import net.bbmsoft.jgitfx.modules.StagingAnimator
+import net.bbmsoft.jgitfx.registry.RepositoryRegistry
 import net.bbmsoft.jgitfx.wrappers.RepositoryWrapper
 import net.bbmsoft.jgitfx.wrappers.RepositoryWrapper.DummyWrapper
 import org.controlsfx.control.BreadCrumbBar
@@ -42,8 +41,6 @@ import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.revwalk.RevCommit
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder
-import org.eclipse.xtend.lib.annotations.Accessors
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
 
@@ -83,38 +80,29 @@ class JGitFXMainFrame extends BorderPane {
 	@FXML MenuItem popContextMenuItem
 
 	@FXML TaskProgressView<Task<?>> tasksView
-	@Accessors(PUBLIC_GETTER) TaskHelper taskHelper
 
+	@BindableProperty TaskHelper taskHelper
 	@BindableProperty Runnable cloneAction
 	@BindableProperty Runnable batchCloneAction
 	@BindableProperty Runnable initAction
 	@BindableProperty Runnable openAction
 	@BindableProperty Runnable quitAction
 	@BindableProperty Runnable aboutAction
-
-	@BindableProperty ObservableList<File> registeredRepositories
-	Map<File, TreeItem<RepositoryWrapper>> repositoryMap
-
-	InvalidationListener repositoriesListener
-	InvalidationListener repositoryListener
-
-	TreeItem<RepositoryWrapper> rootRepoTreeItem
-
+	@BindableProperty RepositoryRegistry repositoryRegistry
 	@BindableProperty RepositoryHandler repositoryHandler
 
+	Map<Repository, TreeItem<RepositoryWrapper>> repositoryTreeItems
+	InvalidationListener repositoryListener
+	TreeItem<RepositoryWrapper> rootRepoTreeItem
 	RepositoryTableVisualizer historyVisualizer
-
 	Preferences prefs
+	EventBroker eventBroker
 	Lockable locker
-	Messenger messenger
-	Map<Repository, RepositoryHandler> repoHandlers
 
-	new(Preferences prefs, ExecutorService gitWorker, Messenger messenger) {
+	new(Preferences prefs, ExecutorService gitWorker, EventBroker eventBroker) {
 		this()
-		this.repoHandlers = new HashMap
-		this.messenger = messenger
 		this.prefs = prefs
-		this.taskHelper = new GitTaskHelper(gitWorker, this.tasksView);
+		this.eventBroker = eventBroker
 		this.locker = new Lockable() {
 
 			override lock() {}
@@ -125,6 +113,10 @@ class JGitFXMainFrame extends BorderPane {
 		this.historyTable.columns.forEach[col|col.visibleProperty >> [this.prefs.setColumnVisible(col.id, it)]]
 	}
 
+	def ObservableList<Task<?>> getTaskList() {
+		this.tasksView.tasks
+	}
+
 	private def updateHistoryColumnsVisibility() {
 		this.historyTable.columns.forEach[visible = this.prefs.visibleColumns.contains(id)]
 	}
@@ -133,12 +125,10 @@ class JGitFXMainFrame extends BorderPane {
 
 		this.historyVisualizer = new RepositoryTableVisualizer(this.historyTable, this.refsColumn,
 			this.commitMessageColumn, this.authorColumn, this.timeColumn)
-		this.repositoryMap = new HashMap
-		this.repositoriesListener = [updateRepoTree]
+		this.repositoryTreeItems = new HashMap
 		this.repositoryListener = [updateRepo]
-		this.registeredRepositories = FXCollections.observableArrayList
-		this.registeredRepositoriesProperty >> [o, ov, nv|updateRepositoriesListener(ov, nv)]
 		this.rootRepoTreeItem = new TreeItem(new DummyWrapper('JGitFX'))
+		this.rootRepoTreeItem.children >> [updateTreeItemMap($0, $1)]
 		this.breadcrumb.selectedCrumb = this.rootRepoTreeItem
 		this.repositoryTree.root = rootRepoTreeItem
 		this.repositoryTree.showRoot = false
@@ -162,6 +152,11 @@ class JGitFXMainFrame extends BorderPane {
 
 		Platform.runLater[this.repositoriesList.expanded = true]
 	}
+	
+	private def updateTreeItemMap(List<? extends TreeItem<RepositoryWrapper>> added, List<? extends TreeItem<RepositoryWrapper>> removed) {
+		added.forEach[this.repositoryTreeItems.put(value.repository, it)]
+		removed.forEach[this.repositoryTreeItems.remove(value.repository)]
+	}
 
 	private def updateRepositoryTreeContextMenu() {
 
@@ -184,45 +179,9 @@ class JGitFXMainFrame extends BorderPane {
 			this.historyVisualizer.repository = repoHandler.repository
 		}
 	}
-
-	def updateRepositoriesListener(ObservableList<File> oldList, ObservableList<File> newList) {
-		oldList?.removeListener(this.repositoriesListener)
-		newList?.addListener(this.repositoriesListener)
-		updateRepoTree
-	}
-
-	private def updateRepoTree() {
-		this.repositoryMap.clear
-		val repos = newArrayList
-		this.registeredRepositories.forEach[repos.add = loadRepoTreeItem]
-		this.rootRepoTreeItem.children.all = repos
-	}
-
-	private def TreeItem<RepositoryWrapper> loadRepoTreeItem(File repoDir) {
-		new TreeItem(loadRepo(repoDir)) => [addSubrepos]
-	}
-
-	private def addSubrepos(TreeItem<RepositoryWrapper> repoItem) {
-		// TODO add subrepos
-	}
-
-	private def RepositoryWrapper loadRepo(File dir) {
-
-		val builder = new FileRepositoryBuilder => [
-			mustExist = true
-			if ('.git'.equals(dir.name)) {
-				gitDir = dir
-			} else {
-				workTree = dir
-			}
-			readEnvironment
-		]
-
-		// TODO show error message when opening the repo fails
-		val repository = builder.build
-
-		this.repositoryMap.put(dir, new TreeItem(new RepositoryWrapper(repository)))
-		new RepositoryWrapper(repository)
+	
+	def getRepositoryTreeItems() {
+		this.rootRepoTreeItem.children
 	}
 
 	def undo() {
@@ -290,9 +249,7 @@ class JGitFXMainFrame extends BorderPane {
 	}
 
 	private def RepositoryHandler getHandler(Repository repository) {
-		this.repoHandlers.get(repository) ?:
-			(new RepositoryHandler(repository, this.taskHelper, this.locker, this.repositoryListener, this.messenger) =>
-				[this.repoHandlers.put(repository, it)])
+		this.repositoryRegistry.getRepositoryHandler(repository)
 	}
 
 	def undoSelected() {
@@ -347,18 +304,12 @@ class JGitFXMainFrame extends BorderPane {
 		this.aboutAction?.run
 	}
 
-	def boolean open(File repoDir) {
-		val repo = this.repositoryMap.get(repoDir)
-		if (repo !== null) {
-			open(repo)
-		} else {
-			false
-		}
+	def void open(Repository repository) {
+		this.repositoryTreeItems.get(repository)?.open
 	}
 
-	def boolean open(TreeItem<RepositoryWrapper> repoItem) {
+	private def void open(TreeItem<RepositoryWrapper> repoItem) {
 		val repository = repoItem.value.repository
-		this.repositoryHandler?.removeListener(this.repositoryListener)
 		this.repositoryHandler?.setAutoInvalidate(false)
 		this.repositoryHandler = getHandler(repository)
 		this.repositoryHandler.setAutoInvalidate(true)
@@ -368,7 +319,6 @@ class JGitFXMainFrame extends BorderPane {
 			// delay so it also works on startup
 			Platform.runLater[this.repositoryOverview.expanded = true]
 		}
-		true
 	}
 
 }

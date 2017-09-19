@@ -3,20 +3,21 @@ package net.bbmsoft.jgitfx.messaging;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import net.bbmsoft.bbm.utils.concurrent.ThreadUtils;
+import net.bbmsoft.jgitfx.event.EventBroker.Topic;
 
 public class DialogMessenger implements Messenger {
 
 	private boolean blocking;
 
 	@Override
-	public void showMessage(MessageType type, String title, String body) {
+	public void showMessage(Topic<Message> topic, Message message) {
 
 		try {
 			ThreadUtils.runOnJavaFXThreadAndWait(() -> {
-				Alert alert = new Alert(getAltertType(type));
-				alert.setTitle(title);
+				Alert alert = new Alert(getAltertType(topic));
+				alert.setTitle(message.getTitle());
 				alert.setHeaderText(null);
-				alert.setContentText(body);
+				alert.setContentText(message.getBody());
 				if (this.isBlocking()) {
 					alert.showAndWait();
 				} else {
@@ -28,17 +29,21 @@ public class DialogMessenger implements Messenger {
 		}
 	}
 
-	private AlertType getAltertType(MessageType type) {
-		switch (type) {
-		case ERROR:
-			return AlertType.ERROR;
-		case INFO:
-			return AlertType.INFORMATION;
-		case SUCCESS:
-			return AlertType.INFORMATION;
-		default:
-			throw new IllegalArgumentException("Unknown message type: " + type);
-
+	private AlertType getAltertType(Topic<Message> topic) {
+		
+		if(topic instanceof MessageType) {
+			switch ((MessageType)topic) {
+			case ERROR:
+				return AlertType.ERROR;
+			case INFO:
+				return AlertType.INFORMATION;
+			case SUCCESS:
+				return AlertType.INFORMATION;
+			default:
+				throw new IllegalArgumentException("Unknown message type: " + topic);
+			}
+		} else {
+			return AlertType.NONE;
 		}
 	}
 

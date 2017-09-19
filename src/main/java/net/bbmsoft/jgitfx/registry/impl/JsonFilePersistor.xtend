@@ -1,4 +1,4 @@
-package net.bbmsoft.jgitfx.models.impl
+package net.bbmsoft.jgitfx.registry.impl
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
