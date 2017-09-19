@@ -14,22 +14,26 @@ import org.eclipse.jgit.lib.Repository
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
 import org.eclipse.xtend.lib.annotations.Accessors
+import net.bbmsoft.jgitfx.messaging.Messenger
 
 class PersistingRepositoryRegistry implements RepositoryRegistry {
 
 	final ObservableList<File> repositories
 	final Persistor<List<File>> persistor
 	final Map<Repository, RepositoryHandler> handlers
+	final Messenger messenger
 	
 	@Accessors TaskHelper taskHelper
+	
 
-	new(Persistor<List<File>> persistor) {
-		this(persistor, FXCollections.observableArrayList)
+	new(Persistor<List<File>> persistor, Messenger messenger) {
+		this(persistor, FXCollections.observableArrayList, messenger)
 	}
 
-	new(Persistor<List<File>> persistor, ObservableList<File> repositories) {
+	new(Persistor<List<File>> persistor, ObservableList<File> repositories, Messenger messenger) {
 		this.repositories = repositories
 		this.persistor = persistor
+		this.messenger = messenger
 		this.persistor.load[this.repositories.all = it]
 		this.repositories >> [this.persistor.persist(this.repositories)]
 		this.handlers = new HashMap
@@ -48,7 +52,7 @@ class PersistingRepositoryRegistry implements RepositoryRegistry {
 	}
 	
 	override getHandler(Repository repository) {
-		this.handlers.get(repository) ?: (new RepositoryHandler(repository, this.taskHelper) => [this.handlers.put(repository, it)])
+		this.handlers.get(repository) ?: (new RepositoryHandler(repository, this.taskHelper, this.messenger) => [this.handlers.put(repository, it)])
 	}
 	
 	override removeRepository(File repositoryFile) {

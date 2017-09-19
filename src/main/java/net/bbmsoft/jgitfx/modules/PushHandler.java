@@ -17,12 +17,13 @@ import org.eclipse.jgit.transport.PushResult;
 
 import net.bbmsoft.bbm.utils.Lockable;
 import net.bbmsoft.bbm.utils.concurrent.TaskHelper;
+import net.bbmsoft.jgitfx.messaging.Messenger;
 import net.bbmsoft.jgitfx.modules.RepositoryHandler.Task;
 
 public class PushHandler extends RepositoryActionHandler<Iterable<PushResult>> {
 
-	public PushHandler(Runnable updateCallback) {
-		super(updateCallback);
+	public PushHandler(Runnable updateCallback, Messenger messenger) {
+		super(updateCallback, messenger);
 	}
 
 	public void push(Git git, Lockable lock, TaskHelper taskHelper, String remote) {

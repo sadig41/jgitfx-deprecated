@@ -20,15 +20,18 @@ import org.eclipse.jgit.transport.CredentialsProvider;
 
 import net.bbmsoft.bbm.utils.Lockable;
 import net.bbmsoft.bbm.utils.concurrent.TaskHelper;
+import net.bbmsoft.jgitfx.messaging.MessageType;
+import net.bbmsoft.jgitfx.messaging.Messenger;
 import net.bbmsoft.jgitfx.modules.RepositoryHandler.Task;
 
 public class PullHandler extends RepositoryActionHandler<PullResult> {
 
-	public PullHandler(Runnable updateCallback) {
-		super(updateCallback);
+	public PullHandler(Runnable updateCallback, Messenger messenger) {
+		super(updateCallback, messenger);
 	}
 
-	public void pull(Git git, Lockable lock, TaskHelper taskHelper, String remote, CredentialsProvider credetialsProvider) {
+	public void pull(Git git, Lockable lock, TaskHelper taskHelper, String remote,
+			CredentialsProvider credetialsProvider) {
 
 		Repository repository = git.getRepository();
 
@@ -39,15 +42,18 @@ public class PullHandler extends RepositoryActionHandler<PullResult> {
 		String label = "Pulling " + repository.getWorkTree().getName() + "...";
 
 		ProgressMonitor progressMonitor = new TextProgressMonitor();
-		
-		Task<PullResult> pullTask = new PullTask(() -> doPull(git, remote, credetialsProvider, progressMonitor), repository, remote);
+
+		Task<PullResult> pullTask = new PullTask(() -> doPull(git, remote, credetialsProvider, progressMonitor),
+				repository, remote);
 
 		taskHelper.submitTask(pullTask, label, r -> done(r, lock), e -> logException(e));
 	}
 
-	private PullResult doPull(Git git, String remote, CredentialsProvider credetialsProvider, ProgressMonitor progressMonitor) {
+	private PullResult doPull(Git git, String remote, CredentialsProvider credetialsProvider,
+			ProgressMonitor progressMonitor) {
 		try {
-			return git.pull().setCredentialsProvider(credetialsProvider).setProgressMonitor(progressMonitor).setRemote(remote).call();
+			return git.pull().setCredentialsProvider(credetialsProvider).setProgressMonitor(progressMonitor)
+					.setRemote(remote).call();
 		} catch (WrongRepositoryStateException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -70,8 +76,11 @@ public class PullHandler extends RepositoryActionHandler<PullResult> {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (TransportException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			MessageType type = MessageType.ERROR;
+			String title = "Pulling form " + remote + " failed!";
+			Throwable cause = getRoot((Throwable) e, th -> th.getCause());
+			String body = cause.getLocalizedMessage();
+			showMessage(type, title, body);
 		} catch (GitAPIException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

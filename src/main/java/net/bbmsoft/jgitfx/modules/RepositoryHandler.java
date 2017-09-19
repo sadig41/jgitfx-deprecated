@@ -14,6 +14,7 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import net.bbmsoft.bbm.utils.Lockable;
 import net.bbmsoft.bbm.utils.concurrent.TaskHelper;
+import net.bbmsoft.jgitfx.messaging.Messenger;
 
 public class RepositoryHandler implements Observable {
 
@@ -28,11 +29,11 @@ public class RepositoryHandler implements Observable {
 	private final TaskHelper taskHelper;
 	private final CredentialsProvider credentialsProvider;
 
-	public RepositoryHandler(Repository repository, TaskHelper taskHelper) {
-		this(repository, taskHelper, null, null);
+	public RepositoryHandler(Repository repository, TaskHelper taskHelper, Messenger messenger) {
+		this(repository, taskHelper, null, null, messenger);
 	}
 
-	public RepositoryHandler(Repository repository, TaskHelper taskHelper, Lockable lockCallback, InvalidationListener listener) {
+	public RepositoryHandler(Repository repository, TaskHelper taskHelper, Lockable lockCallback, InvalidationListener listener, Messenger messenger) {
 		this.taskHelper = taskHelper;
 		this.lockCallback = lockCallback;
 		this.listeners = new ArrayList<>();
@@ -41,8 +42,8 @@ public class RepositoryHandler implements Observable {
 		}
 		this.repository = repository;
 		this.git = Git.wrap(repository);
-		this.pullHandler = new PullHandler(this::invalidate);
-		this.pushHandler = new PushHandler(this::invalidate);
+		this.pullHandler = new PullHandler(this::invalidate, messenger);
+		this.pushHandler = new PushHandler(this::invalidate, messenger);
 		// TODO provide proper credentials provider
 		this.credentialsProvider = new UsernamePasswordCredentialsProvider("username", "password");
 		this.invalidate();

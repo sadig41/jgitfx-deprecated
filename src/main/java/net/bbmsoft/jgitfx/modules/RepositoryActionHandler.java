@@ -1,13 +1,19 @@
 package net.bbmsoft.jgitfx.modules;
 
-import net.bbmsoft.bbm.utils.Lockable;
+import java.util.function.Function;
 
-public abstract class RepositoryActionHandler<R> {
+import net.bbmsoft.bbm.utils.Lockable;
+import net.bbmsoft.jgitfx.messaging.MessageType;
+import net.bbmsoft.jgitfx.messaging.Messenger;
+
+public abstract class RepositoryActionHandler<R> implements Messenger {
 	
 	private final Runnable updateCallback;
+	private final Messenger messenger;
 
-	public RepositoryActionHandler(Runnable updateCallback) {
+	public RepositoryActionHandler(Runnable updateCallback, Messenger messenger) {
 		this.updateCallback = updateCallback;
+		this.messenger = messenger;
 	}
 
 	protected void logException(Exception e) {
@@ -28,4 +34,19 @@ public abstract class RepositoryActionHandler<R> {
 	}
 
 	protected abstract void evaluateResult(R result);
+	
+	@Override
+	public void showMessage(MessageType type, String title, String body) {
+		this.messenger.showMessage(type, title, body);
+	}
+	
+	protected <T> T getRoot(T child, Function<T, T> parentProvider) {
+		
+		T parent = parentProvider.apply((T)child);
+		if(parent == null) {
+			return child;
+		} else {
+			return getRoot(parent, parentProvider);
+		}
+	}
 }

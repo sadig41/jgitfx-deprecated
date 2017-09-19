@@ -26,6 +26,7 @@ import net.bbmsoft.bbm.utils.Lockable
 import net.bbmsoft.bbm.utils.concurrent.TaskHelper
 import net.bbmsoft.fxtended.annotations.app.FXMLRoot
 import net.bbmsoft.fxtended.annotations.binding.BindableProperty
+import net.bbmsoft.jgitfx.messaging.Messenger
 import net.bbmsoft.jgitfx.modules.ChangedFilesAnimator
 import net.bbmsoft.jgitfx.modules.CommitInfoAnimator
 import net.bbmsoft.jgitfx.modules.GitTaskHelper
@@ -105,9 +106,11 @@ class JGitFXMainFrame extends BorderPane {
 
 	Preferences prefs
 	Lockable locker
+	Messenger messenger
 
-	new(Preferences prefs, ExecutorService gitWorker) {
+	new(Preferences prefs, ExecutorService gitWorker, Messenger messenger) {
 		this()
+		this.messenger = messenger
 		this.prefs = prefs
 		this.taskHelper = new GitTaskHelper(gitWorker, this.tasksView);
 		this.locker = new Lockable() {
@@ -289,7 +292,7 @@ class JGitFXMainFrame extends BorderPane {
 	}
 
 	private def RepositoryHandler getHandler(Repository repository, InvalidationListener listener) {
-		new RepositoryHandler(repository, this.taskHelper, this.locker, listener)
+		new RepositoryHandler(repository, this.taskHelper, this.locker, listener, this.messenger)
 	}
 
 	def undoSelected() {
@@ -357,7 +360,7 @@ class JGitFXMainFrame extends BorderPane {
 		val repository = repoItem.value.repository
 		this.repositoryHandler?.removeListener(this.repositoryListener)
 		this.repositoryHandler = new RepositoryHandler(repository, this.taskHelper, this.locker,
-			this.repositoryListener)
+			this.repositoryListener, this.messenger)
 		this.breadcrumb.selectedCrumb = repoItem
 		this.prefs.lastOpened = repository.directory
 		if (prefs.switchToRepositoryOverview) {
