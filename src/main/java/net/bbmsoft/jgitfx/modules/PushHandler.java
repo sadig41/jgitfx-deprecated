@@ -12,7 +12,10 @@ import org.eclipse.jgit.api.errors.RefNotAdvertisedException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.api.errors.WrongRepositoryStateException;
+import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.TextProgressMonitor;
+import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.PushResult;
 
 import net.bbmsoft.bbm.utils.concurrent.TaskHelper;
@@ -27,20 +30,25 @@ public class PushHandler extends RepositoryActionHandler<Iterable<PushResult>> {
 		super(updateCallback, eventPublisher);
 	}
 
-	public void push(Git git, TaskHelper taskHelper, String remote) {
+	public void push(Git git, TaskHelper taskHelper, String remote, CredentialsProvider credetialsProvider) {
 
 		Repository repository = git.getRepository();
 
 		String label = "Pushing " + repository.getWorkTree().getName() + "...";
 
-		Task<Iterable<PushResult>> pushTask = new PushTask(() -> doPush(git, remote), repository, remote);
+		ProgressMonitor progressMonitor = new TextProgressMonitor();
+
+		Task<Iterable<PushResult>> pushTask = new PushTask(
+				() -> doPush(git, remote, credetialsProvider, progressMonitor), repository, remote);
 
 		taskHelper.submitTask(pushTask, label, r -> done(r), e -> logException(e));
 	}
 
-	private Iterable<PushResult> doPush(Git git, String remote) {
+	private Iterable<PushResult> doPush(Git git, String remote, CredentialsProvider credetialsProvider,
+			ProgressMonitor progressMonitor) {
 		try {
-			return git.push().setRemote(remote).call();
+			return git.push().setCredentialsProvider(credetialsProvider).setProgressMonitor(progressMonitor)
+					.setRemote(remote).call();
 		} catch (WrongRepositoryStateException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

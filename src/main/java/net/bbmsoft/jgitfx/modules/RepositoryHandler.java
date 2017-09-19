@@ -59,7 +59,7 @@ public class RepositoryHandler {
 	}
 
 	public void push() {
-		this.pushHandler.push(git, taskHelper, Constants.DEFAULT_REMOTE_NAME);
+		this.pushHandler.push(git, taskHelper, Constants.DEFAULT_REMOTE_NAME, this.credentialsProvider);
 	}
 
 	public void branch() {
