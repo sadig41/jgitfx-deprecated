@@ -5,16 +5,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.PullResult;
-import org.eclipse.jgit.api.errors.CanceledException;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.InvalidConfigurationException;
-import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.api.errors.NoHeadException;
-import org.eclipse.jgit.api.errors.RefNotAdvertisedException;
-import org.eclipse.jgit.api.errors.RefNotFoundException;
-import org.eclipse.jgit.api.errors.TransportException;
-import org.eclipse.jgit.api.errors.WrongRepositoryStateException;
+import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.Repository;
 
 import javafx.beans.InvalidationListener;
@@ -27,6 +18,8 @@ public class RepositoryHandler implements Observable {
 	private final Repository repository;
 	private final Git git;
 	private final List<InvalidationListener> listeners;
+	
+	private final PullHandler pullHandler;
 	
 	private final Lockable lockCallback;
 	private final TaskHelper taskHelper;
@@ -44,6 +37,7 @@ public class RepositoryHandler implements Observable {
 		}
 		this.repository = repository;
 		this.git = Git.wrap(repository);
+		this.pullHandler = new PullHandler(this::invalidate);
 		this.invalidate();
 	}
 
@@ -62,71 +56,7 @@ public class RepositoryHandler implements Observable {
 	}
 
 	public void pull() {
-		
-		System.out.println("Performing 'pull' on " + repository);
-		
-		if(this.lockCallback != null) {
-			this.lockCallback.lock();
-		}
-		// TODO decide, which remote to pull
-		String label = "Pulling " + this.repository.getWorkTree().getName() + "...";
-		
-		Task<PullResult> pullTask = new Task<>(() -> doPull(), this.repository);
-		
-		this.taskHelper.submitTask(pullTask, label, r -> pullDone(r), e -> logException(e));
-	}
-
-	private void logException(Exception e) {
-		// TODO implement proper exception handling
-		e.printStackTrace();
-	}
-
-	private void pullDone(PullResult result) {
-		
-		this.evaluatePullResult(result);
-		
-		if (this.lockCallback != null) {
-			this.lockCallback.unlock();
-		}
-		this.invalidate();
-	}
-
-	private void evaluatePullResult(PullResult result) {
-		// TODO Auto-generated method stub	
-	}
-
-	private PullResult doPull() {
-		try {
-			return this.git.pull().call();
-		} catch (WrongRepositoryStateException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvalidConfigurationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvalidRemoteException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (CanceledException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (RefNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (RefNotAdvertisedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (NoHeadException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (TransportException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (GitAPIException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
+		this.pullHandler.pull(git, lockCallback, taskHelper, Constants.DEFAULT_REMOTE_NAME);
 	}
 
 	public void push() {
