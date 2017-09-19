@@ -20,6 +20,7 @@ public class RepositoryHandler implements Observable {
 	private final List<InvalidationListener> listeners;
 	
 	private final PullHandler pullHandler;
+	private final PushHandler pushHandler;
 	
 	private final Lockable lockCallback;
 	private final TaskHelper taskHelper;
@@ -38,6 +39,7 @@ public class RepositoryHandler implements Observable {
 		this.repository = repository;
 		this.git = Git.wrap(repository);
 		this.pullHandler = new PullHandler(this::invalidate);
+		this.pushHandler = new PushHandler(this::invalidate);
 		this.invalidate();
 	}
 
@@ -60,8 +62,7 @@ public class RepositoryHandler implements Observable {
 	}
 
 	public void push() {
-		System.out.println("Performing 'push' on " + repository);
-		this.invalidate();
+		this.pushHandler.push(git, lockCallback, taskHelper, Constants.DEFAULT_REMOTE_NAME);
 	}
 
 	public void branch() {
