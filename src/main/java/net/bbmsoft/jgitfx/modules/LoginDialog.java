@@ -1,6 +1,7 @@
 package net.bbmsoft.jgitfx.modules;
 
 import javafx.application.Platform;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
@@ -12,17 +13,17 @@ import javafx.scene.layout.GridPane;
 import javafx.util.Pair;
 
 public class LoginDialog extends Dialog<Pair<String, String>> {
-	
+
 	private String location;
 
 	public LoginDialog() {
-		
+
 		setTitle("Login");
 		setHeaderText("Please provide authentication:");
-		
+
 		ButtonType loginButtonType = new ButtonType("Login", ButtonData.OK_DONE);
 		getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
-		
+
 		GridPane grid = new GridPane();
 		grid.setHgap(12);
 		grid.setVgap(12);
@@ -36,22 +37,23 @@ public class LoginDialog extends Dialog<Pair<String, String>> {
 		grid.add(username, 1, 0);
 		grid.add(new Label("Password:"), 0, 1);
 		grid.add(password, 1, 1);
-		
+		grid.setPadding(new Insets(32, 12, 12, 12));
+
 		Node loginButton = getDialogPane().lookupButton(loginButtonType);
 		loginButton.setDisable(true);
 		username.textProperty().addListener((observable, oldValue, newValue) -> {
-		    loginButton.setDisable(newValue.trim().isEmpty());
+			loginButton.setDisable(newValue.trim().isEmpty());
 		});
 
 		getDialogPane().setContent(grid);
-		
+
 		Platform.runLater(() -> username.requestFocus());
-		
+
 		setResultConverter(dialogButton -> {
-		    if (dialogButton == loginButtonType) {
-		        return new Pair<>(username.getText(), password.getText());
-		    }
-		    return null;
+			if (dialogButton == loginButtonType) {
+				return new Pair<>(username.getText(), password.getText());
+			}
+			return null;
 		});
 	}
 
@@ -61,6 +63,7 @@ public class LoginDialog extends Dialog<Pair<String, String>> {
 
 	public void setLocation(String location) {
 		this.location = location;
-		setHeaderText(this.location != null ? String.format("Please provide authentication for %s:", this.location) : "Please provide authentication:");
+		setHeaderText(this.location != null ? String.format("Please provide authentication for:\n\n%s", this.location)
+				: "Please provide authentication:");
 	}
 }
