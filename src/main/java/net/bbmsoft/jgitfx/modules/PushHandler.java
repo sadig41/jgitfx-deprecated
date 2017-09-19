@@ -86,7 +86,7 @@ public class PushHandler extends RepositoryActionHandler<Iterable<PushResult>> {
 		public PushTask(Supplier<Iterable<PushResult>> resultSupplier, Repository repository, String remote) {
 			super(resultSupplier, repository);
 			this.remote = remote;
-			updateTitle("Pull " + repository.getWorkTree().getName());
+			updateTitle("Push " + repository.getWorkTree().getName());
 			updateMessage("Pending...");
 		}
 
