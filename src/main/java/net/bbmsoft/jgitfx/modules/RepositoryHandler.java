@@ -8,7 +8,6 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.CredentialsProvider;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
@@ -21,15 +20,18 @@ public class RepositoryHandler implements Observable {
 	private final Repository repository;
 	private final Git git;
 	private final List<InvalidationListener> listeners;
-	
+
 	private final PullHandler pullHandler;
 	private final PushHandler pushHandler;
-	
+
 	private final Lockable lockCallback;
 	private final TaskHelper taskHelper;
 	private final CredentialsProvider credentialsProvider;
 
-	public RepositoryHandler(Repository repository, TaskHelper taskHelper, Lockable lockCallback, InvalidationListener listener, Messenger messenger) {
+	private boolean autoInvalidate;
+
+	public RepositoryHandler(Repository repository, TaskHelper taskHelper, Lockable lockCallback,
+			InvalidationListener listener, Messenger messenger) {
 		this.taskHelper = taskHelper;
 		this.lockCallback = lockCallback;
 		this.listeners = new ArrayList<>();
@@ -41,12 +43,14 @@ public class RepositoryHandler implements Observable {
 		this.pullHandler = new PullHandler(this::invalidate, messenger);
 		this.pushHandler = new PushHandler(this::invalidate, messenger);
 		// TODO provide proper credentials provider
-		this.credentialsProvider = new UsernamePasswordCredentialsProvider("username", "password");
+		this.credentialsProvider = new DialogUsernamePasswordProvider();
 		this.invalidate();
 	}
 
 	private void invalidate() {
-		this.listeners.forEach(l -> l.invalidated(this));
+		if (this.autoInvalidate) {
+			this.listeners.forEach(l -> l.invalidated(this));
+		}
 	}
 
 	public void undo() {
@@ -95,9 +99,9 @@ public class RepositoryHandler implements Observable {
 	public Repository getRepository() {
 		return repository;
 	}
-	
+
 	public static class Task<T> extends javafx.concurrent.Task<T> {
-		
+
 		private final Supplier<T> resultSupplier;
 		private final Repository repository;
 
@@ -114,6 +118,11 @@ public class RepositoryHandler implements Observable {
 		public Repository getRepository() {
 			return repository;
 		}
-		
+
+	}
+
+	public void setAutoInvalidate(boolean value) {
+		this.autoInvalidate = value;
+		invalidate();
 	}
 }

@@ -76,6 +76,11 @@ public class PullHandler extends RepositoryActionHandler<PullResult> {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (TransportException e) {
+			
+			if(credetialsProvider instanceof InteractiveCredentialsProvider && ((InteractiveCredentialsProvider)credetialsProvider).retry()) {
+				return doPull(git, remote, credetialsProvider, progressMonitor);
+			}
+			
 			MessageType type = MessageType.ERROR;
 			String title = "Pulling form " + remote + " failed!";
 			Throwable cause = getRoot((Throwable) e, th -> th.getCause());

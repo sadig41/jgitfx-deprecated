@@ -107,9 +107,11 @@ class JGitFXMainFrame extends BorderPane {
 	Preferences prefs
 	Lockable locker
 	Messenger messenger
+	Map<Repository, RepositoryHandler> repoHandlers
 
 	new(Preferences prefs, ExecutorService gitWorker, Messenger messenger) {
 		this()
+		this.repoHandlers = new HashMap
 		this.messenger = messenger
 		this.prefs = prefs
 		this.taskHelper = new GitTaskHelper(gitWorker, this.tasksView);
@@ -288,11 +290,9 @@ class JGitFXMainFrame extends BorderPane {
 	}
 
 	private def RepositoryHandler getHandler(Repository repository) {
-		getHandler(repository, null)
-	}
-
-	private def RepositoryHandler getHandler(Repository repository, InvalidationListener listener) {
-		new RepositoryHandler(repository, this.taskHelper, this.locker, listener, this.messenger)
+		this.repoHandlers.get(repository) ?:
+			(new RepositoryHandler(repository, this.taskHelper, this.locker, this.repositoryListener, this.messenger) =>
+				[this.repoHandlers.put(repository, it)])
 	}
 
 	def undoSelected() {
@@ -359,8 +359,9 @@ class JGitFXMainFrame extends BorderPane {
 	def boolean open(TreeItem<RepositoryWrapper> repoItem) {
 		val repository = repoItem.value.repository
 		this.repositoryHandler?.removeListener(this.repositoryListener)
-		this.repositoryHandler = new RepositoryHandler(repository, this.taskHelper, this.locker,
-			this.repositoryListener, this.messenger)
+		this.repositoryHandler?.setAutoInvalidate(false)
+		this.repositoryHandler = getHandler(repository)
+		this.repositoryHandler.setAutoInvalidate(true)
 		this.breadcrumb.selectedCrumb = repoItem
 		this.prefs.lastOpened = repository.directory
 		if (prefs.switchToRepositoryOverview) {
