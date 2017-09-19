@@ -50,7 +50,7 @@ import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtension
 class JGitFXMainFrame extends BorderPane {
 
 	@FXML TableView<RevCommit> historyTable
-	@FXML TableColumn<RevCommit, String> branchColumn
+	@FXML TableColumn<RevCommit, String> refsColumn
 	@FXML TableColumn<RevCommit, String> commitMessageColumn
 	@FXML TableColumn<RevCommit, String> authorColumn
 	@FXML TableColumn<RevCommit, String> timeColumn
@@ -116,11 +116,17 @@ class JGitFXMainFrame extends BorderPane {
 
 			override unlock() {}
 		}
+		updateHistoryColumnsVisibility
+		this.historyTable.columns.forEach[col|col.visibleProperty >> [this.prefs.setColumnVisible(col.id, it)]]
+	}
+
+	private def updateHistoryColumnsVisibility() {
+		this.historyTable.columns.forEach[visible = this.prefs.visibleColumns.contains(id)]
 	}
 
 	override initialize(URL location, ResourceBundle resources) {
 
-		this.historyVisualizer = new RepositoryTableVisualizer(this.historyTable, this.branchColumn,
+		this.historyVisualizer = new RepositoryTableVisualizer(this.historyTable, this.refsColumn,
 			this.commitMessageColumn, this.authorColumn, this.timeColumn)
 		this.repositoryMap = new HashMap
 		this.repositoriesListener = [updateRepoTree]
@@ -350,7 +356,8 @@ class JGitFXMainFrame extends BorderPane {
 	def boolean open(TreeItem<RepositoryWrapper> repoItem) {
 		val repository = repoItem.value.repository
 		this.repositoryHandler?.removeListener(this.repositoryListener)
-		this.repositoryHandler = new RepositoryHandler(repository, this.taskHelper, this.locker, this.repositoryListener)
+		this.repositoryHandler = new RepositoryHandler(repository, this.taskHelper, this.locker,
+			this.repositoryListener)
 		this.breadcrumb.selectedCrumb = repoItem
 		this.prefs.lastOpened = repository.directory
 		if (prefs.switchToRepositoryOverview) {
