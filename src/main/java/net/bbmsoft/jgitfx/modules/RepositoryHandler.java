@@ -7,6 +7,8 @@ import java.util.function.Supplier;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.transport.CredentialsProvider;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
@@ -24,6 +26,7 @@ public class RepositoryHandler implements Observable {
 	
 	private final Lockable lockCallback;
 	private final TaskHelper taskHelper;
+	private final CredentialsProvider credentialsProvider;
 
 	public RepositoryHandler(Repository repository, TaskHelper taskHelper) {
 		this(repository, taskHelper, null, null);
@@ -40,6 +43,8 @@ public class RepositoryHandler implements Observable {
 		this.git = Git.wrap(repository);
 		this.pullHandler = new PullHandler(this::invalidate);
 		this.pushHandler = new PushHandler(this::invalidate);
+		// TODO provide proper credentials provider
+		this.credentialsProvider = new UsernamePasswordCredentialsProvider("username", "password");
 		this.invalidate();
 	}
 
@@ -58,7 +63,7 @@ public class RepositoryHandler implements Observable {
 	}
 
 	public void pull() {
-		this.pullHandler.pull(git, lockCallback, taskHelper, Constants.DEFAULT_REMOTE_NAME);
+		this.pullHandler.pull(git, lockCallback, taskHelper, Constants.DEFAULT_REMOTE_NAME, this.credentialsProvider);
 	}
 
 	public void push() {

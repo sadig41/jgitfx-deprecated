@@ -13,7 +13,10 @@ import org.eclipse.jgit.api.errors.RefNotAdvertisedException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.api.errors.WrongRepositoryStateException;
+import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.TextProgressMonitor;
+import org.eclipse.jgit.transport.CredentialsProvider;
 
 import net.bbmsoft.bbm.utils.Lockable;
 import net.bbmsoft.bbm.utils.concurrent.TaskHelper;
@@ -25,7 +28,7 @@ public class PullHandler extends RepositoryActionHandler<PullResult> {
 		super(updateCallback);
 	}
 
-	public void pull(Git git, Lockable lock, TaskHelper taskHelper, String remote) {
+	public void pull(Git git, Lockable lock, TaskHelper taskHelper, String remote, CredentialsProvider credetialsProvider) {
 
 		Repository repository = git.getRepository();
 
@@ -35,14 +38,16 @@ public class PullHandler extends RepositoryActionHandler<PullResult> {
 
 		String label = "Pulling " + repository.getWorkTree().getName() + "...";
 
-		Task<PullResult> pullTask = new PullTask(() -> doPull(git, remote), repository, remote);
+		ProgressMonitor progressMonitor = new TextProgressMonitor();
+		
+		Task<PullResult> pullTask = new PullTask(() -> doPull(git, remote, credetialsProvider, progressMonitor), repository, remote);
 
 		taskHelper.submitTask(pullTask, label, r -> done(r, lock), e -> logException(e));
 	}
 
-	private PullResult doPull(Git git, String remote) {
+	private PullResult doPull(Git git, String remote, CredentialsProvider credetialsProvider, ProgressMonitor progressMonitor) {
 		try {
-			return git.pull().setRemote(remote).call();
+			return git.pull().setCredentialsProvider(credetialsProvider).setProgressMonitor(progressMonitor).setRemote(remote).call();
 		} catch (WrongRepositoryStateException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
