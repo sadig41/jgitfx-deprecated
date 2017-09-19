@@ -18,11 +18,11 @@ import net.bbmsoft.jgitfx.modules.AppDirectoryProvider
 import net.bbmsoft.jgitfx.modules.GitWorkerExecutorManager
 import net.bbmsoft.jgitfx.modules.Preferences
 import net.bbmsoft.jgitfx.modules.RepositoryOpener
-import net.bbmsoft.jgitfx.modules.RepositoryRegistryListener
 import net.bbmsoft.jgitfx.registry.impl.JsonFilePersistor
 import net.bbmsoft.jgitfx.registry.impl.PersistingRepositoryRegistry
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
+import net.bbmsoft.jgitfx.modules.RepositoryListener
 
 class JGitFX extends Subapplication {
 
@@ -38,7 +38,7 @@ class JGitFX extends Subapplication {
 		val gitWorker = new GitWorkerExecutorManager
 		val prefs = Preferences.loadFromFile(AppDirectoryProvider.getFilePathFromAppDirectory('config.json'))
 		val jGitFXMainFrame = new JGitFXMainFrame(prefs, gitWorker, eventBroker)
-		val repositoryRegistryListener = new RepositoryRegistryListener(jGitFXMainFrame) => [appStarting = true]
+		val repositoryRegistryListener = new RepositoryListener(jGitFXMainFrame) => [appStarting = true]
 
 		eventBroker.subscribe(MessageType.values, messageListener)
 		eventBroker.subscribe(RepositoryRegistryTopic.REPO_NOT_FOUND)[repoNotFound($1, eventBroker)]

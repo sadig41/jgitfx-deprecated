@@ -40,7 +40,7 @@ public class RepositoryHandler {
 
 	private void invalidate() {
 		if (this.autoInvalidate) {
-			eventPublisher.publish(RepositoryTopic.REPO_UPDATED, this.repository);
+			eventPublisher.publish(RepositoryTopic.REPO_UPDATED, this);
 		}
 	}
 

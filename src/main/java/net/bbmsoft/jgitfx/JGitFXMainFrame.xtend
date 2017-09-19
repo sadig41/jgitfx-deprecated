@@ -7,8 +7,6 @@ import java.util.Map
 import java.util.ResourceBundle
 import java.util.concurrent.ExecutorService
 import javafx.application.Platform
-import javafx.beans.InvalidationListener
-import javafx.beans.Observable
 import javafx.collections.ObservableList
 import javafx.concurrent.Task
 import javafx.fxml.FXML
@@ -92,7 +90,6 @@ class JGitFXMainFrame extends BorderPane {
 	@BindableProperty RepositoryHandler repositoryHandler
 
 	Map<Repository, TreeItem<RepositoryWrapper>> repositoryTreeItems
-	InvalidationListener repositoryListener
 	TreeItem<RepositoryWrapper> rootRepoTreeItem
 	RepositoryTableVisualizer historyVisualizer
 	Preferences prefs
@@ -126,7 +123,6 @@ class JGitFXMainFrame extends BorderPane {
 		this.historyVisualizer = new RepositoryTableVisualizer(this.historyTable, this.refsColumn,
 			this.commitMessageColumn, this.authorColumn, this.timeColumn)
 		this.repositoryTreeItems = new HashMap
-		this.repositoryListener = [updateRepo]
 		this.rootRepoTreeItem = new TreeItem(new DummyWrapper('JGitFX'))
 		this.rootRepoTreeItem.children >> [updateTreeItemMap($0, $1)]
 		this.breadcrumb.selectedCrumb = this.rootRepoTreeItem
@@ -152,8 +148,9 @@ class JGitFXMainFrame extends BorderPane {
 
 		Platform.runLater[this.repositoriesList.expanded = true]
 	}
-	
-	private def updateTreeItemMap(List<? extends TreeItem<RepositoryWrapper>> added, List<? extends TreeItem<RepositoryWrapper>> removed) {
+
+	private def updateTreeItemMap(List<? extends TreeItem<RepositoryWrapper>> added,
+		List<? extends TreeItem<RepositoryWrapper>> removed) {
 		added.forEach[this.repositoryTreeItems.put(value.repository, it)]
 		removed.forEach[this.repositoryTreeItems.remove(value.repository)]
 	}
@@ -172,14 +169,12 @@ class JGitFXMainFrame extends BorderPane {
 
 	}
 
-	def updateRepo(Observable repoHandler) {
-		if (repoHandler instanceof RepositoryHandler) {
-			// TODO
-			println('''Updating view of «repoHandler?.repository»''')
-			this.historyVisualizer.repository = repoHandler.repository
-		}
+	def updateRepo(RepositoryHandler repoHandler) {
+		// TODO
+		println('''Updating view of «repoHandler?.repository»''')
+		this.historyVisualizer.repository = repoHandler.repository
 	}
-	
+
 	def getRepositoryTreeItems() {
 		this.rootRepoTreeItem.children
 	}

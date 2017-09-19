@@ -11,6 +11,9 @@ import net.bbmsoft.bbm.utils.Persistor
 import net.bbmsoft.bbm.utils.concurrent.TaskHelper
 import net.bbmsoft.jgitfx.event.EventBroker
 import net.bbmsoft.jgitfx.event.RepositoryRegistryTopic
+import net.bbmsoft.jgitfx.event.RepositoryTopic
+import net.bbmsoft.jgitfx.messaging.Message
+import net.bbmsoft.jgitfx.messaging.MessageType
 import net.bbmsoft.jgitfx.modules.RepositoryHandler
 import net.bbmsoft.jgitfx.registry.RepositoryRegistry
 import org.eclipse.jgit.errors.RepositoryNotFoundException
@@ -19,9 +22,6 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import org.eclipse.xtend.lib.annotations.Accessors
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
-import net.bbmsoft.jgitfx.event.RepositoryTopic
-import net.bbmsoft.jgitfx.messaging.MessageType
-import net.bbmsoft.jgitfx.messaging.Message
 
 class PersistingRepositoryRegistry implements RepositoryRegistry {
 
@@ -96,10 +96,11 @@ class PersistingRepositoryRegistry implements RepositoryRegistry {
 				val repo = loadRepo(repositoryFile)
 				this.repositories.put(repo.directory, repo)
 				this.repositories.put(repo.workTree, repo)
-				this.handlers.put(repo, createHandler(repo))
+				val handler = createHandler(repo)
+				this.handlers.put(repo, handler)
 				val result = this.registeredRepositories.add(repo.directory)
 				if(result) {
-					this.eventBroker.publish(RepositoryTopic.REPO_LOADED, repo)
+					this.eventBroker.publish(RepositoryTopic.REPO_LOADED, handler)
 				}
 				result
 			} catch (RepositoryNotFoundException e) {
