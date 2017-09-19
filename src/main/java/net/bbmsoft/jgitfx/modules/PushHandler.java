@@ -17,6 +17,7 @@ import org.eclipse.jgit.transport.PushResult;
 
 import net.bbmsoft.bbm.utils.Lockable;
 import net.bbmsoft.bbm.utils.concurrent.TaskHelper;
+import net.bbmsoft.jgitfx.messaging.MessageType;
 import net.bbmsoft.jgitfx.messaging.Messenger;
 import net.bbmsoft.jgitfx.modules.RepositoryHandler.Task;
 
@@ -66,8 +67,11 @@ public class PushHandler extends RepositoryActionHandler<Iterable<PushResult>> {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (TransportException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			MessageType type = MessageType.ERROR;
+			String title = "Pushing to " + remote + " failed!";
+			Throwable cause = getRoot((Throwable) e, th -> th.getCause());
+			String body = cause.getLocalizedMessage();
+			showMessage(type, title, body);
 		} catch (GitAPIException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
