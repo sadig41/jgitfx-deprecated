@@ -51,10 +51,6 @@ class PersistingRepositoryRegistry implements RepositoryRegistry {
 		}
 	}
 	
-	override getHandler(Repository repository) {
-		this.handlers.get(repository) ?: (new RepositoryHandler(repository, this.taskHelper, this.messenger) => [this.handlers.put(repository, it)])
-	}
-	
 	override removeRepository(File repositoryFile) {
 		throw new UnsupportedOperationException("TODO: auto-generated method stub")
 	}

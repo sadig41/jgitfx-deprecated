@@ -29,10 +29,6 @@ public class RepositoryHandler implements Observable {
 	private final TaskHelper taskHelper;
 	private final CredentialsProvider credentialsProvider;
 
-	public RepositoryHandler(Repository repository, TaskHelper taskHelper, Messenger messenger) {
-		this(repository, taskHelper, null, null, messenger);
-	}
-
 	public RepositoryHandler(Repository repository, TaskHelper taskHelper, Lockable lockCallback, InvalidationListener listener, Messenger messenger) {
 		this.taskHelper = taskHelper;
 		this.lockCallback = lockCallback;
