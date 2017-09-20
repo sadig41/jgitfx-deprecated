@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.bbmsoft.bbm.utils.concurrent.ThreadUtils;
+
 public class SimpleEventBroker implements EventBroker {
 
 	private final Map<Topic<?>, List<Listener<?>>> listenerMap;
@@ -27,20 +29,22 @@ public class SimpleEventBroker implements EventBroker {
 
 	@Override
 	public <T> void subscribe(Topic<T> topic, Listener<T> listener) {
+		ThreadUtils.checkFxThread();
 		getListeners(topic).add(listener);
 	}
 
 	@Override
 	public <T> void unsubscribe(Topic<T> topic, Listener<T> listener) {
+		ThreadUtils.checkFxThread();
 		getListeners(topic).remove(listener);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
+	@SuppressWarnings("unchecked")
 	public <T> void publish(Topic<T> topic, T payload) {
-		for (Listener<?> l : getListeners(topic)) {
-			// we know this cast is safe because the type check in subscription makes sure
-			// that all listeners match the topic to which they are subscribed
+		ThreadUtils.checkFxThread();
+		List<Listener<?>> listeners = getListeners(topic);
+		for (Listener<?> l : listeners) {
 			((Listener<T>) l).update(topic, payload);
 		}
 

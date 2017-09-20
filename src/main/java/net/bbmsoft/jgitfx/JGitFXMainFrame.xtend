@@ -19,8 +19,6 @@ import javafx.scene.control.TitledPane
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.scene.layout.BorderPane
-import net.bbmsoft.bbm.utils.Lockable
-import net.bbmsoft.bbm.utils.concurrent.TaskHelper
 import net.bbmsoft.fxtended.annotations.app.FXMLRoot
 import net.bbmsoft.fxtended.annotations.binding.BindableProperty
 import net.bbmsoft.jgitfx.event.EventBroker
@@ -79,7 +77,6 @@ class JGitFXMainFrame extends BorderPane {
 
 	@FXML TaskProgressView<Task<?>> tasksView
 
-	@BindableProperty TaskHelper taskHelper
 	@BindableProperty Runnable cloneAction
 	@BindableProperty Runnable batchCloneAction
 	@BindableProperty Runnable initAction
@@ -94,18 +91,11 @@ class JGitFXMainFrame extends BorderPane {
 	RepositoryTableVisualizer historyVisualizer
 	Preferences prefs
 	EventBroker eventBroker
-	Lockable locker
 
 	new(Preferences prefs, ExecutorService gitWorker, EventBroker eventBroker) {
 		this()
 		this.prefs = prefs
 		this.eventBroker = eventBroker
-		this.locker = new Lockable() {
-
-			override lock() {}
-
-			override unlock() {}
-		}
 		updateHistoryColumnsVisibility
 		this.historyTable.columns.forEach[col|col.visibleProperty >> [this.prefs.setColumnVisible(col.id, it)]]
 	}

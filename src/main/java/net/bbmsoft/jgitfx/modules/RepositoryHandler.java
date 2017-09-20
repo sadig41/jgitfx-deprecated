@@ -7,7 +7,6 @@ import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.CredentialsProvider;
 
-import net.bbmsoft.bbm.utils.concurrent.TaskHelper;
 import net.bbmsoft.jgitfx.event.EventPublisher;
 import net.bbmsoft.jgitfx.event.RepositoryTopic;
 
@@ -19,15 +18,13 @@ public class RepositoryHandler {
 	private final PullHandler pullHandler;
 	private final PushHandler pushHandler;
 
-	private final TaskHelper taskHelper;
 	private final CredentialsProvider credentialsProvider;
 
 	private boolean autoInvalidate;
 	
 	private EventPublisher eventPublisher;
 
-	public RepositoryHandler(Repository repository, TaskHelper taskHelper, EventPublisher eventPublisher) {
-		this.taskHelper = taskHelper;
+	public RepositoryHandler(Repository repository, EventPublisher eventPublisher) {
 		this.eventPublisher = eventPublisher;
 		this.repository = repository;
 		this.git = Git.wrap(repository);
@@ -55,11 +52,11 @@ public class RepositoryHandler {
 	}
 
 	public void pull() {
-		this.pullHandler.pull(git, taskHelper, Constants.DEFAULT_REMOTE_NAME, this.credentialsProvider);
+		this.pullHandler.pull(git, Constants.DEFAULT_REMOTE_NAME, this.credentialsProvider);
 	}
 
 	public void push() {
-		this.pushHandler.push(git, taskHelper, Constants.DEFAULT_REMOTE_NAME, this.credentialsProvider);
+		this.pushHandler.push(git, Constants.DEFAULT_REMOTE_NAME, this.credentialsProvider);
 	}
 
 	public void branch() {

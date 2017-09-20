@@ -8,7 +8,6 @@ import java.util.Map
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import net.bbmsoft.bbm.utils.Persistor
-import net.bbmsoft.bbm.utils.concurrent.TaskHelper
 import net.bbmsoft.jgitfx.event.EventBroker
 import net.bbmsoft.jgitfx.event.RepositoryRegistryTopic
 import net.bbmsoft.jgitfx.event.RepositoryTopic
@@ -19,7 +18,6 @@ import net.bbmsoft.jgitfx.registry.RepositoryRegistry
 import org.eclipse.jgit.errors.RepositoryNotFoundException
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
-import org.eclipse.xtend.lib.annotations.Accessors
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
 
@@ -30,21 +28,17 @@ class PersistingRepositoryRegistry implements RepositoryRegistry {
 	final Map<File, Repository> repositories
 	final Map<Repository, RepositoryHandler> handlers
 
-	@Accessors TaskHelper taskHelper
-
 	final EventBroker eventBroker
 
-	new(Persistor<List<File>> persistor, EventBroker eventBroker, TaskHelper taskHelper) {
-		this(persistor, FXCollections.observableArrayList, eventBroker, taskHelper)
+	new(Persistor<List<File>> persistor, EventBroker eventBroker) {
+		this(persistor, FXCollections.observableArrayList, eventBroker)
 	}
 
-	new(Persistor<List<File>> persistor, ObservableList<File> repositories, EventBroker eventBroker,
-		TaskHelper taskHelper) {
+	new(Persistor<List<File>> persistor, ObservableList<File> repositories, EventBroker eventBroker) {
 
 		this.registeredRepositories = repositories
 		this.persistor = persistor
 		this.eventBroker = eventBroker
-		this.taskHelper = taskHelper
 		this.repositories = new HashMap
 		this.handlers = new HashMap
 		this.registeredRepositories >> [ added, removed |
@@ -67,7 +61,7 @@ class PersistingRepositoryRegistry implements RepositoryRegistry {
 	}
 	
 	private def RepositoryHandler createHandler(Repository repository) {
-		return new RepositoryHandler(repository, this.taskHelper, this.eventBroker)
+		return new RepositoryHandler(repository, this.eventBroker)
 	}
 
 	private def Repository loadRepo(File dir) throws RepositoryNotFoundException, IOException {

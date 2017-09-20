@@ -18,8 +18,8 @@ import org.eclipse.jgit.lib.TextProgressMonitor;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.PushResult;
 
-import net.bbmsoft.bbm.utils.concurrent.TaskHelper;
 import net.bbmsoft.jgitfx.event.EventPublisher;
+import net.bbmsoft.jgitfx.event.TaskTopic;
 import net.bbmsoft.jgitfx.messaging.Message;
 import net.bbmsoft.jgitfx.messaging.MessageType;
 import net.bbmsoft.jgitfx.modules.RepositoryHandler.Task;
@@ -30,18 +30,16 @@ public class PushHandler extends RepositoryActionHandler<Iterable<PushResult>> {
 		super(updateCallback, eventPublisher);
 	}
 
-	public void push(Git git, TaskHelper taskHelper, String remote, CredentialsProvider credetialsProvider) {
+	public void push(Git git, String remote, CredentialsProvider credetialsProvider) {
 
 		Repository repository = git.getRepository();
-
-		String label = "Pushing " + repository.getWorkTree().getName() + "...";
 
 		ProgressMonitor progressMonitor = new TextProgressMonitor();
 
 		Task<Iterable<PushResult>> pushTask = new PushTask(
 				() -> doPush(git, remote, credetialsProvider, progressMonitor), repository, remote);
 
-		taskHelper.submitTask(pushTask, label, r -> done(r), e -> logException(e));
+		publish(TaskTopic.PushTask.STARTED, pushTask);
 	}
 
 	private Iterable<PushResult> doPush(Git git, String remote, CredentialsProvider credetialsProvider,
