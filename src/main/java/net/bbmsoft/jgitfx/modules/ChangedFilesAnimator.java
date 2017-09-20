@@ -20,25 +20,35 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.scene.Parent;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.layout.Pane;
+import net.bbmsoft.jgitfx.wrappers.HistoryEntry;
 
-public class ChangedFilesAnimator implements ChangeListener<RevCommit> {
+public class ChangedFilesAnimator implements ChangeListener<HistoryEntry> {
 
 	private final TableView<DiffEntry> changedFilesOverview;
-	private final Supplier<Repository> repoSupplier;
-	private TableColumn<DiffEntry, ChangeType> typeColumn;
-	private TableColumn<DiffEntry, String> fileColumn;
+	private final Parent wipOverview;
+	private final Pane parent;
 
-	public ChangedFilesAnimator(TableView<DiffEntry> changedFilesOverview, TableColumn<DiffEntry, ChangeType> typeColumn,
-			TableColumn<DiffEntry, String> fileColumn, Supplier<Repository> repoSupplier) {
-		
+	private final Supplier<Repository> repoSupplier;
+	private final TableColumn<DiffEntry, ChangeType> typeColumn;
+	private final TableColumn<DiffEntry, String> fileColumn;
+
+	public ChangedFilesAnimator(Parent wipOverview, TableView<DiffEntry> changedFilesOverview,
+			TableColumn<DiffEntry, ChangeType> typeColumn, TableColumn<DiffEntry, String> fileColumn,
+			Supplier<Repository> repoSupplier) {
+
+		this.wipOverview = wipOverview;
 		this.changedFilesOverview = changedFilesOverview;
+		this.parent = (Pane) wipOverview.getParent();
 		this.typeColumn = typeColumn;
 		this.fileColumn = fileColumn;
 		this.repoSupplier = repoSupplier;
-		
-		this.typeColumn.setCellValueFactory(cdf -> new SimpleObjectProperty<ChangeType>(cdf.getValue().getChangeType()));
+
+		this.typeColumn
+				.setCellValueFactory(cdf -> new SimpleObjectProperty<ChangeType>(cdf.getValue().getChangeType()));
 		this.fileColumn.setCellValueFactory(cdf -> new SimpleStringProperty(getFilepath(cdf.getValue())));
 	}
 
@@ -59,17 +69,13 @@ public class ChangedFilesAnimator implements ChangeListener<RevCommit> {
 	}
 
 	@Override
-	public void changed(ObservableValue<? extends RevCommit> observable, RevCommit oldValue, RevCommit newValue) {
-		if (newValue != null) {
-			try {
-				updateTable(newValue);
-			} catch (IOException | GitAPIException e) {
-				e.printStackTrace();
-			}
-		} else {
-			this.changedFilesOverview.getItems().clear();
+	public void changed(ObservableValue<? extends HistoryEntry> observable, HistoryEntry oldValue,
+			HistoryEntry newValue) {
+		try {
+			updateTable(newValue);
+		} catch (IOException | GitAPIException e) {
+			e.printStackTrace();
 		}
-		this.changedFilesOverview.setVisible(newValue != null);
 	}
 
 	private AbstractTreeIterator getTree(RevCommit commit, Repository repo)
@@ -80,19 +86,36 @@ public class ChangedFilesAnimator implements ChangeListener<RevCommit> {
 		}
 	}
 
-	private void updateTable(RevCommit commit) throws IncorrectObjectTypeException, IOException, GitAPIException {
+	private void updateTable(HistoryEntry entry) throws IncorrectObjectTypeException, IOException, GitAPIException {
 
 		Repository repo = this.repoSupplier.get();
 		if (repo == null) {
 			return;
 		}
 
-		if (commit.getParentCount() > 0) {
-			Git git = Git.wrap(repo);
-			List<DiffEntry> diff = git.diff().setOldTree(getTree(commit.getParent(0), repo))
-					.setNewTree(getTree(commit, repo)).call();
-			diff.sort((a,b) -> a.getChangeType().compareTo(b.getChangeType()));
-			this.changedFilesOverview.getItems().setAll(diff);
+		if (entry == null) {
+			this.wipOverview.setVisible(false);
+			this.changedFilesOverview.setVisible(false);
+			return;
+		}
+
+		RevCommit commit = entry.getCommit();
+
+		if (commit != null) {
+			this.wipOverview.setVisible(false);
+			this.changedFilesOverview.setVisible(true);
+			if (commit.getParentCount() > 0) {
+				Git git = Git.wrap(repo);
+				List<DiffEntry> diff = git.diff().setOldTree(getTree(commit.getParent(0), repo))
+						.setNewTree(getTree(commit, repo)).call();
+				diff.sort((a, b) -> a.getChangeType().compareTo(b.getChangeType()));
+				this.changedFilesOverview.getItems().setAll(diff);
+			} else {
+				// handle initial commit
+			}
+		} else {
+			this.changedFilesOverview.setVisible(false);
+			this.wipOverview.setVisible(true);
 		}
 	}
 

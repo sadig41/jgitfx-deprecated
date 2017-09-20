@@ -10,6 +10,7 @@ import javafx.application.Platform
 import javafx.collections.ObservableList
 import javafx.concurrent.Task
 import javafx.fxml.FXML
+import javafx.scene.Parent
 import javafx.scene.control.Label
 import javafx.scene.control.MenuItem
 import javafx.scene.control.SelectionMode
@@ -29,6 +30,7 @@ import net.bbmsoft.jgitfx.modules.RepositoryHandler
 import net.bbmsoft.jgitfx.modules.RepositoryTableVisualizer
 import net.bbmsoft.jgitfx.modules.StagingAnimator
 import net.bbmsoft.jgitfx.registry.RepositoryRegistry
+import net.bbmsoft.jgitfx.wrappers.HistoryEntry
 import net.bbmsoft.jgitfx.wrappers.RepositoryWrapper
 import net.bbmsoft.jgitfx.wrappers.RepositoryWrapper.DummyWrapper
 import org.controlsfx.control.BreadCrumbBar
@@ -36,19 +38,19 @@ import org.controlsfx.control.TaskProgressView
 import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.lib.Repository
-import org.eclipse.jgit.revwalk.RevCommit
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
 
 @FXMLRoot
 class JGitFXMainFrame extends BorderPane {
 
-	@FXML TableView<RevCommit> historyTable
-	@FXML TableColumn<RevCommit, String> refsColumn
-	@FXML TableColumn<RevCommit, String> commitMessageColumn
-	@FXML TableColumn<RevCommit, String> authorColumn
-	@FXML TableColumn<RevCommit, String> timeColumn
+	@FXML TableView<HistoryEntry> historyTable
+	@FXML TableColumn<HistoryEntry, String> refsColumn
+	@FXML TableColumn<HistoryEntry, String> commitMessageColumn
+	@FXML TableColumn<HistoryEntry, String> authorColumn
+	@FXML TableColumn<HistoryEntry, String> timeColumn
 
+	@FXML Parent wipOverview
 	@FXML TableView<DiffEntry> changedFilesOverview
 	@FXML TableColumn<DiffEntry, ChangeType> commitTypeColumn
 	@FXML TableColumn<DiffEntry, String> commitFileColumn
@@ -131,7 +133,7 @@ class JGitFXMainFrame extends BorderPane {
 			new CommitInfoAnimator(this.commitMessageLabel, this.authorLabel, this.emailLabel, this.timeLabel,
 				this.hashLabel, this.parentHashLabel))
 		this.historyTable.selectionModel.selectedItemProperty.addListener(
-			new ChangedFilesAnimator(this.changedFilesOverview, this.commitTypeColumn, this.commitFileColumn) [
+			new ChangedFilesAnimator(this.wipOverview, this.changedFilesOverview, this.commitTypeColumn, this.commitFileColumn) [
 				this.repositoryHandler?.repository
 			])
 		this.historyTable.selectionModel.selectedItemProperty.addListener(new StagingAnimator())

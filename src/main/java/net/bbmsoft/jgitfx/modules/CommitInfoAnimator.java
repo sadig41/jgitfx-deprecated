@@ -7,8 +7,9 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Label;
+import net.bbmsoft.jgitfx.wrappers.HistoryEntry;
 
-public class CommitInfoAnimator implements ChangeListener<RevCommit> {
+public class CommitInfoAnimator implements ChangeListener<HistoryEntry> {
 
 	private final Label commitMessageLabel;
 	private final Label authorLabel;
@@ -17,7 +18,7 @@ public class CommitInfoAnimator implements ChangeListener<RevCommit> {
 	private final Label hashLabel;
 	private final Label parentHashLabel;
 
-	private RevCommit currentCommit;
+	private HistoryEntry currentCommit;
 
 	public CommitInfoAnimator(Label commitMessageLabel, Label authorLabel, Label emailLabel, Label timeLabel,
 			Label hashLabel, Label parentHashLabel) {
@@ -31,22 +32,25 @@ public class CommitInfoAnimator implements ChangeListener<RevCommit> {
 	}
 
 	@Override
-	public void changed(ObservableValue<? extends RevCommit> observable, RevCommit oldValue, RevCommit newValue) {
+	public void changed(ObservableValue<? extends HistoryEntry> observable, HistoryEntry oldValue, HistoryEntry newValue) {
 
 		this.currentCommit = newValue;
 		updatePanel();
 	}
 
 	private void updatePanel() {
+		
+		boolean noCommit = this.currentCommit == null;
 
-		if (this.currentCommit != null) {
-			this.commitMessageLabel.setText(this.currentCommit.getFullMessage().trim());
-			this.authorLabel.setText(this.currentCommit.getAuthorIdent().getName());
-			this.emailLabel.setText(this.currentCommit.getAuthorIdent().getEmailAddress());
-			this.timeLabel.setText(new Date(this.currentCommit.getCommitTime() * 1000L).toString());
-			this.hashLabel.setText(this.currentCommit.getId().name());
+		if (!noCommit && this.currentCommit.getCommit() != null) {
+			RevCommit commit = this.currentCommit.getCommit();
+			this.commitMessageLabel.setText(commit.getFullMessage().trim());
+			this.authorLabel.setText(commit.getAuthorIdent().getName());
+			this.emailLabel.setText(commit.getAuthorIdent().getEmailAddress());
+			this.timeLabel.setText(new Date(commit.getCommitTime() * 1000L).toString());
+			this.hashLabel.setText(commit.getId().name());
 			this.parentHashLabel.setText(
-					this.currentCommit.getParentCount() > 0 ? this.currentCommit.getParent(0).getId().name() : "-");
+					commit.getParentCount() > 0 ? commit.getParent(0).getId().name() : "-");
 		} else {
 			this.commitMessageLabel.setText(null);
 			this.authorLabel.setText(null);
@@ -55,8 +59,6 @@ public class CommitInfoAnimator implements ChangeListener<RevCommit> {
 			this.hashLabel.setText(null);
 			this.parentHashLabel.setText(null);
 		}
-
-		boolean noCommit = this.currentCommit == null;
 
 		this.commitMessageLabel.setDisable(noCommit);
 		this.authorLabel.setDisable(noCommit);

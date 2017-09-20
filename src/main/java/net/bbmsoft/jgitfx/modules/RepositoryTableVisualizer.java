@@ -17,41 +17,82 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import net.bbmsoft.jgitfx.wrappers.HistoryEntry;
 
 public class RepositoryTableVisualizer {
 
-	private final TableView<RevCommit> table;
+	private final TableView<HistoryEntry> table;
 	private final Map<String, List<Ref>> refMap;
 
 	private Repository repository;
+	
+	private final StringProperty wipCommitMessage;
 
-	public RepositoryTableVisualizer(TableView<RevCommit> table, TableColumn<RevCommit, String> branchColumn,
-			TableColumn<RevCommit, String> commitMessageColumn, TableColumn<RevCommit, String> authorColumn,
-			TableColumn<RevCommit, String> timeColumn) {
+	public RepositoryTableVisualizer(TableView<HistoryEntry> table, TableColumn<HistoryEntry, String> branchColumn,
+			TableColumn<HistoryEntry, String> commitMessageColumn, TableColumn<HistoryEntry, String> authorColumn,
+			TableColumn<HistoryEntry, String> timeColumn) {
 
 		this.table = table;
 		this.refMap = new HashMap<>();
+		this.wipCommitMessage = new SimpleStringProperty("// WIP");
 
 		branchColumn.setCellValueFactory(cdf -> {
-			return new SimpleStringProperty(getRefs(cdf.getValue()));
+			return new SimpleStringProperty(getRefs(cdf.getValue().getCommit()));
 		});
 
 		commitMessageColumn.setCellValueFactory(cdf -> {
-			return new SimpleStringProperty(cdf.getValue().getShortMessage());
+			
+			if(cdf.getValue().getCommit() == null) {
+				return wipCommitMessage;
+			} else {
+				return new SimpleStringProperty(getShortMessage(cdf.getValue().getCommit()));	
+			}
 		});
 
 		authorColumn.setCellValueFactory(cdf -> {
-			return new SimpleStringProperty(toString(cdf.getValue().getAuthorIdent()));
+			return new SimpleStringProperty(getAuthorIdent(cdf.getValue().getCommit()));
 		});
 
 		timeColumn.setCellValueFactory(cdf -> {
-			return new SimpleStringProperty(toString(new Date(cdf.getValue().getCommitTime() * 1000L)));
+			return new SimpleStringProperty(getCommitTime(cdf.getValue().getCommit()));
 		});
 	}
 
+	private String getCommitTime(RevCommit commit) {
+
+		if (commit == null) {
+			return "";
+		} else {
+			return toString(new Date(commit.getCommitTime() * 1000L));
+		}
+	}
+
+	private String getAuthorIdent(RevCommit commit) {
+
+		if (commit == null) {
+			return "";
+		} else {
+			return toString(commit.getAuthorIdent());
+		}
+	}
+
+	private String getShortMessage(RevCommit commit) {
+
+		if (commit == null) {
+			return "";
+		} else {
+			return commit.getShortMessage();
+		}
+	}
+
 	private String getRefs(RevCommit commit) {
+		
+		if(commit == null) {
+			return "";
+		}
 
 		String id = commit.getId().getName();
 		List<Ref> refs = this.refMap.get(id);
@@ -102,9 +143,9 @@ public class RepositoryTableVisualizer {
 		// TODO possibly move to background thread if too slow
 
 		Git git = Git.wrap(this.repository);
-		
+
 		this.refMap.clear();
-		
+
 		List<Ref> allRefs = new ArrayList<>();
 		allRefs.addAll(git.branchList().call());
 		allRefs.addAll(git.tagList().call());
@@ -121,8 +162,11 @@ public class RepositoryTableVisualizer {
 
 		Iterable<RevCommit> commitsIterable = git.log().all().call();
 
-		List<RevCommit> commits = new ArrayList<>();
-		commitsIterable.forEach(rev -> commits.add(rev));
+		List<HistoryEntry> commits = new ArrayList<>();
+
+		commits.add(new HistoryEntry(null));
+
+		commitsIterable.forEach(rev -> commits.add(new HistoryEntry(rev)));
 		this.table.getItems().setAll(commits);
 	}
 }
