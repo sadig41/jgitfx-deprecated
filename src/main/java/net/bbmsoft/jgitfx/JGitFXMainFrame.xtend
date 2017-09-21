@@ -51,6 +51,13 @@ class JGitFXMainFrame extends BorderPane {
 	@FXML TableColumn<HistoryEntry, String> timeColumn
 
 	@FXML Parent wipOverview
+	@FXML TableView<DiffEntry> unstagedFilesTable
+	@FXML TableColumn<DiffEntry, String> unstagedTypeColum
+	@FXML TableColumn<DiffEntry, String> unstagedFileColum
+	@FXML TableView<DiffEntry> stagedFilesTable
+	@FXML TableColumn<DiffEntry, String> stagedTypeColum
+	@FXML TableColumn<DiffEntry, String> stagedFileColum
+
 	@FXML TableView<DiffEntry> changedFilesOverview
 	@FXML TableColumn<DiffEntry, ChangeType> commitTypeColumn
 	@FXML TableColumn<DiffEntry, String> commitFileColumn
@@ -133,10 +140,14 @@ class JGitFXMainFrame extends BorderPane {
 			new CommitInfoAnimator(this.commitMessageLabel, this.authorLabel, this.emailLabel, this.timeLabel,
 				this.hashLabel, this.parentHashLabel))
 		this.historyTable.selectionModel.selectedItemProperty.addListener(
-			new ChangedFilesAnimator(this.wipOverview, this.changedFilesOverview, this.commitTypeColumn, this.commitFileColumn) [
+			new ChangedFilesAnimator(this.wipOverview, this.changedFilesOverview, this.commitTypeColumn,
+				this.commitFileColumn) [
 				this.repositoryHandler?.repository
 			])
-		this.historyTable.selectionModel.selectedItemProperty.addListener(new StagingAnimator())
+
+		val stagingAnimator = new StagingAnimator(this.unstagedFilesTable, this.unstagedTypeColum,
+			this.unstagedFileColum, this.stagedFilesTable, this.stagedTypeColum, this.stagedFileColum)
+		this.repositoryHandlerProperty >> stagingAnimator
 
 		Platform.runLater[this.repositoriesList.expanded = true]
 	}

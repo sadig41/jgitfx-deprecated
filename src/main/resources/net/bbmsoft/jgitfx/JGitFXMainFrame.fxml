@@ -148,6 +148,19 @@
                            <contextMenu>
                               <ContextMenu>
                                 <items>
+                                    <MenuItem mnemonicParsing="false" onAction="#openRepo" text="Open repo...">
+                                       <accelerator>
+                                          <KeyCodeCombination alt="UP" code="O" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                                       </accelerator></MenuItem>
+                                    <MenuItem mnemonicParsing="false" onAction="#cloneRepo" text="Clone repo...">
+                                       <accelerator>
+                                          <KeyCodeCombination alt="UP" code="C" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                                       </accelerator></MenuItem>
+                                    <MenuItem mnemonicParsing="false" onAction="#batchCloneRepo" text="Batch clone repos...">
+                                       <accelerator>
+                                          <KeyCodeCombination alt="UP" code="C" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
+                                       </accelerator></MenuItem>
+                                    <SeparatorMenuItem mnemonicParsing="false" />
                                     <MenuItem fx:id="undoContextMenuItem" disable="true" mnemonicParsing="false" onAction="#undoSelected" text="Undo">
                                        <accelerator>
                                           <KeyCodeCombination alt="UP" code="Z" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
@@ -308,23 +321,23 @@
                               <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                            </columnResizePolicy>
                         </TableView>
-                        <VBox fx:id="wipOverview" prefHeight="200.0" prefWidth="100.0" spacing="8.0" visible="false">
+                        <VBox fx:id="wipOverview" prefHeight="200.0" prefWidth="100.0" spacing="8.0">
                            <children>
                               <Label text="Unstaged Files:" />
-                              <TableView maxHeight="1.7976931348623157E308" prefHeight="300.0" VBox.vgrow="ALWAYS">
-                                <columns>
-                                  <TableColumn editable="false" maxWidth="40.0" minWidth="32.0" prefWidth="-1.0" text="Type" />
-                                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefWidth="-1.0" text="File" />
-                                </columns>
+                              <TableView fx:id="unstagedFilesTable" maxHeight="1.7976931348623157E308" prefHeight="300.0" VBox.vgrow="ALWAYS">
                                  <columnResizePolicy>
                                     <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                                  </columnResizePolicy>
+                                 <columns>
+                                    <TableColumn fx:id="unstagedTypeColum" minWidth="46.0" prefWidth="46.0" text="Type" />
+                                    <TableColumn fx:id="unstagedFileColum" minWidth="64.0" prefWidth="153.0" text="File" />
+                                 </columns>
                               </TableView>
                               <Label text="Staged Files:" />
-                              <TableView maxHeight="1.7976931348623157E308" prefHeight="300.0" VBox.vgrow="ALWAYS">
+                              <TableView fx:id="stagedFilesTable" maxHeight="1.7976931348623157E308" prefHeight="300.0" VBox.vgrow="ALWAYS">
                                 <columns>
-                                  <TableColumn editable="false" maxWidth="40.0" minWidth="32.0" prefWidth="-1.0" text="Type" />
-                                  <TableColumn editable="false" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefWidth="-1.0" text="File" />
+                                  <TableColumn fx:id="stagedTypeColum" editable="false" minWidth="46.0" prefWidth="46.0" text="Type" />
+                                  <TableColumn fx:id="stagedFileColum" editable="false" minWidth="64.0" prefWidth="147.0" text="File" />
                                 </columns>
                                  <columnResizePolicy>
                                     <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

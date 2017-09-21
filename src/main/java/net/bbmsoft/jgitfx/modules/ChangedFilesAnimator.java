@@ -23,14 +23,12 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.Parent;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.layout.Pane;
 import net.bbmsoft.jgitfx.wrappers.HistoryEntry;
 
 public class ChangedFilesAnimator implements ChangeListener<HistoryEntry> {
 
 	private final TableView<DiffEntry> changedFilesOverview;
 	private final Parent wipOverview;
-	private final Pane parent;
 
 	private final Supplier<Repository> repoSupplier;
 	private final TableColumn<DiffEntry, ChangeType> typeColumn;
@@ -42,7 +40,6 @@ public class ChangedFilesAnimator implements ChangeListener<HistoryEntry> {
 
 		this.wipOverview = wipOverview;
 		this.changedFilesOverview = changedFilesOverview;
-		this.parent = (Pane) wipOverview.getParent();
 		this.typeColumn = typeColumn;
 		this.fileColumn = fileColumn;
 		this.repoSupplier = repoSupplier;
@@ -71,11 +68,7 @@ public class ChangedFilesAnimator implements ChangeListener<HistoryEntry> {
 	@Override
 	public void changed(ObservableValue<? extends HistoryEntry> observable, HistoryEntry oldValue,
 			HistoryEntry newValue) {
-		try {
-			updateTable(newValue);
-		} catch (IOException | GitAPIException e) {
-			e.printStackTrace();
-		}
+		updateTable(newValue);
 	}
 
 	private AbstractTreeIterator getTree(RevCommit commit, Repository repo)
@@ -86,7 +79,7 @@ public class ChangedFilesAnimator implements ChangeListener<HistoryEntry> {
 		}
 	}
 
-	private void updateTable(HistoryEntry entry) throws IncorrectObjectTypeException, IOException, GitAPIException {
+	private void updateTable(HistoryEntry entry) {
 
 		Repository repo = this.repoSupplier.get();
 		if (repo == null) {
@@ -102,17 +95,30 @@ public class ChangedFilesAnimator implements ChangeListener<HistoryEntry> {
 		RevCommit commit = entry.getCommit();
 
 		if (commit != null) {
+			
 			this.wipOverview.setVisible(false);
 			this.changedFilesOverview.setVisible(true);
+			
 			if (commit.getParentCount() > 0) {
-				Git git = Git.wrap(repo);
-				List<DiffEntry> diff = git.diff().setOldTree(getTree(commit.getParent(0), repo))
-						.setNewTree(getTree(commit, repo)).call();
-				diff.sort((a, b) -> a.getChangeType().compareTo(b.getChangeType()));
-				this.changedFilesOverview.getItems().setAll(diff);
+				
+				try (Git git = Git.wrap(repo)) {
+					
+					List<DiffEntry> diff = git.diff().setOldTree(getTree(commit.getParent(0), repo))
+							.setNewTree(getTree(commit, repo)).call();
+					diff.sort((a, b) -> a.getChangeType().compareTo(b.getChangeType()));
+					this.changedFilesOverview.getItems().setAll(diff);
+					
+				} catch (IncorrectObjectTypeException e) {
+					e.printStackTrace();
+				} catch (GitAPIException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			} else {
 				// handle initial commit
 			}
+			
 		} else {
 			this.changedFilesOverview.setVisible(false);
 			this.wipOverview.setVisible(true);
