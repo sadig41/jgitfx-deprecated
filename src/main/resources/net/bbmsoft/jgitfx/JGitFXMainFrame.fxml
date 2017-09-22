@@ -23,6 +23,7 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
@@ -323,7 +324,13 @@
                         </TableView>
                         <VBox fx:id="wipOverview" prefHeight="200.0" prefWidth="100.0" spacing="8.0">
                            <children>
-                              <Label text="Unstaged Files:" />
+                              <HBox alignment="CENTER_LEFT">
+                                 <children>
+                                    <Label text="Unstaged Files:" />
+                                    <Pane HBox.hgrow="ALWAYS" />
+                                    <Button fx:id="stageAllButton" mnemonicParsing="false" onAction="#stageAll" text="Stage all" />
+                                 </children>
+                              </HBox>
                               <TableView fx:id="unstagedFilesTable" maxHeight="1.7976931348623157E308" prefHeight="300.0" VBox.vgrow="ALWAYS">
                                  <columnResizePolicy>
                                     <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
@@ -332,8 +339,22 @@
                                     <TableColumn fx:id="unstagedTypeColum" minWidth="46.0" prefWidth="46.0" text="Type" />
                                     <TableColumn fx:id="unstagedFileColum" minWidth="64.0" prefWidth="153.0" text="File" />
                                  </columns>
+                                 <contextMenu>
+                                    <ContextMenu>
+                                      <items>
+                                        <MenuItem fx:id="stageMenuItem" mnemonicParsing="false" onAction="#stageSelected" text="Stage" />
+                                          <MenuItem fx:id="discardUnstagedMenuItem" mnemonicParsing="false" onAction="#discardSelectedUnstaged" text="Discard" />
+                                      </items>
+                                    </ContextMenu>
+                                 </contextMenu>
                               </TableView>
-                              <Label text="Staged Files:" />
+                              <HBox alignment="CENTER_LEFT">
+                                 <children>
+                                    <Label text="Staged Files:" />
+                                    <Pane HBox.hgrow="ALWAYS" />
+                                    <Button fx:id="unstageAllButton" mnemonicParsing="false" onAction="#unstageAll" text="Unstage all" />
+                                 </children>
+                              </HBox>
                               <TableView fx:id="stagedFilesTable" maxHeight="1.7976931348623157E308" prefHeight="300.0" VBox.vgrow="ALWAYS">
                                 <columns>
                                   <TableColumn fx:id="stagedTypeColum" editable="false" minWidth="46.0" prefWidth="46.0" text="Type" />
@@ -342,6 +363,14 @@
                                  <columnResizePolicy>
                                     <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                                  </columnResizePolicy>
+                                 <contextMenu>
+                                    <ContextMenu>
+                                      <items>
+                                        <MenuItem fx:id="unstageMenuItem" mnemonicParsing="false" onAction="#unstageSelected" text="Unstage" />
+                                          <MenuItem fx:id="discardStagedMenuItem" mnemonicParsing="false" onAction="#discardSelectedStaged" text="Discard" />
+                                      </items>
+                                    </ContextMenu>
+                                 </contextMenu>
                               </TableView>
                               <Label text="Commit message:" />
                               <TextField promptText="Summary" />

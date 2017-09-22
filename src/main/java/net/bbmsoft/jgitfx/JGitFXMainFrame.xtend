@@ -9,7 +9,9 @@ import java.util.concurrent.ExecutorService
 import javafx.application.Platform
 import javafx.collections.ObservableList
 import javafx.concurrent.Task
+import javafx.event.ActionEvent
 import javafx.fxml.FXML
+import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.control.Label
 import javafx.scene.control.MenuItem
@@ -148,6 +150,9 @@ class JGitFXMainFrame extends BorderPane {
 		val stagingAnimator = new StagingAnimator(this.unstagedFilesTable, this.unstagedTypeColum,
 			this.unstagedFileColum, this.stagedFilesTable, this.stagedTypeColum, this.stagedFileColum)
 		this.repositoryHandlerProperty >> stagingAnimator
+		
+		this.unstagedFilesTable.selectionModel.selectionMode = SelectionMode.MULTIPLE
+		this.stagedFilesTable.selectionModel.selectionMode = SelectionMode.MULTIPLE
 
 		Platform.runLater[this.repositoriesList.expanded = true]
 	}
@@ -319,4 +324,28 @@ class JGitFXMainFrame extends BorderPane {
 		}
 	}
 
+	def void stageAll() {
+		println("stage " + this.unstagedFilesTable.items)
+	}
+	
+	def void unstageAll() {
+		println("unstage " + this.stagedFilesTable.items)
+	}
+	
+	def void stageSelected() {
+		println("stage " + this.unstagedFilesTable.selectionModel.selectedItems)
+	}
+	
+	def void discardSelectedUnstaged() {
+		println("discard " + this.unstagedFilesTable.selectionModel.selectedItems)
+	}
+	
+	def void unstageSelected() {
+		println("unstage " + this.stagedFilesTable.selectionModel.selectedItems)
+	}
+	
+	def void discardSelectedStaged() {
+		println("discard " + this.stagedFilesTable.selectionModel.selectedItems)
+	}
+	
 }

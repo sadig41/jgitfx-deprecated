@@ -28,7 +28,7 @@ import net.bbmsoft.jgitfx.event.TaskTopic
 class JGitFX extends Subapplication {
 
 	def static void main(String[] args) {
-		launch
+		launch 
 	}
 
 	override start(Stage stage) throws Exception {
