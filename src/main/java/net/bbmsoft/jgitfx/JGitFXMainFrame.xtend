@@ -9,9 +9,7 @@ import java.util.concurrent.ExecutorService
 import javafx.application.Platform
 import javafx.collections.ObservableList
 import javafx.concurrent.Task
-import javafx.event.ActionEvent
 import javafx.fxml.FXML
-import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.control.Label
 import javafx.scene.control.MenuItem
@@ -25,6 +23,7 @@ import javafx.scene.layout.BorderPane
 import net.bbmsoft.fxtended.annotations.app.FXMLRoot
 import net.bbmsoft.fxtended.annotations.binding.BindableProperty
 import net.bbmsoft.jgitfx.event.EventBroker
+import net.bbmsoft.jgitfx.event.UserInteraction
 import net.bbmsoft.jgitfx.modules.ChangedFilesAnimator
 import net.bbmsoft.jgitfx.modules.CommitInfoAnimator
 import net.bbmsoft.jgitfx.modules.Preferences
@@ -42,6 +41,7 @@ import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.lib.Repository
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
+import net.bbmsoft.jgitfx.event.RepositoryOperations
 
 @FXMLRoot
 class JGitFXMainFrame extends BorderPane {
@@ -87,13 +87,7 @@ class JGitFXMainFrame extends BorderPane {
 	@FXML MenuItem popContextMenuItem
 
 	@FXML TaskProgressView<Task<?>> tasksView
-
-	@BindableProperty Runnable cloneAction
-	@BindableProperty Runnable batchCloneAction
-	@BindableProperty Runnable initAction
-	@BindableProperty Runnable openAction
-	@BindableProperty Runnable quitAction
-	@BindableProperty Runnable aboutAction
+	
 	@BindableProperty RepositoryRegistry repositoryRegistry
 	@BindableProperty RepositoryHandler repositoryHandler
 
@@ -196,11 +190,15 @@ class JGitFXMainFrame extends BorderPane {
 	}
 
 	def pull() {
-		this.repositoryHandler?.pull
+		if(this.repositoryHandler !== null) {
+			this.eventBroker.publish(RepositoryOperations.PULL, this.repositoryHandler)
+		}
 	}
 
 	def push() {
-		this.repositoryHandler?.push
+		if(this.repositoryHandler !== null) {
+			this.eventBroker.publish(RepositoryOperations.PUSH, this.repositoryHandler)
+		}
 	}
 
 	def branch() {
@@ -215,32 +213,42 @@ class JGitFXMainFrame extends BorderPane {
 		this.repositoryHandler?.pop
 	}
 
-	private def undo(RepositoryHandler repos) {
-		repos?.undo
+	private def undo(RepositoryHandler repo) {
+		if(repo !== null) {
+			this.eventBroker.publish(RepositoryOperations.UNDO, repo)
+		}
 	}
 
-	private def redo(RepositoryHandler repos) {
-		repos?.redo
+	private def redo(RepositoryHandler repo) {
+		if(repo !== null) {
+			this.eventBroker.publish(RepositoryOperations.REDO, repo)
+		}
 	}
 
 	private def pull(RepositoryHandler ... repos) {
-		repos?.forEach[pull]
+		repos?.forEach[this.eventBroker.publish(RepositoryOperations.PULL, it)]
 	}
 
 	private def push(RepositoryHandler ... repos) {
-		repos?.forEach[push]
+		repos?.forEach[this.eventBroker.publish(RepositoryOperations.PUSH, it)]
 	}
 
-	private def branch(RepositoryHandler repos) {
-		repos?.branch
+	private def branch(RepositoryHandler repo) {
+		if(repo !== null) {
+			this.eventBroker.publish(RepositoryOperations.BRANCH, repo)
+		}
 	}
 
-	private def stash(RepositoryHandler repos) {
-		repos?.stash
+	private def stash(RepositoryHandler repo) {
+		if(repo !== null) {
+			this.eventBroker.publish(RepositoryOperations.STASH, repo)
+		}
 	}
 
-	private def pop(RepositoryHandler repos) {
-		repos?.pop
+	private def pop(RepositoryHandler repo) {
+		if(repo !== null) {
+			this.eventBroker.publish(RepositoryOperations.POP, repo)
+		}
 	}
 
 	private def RepositoryHandler getHandlerForSelected() {
@@ -284,27 +292,27 @@ class JGitFXMainFrame extends BorderPane {
 	}
 
 	def cloneRepo() {
-		this.cloneAction?.run
+		this.eventBroker.publish(UserInteraction.CLONE, null)
 	}
 
 	def batchCloneRepo() {
-		this.batchCloneAction?.run
+		this.eventBroker.publish(UserInteraction.BATCH_CLONE, null)
 	}
 
 	def initRepo() {
-		this.initAction?.run
+		this.eventBroker.publish(UserInteraction.INIT_REPO, null)
 	}
 
 	def openRepo() {
-		this.openAction?.run
+		this.eventBroker.publish(UserInteraction.OPEN_REPO, null)
 	}
 
 	def quit() {
-		this.quitAction?.run
+		this.eventBroker.publish(UserInteraction.QUIT, null)
 	}
 
 	def about() {
-		this.aboutAction?.run
+		this.eventBroker.publish(UserInteraction.SHOW_ABOUT, null)
 	}
 
 	def void open(Repository repository) {

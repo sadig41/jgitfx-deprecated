@@ -24,6 +24,7 @@ import net.bbmsoft.jgitfx.registry.impl.PersistingRepositoryRegistry
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
 import net.bbmsoft.jgitfx.modules.RepositoryListener
 import net.bbmsoft.jgitfx.event.TaskTopic
+import net.bbmsoft.jgitfx.event.UserInteraction
 
 class JGitFX extends Subapplication {
 
@@ -69,15 +70,15 @@ class JGitFX extends Subapplication {
 		val persistor = new JsonFilePersistor
 		val repoRegistry = new PersistingRepositoryRegistry(persistor, eventBroker)
 		val opener = new RepositoryOpener
+		
+		eventBroker.subscribe(UserInteraction.CLONE)[println('clone')]
+		eventBroker.subscribe(UserInteraction.BATCH_CLONE)[println('batch clone')]
+		eventBroker.subscribe(UserInteraction.INIT_REPO)[println('init')]
+		eventBroker.subscribe(UserInteraction.OPEN_REPO)[opener.openRepo(stage, repoRegistry)]
+		eventBroker.subscribe(UserInteraction.QUIT)[println('quit')]
+		eventBroker.subscribe(UserInteraction.SHOW_ABOUT)[println('about')]
 
 		jGitFXMainFrame => [
-
-			cloneAction = [println('clone')]
-			batchCloneAction = [println('batch clone')]
-			initAction = [println('init')]
-			openAction = [opener.openRepo(stage, repoRegistry)]
-			quitAction = [println('quit')]
-			aboutAction = [println('about')]
 
 			repositoryRegistry = repoRegistry
 

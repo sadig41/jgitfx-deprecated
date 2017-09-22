@@ -7,7 +7,9 @@ import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.CredentialsProvider;
 
+import net.bbmsoft.jgitfx.event.EventBroker;
 import net.bbmsoft.jgitfx.event.EventPublisher;
+import net.bbmsoft.jgitfx.event.RepositoryOperations;
 import net.bbmsoft.jgitfx.event.RepositoryTopic;
 
 public class RepositoryHandler {
@@ -24,14 +26,46 @@ public class RepositoryHandler {
 	
 	private EventPublisher eventPublisher;
 
-	public RepositoryHandler(Repository repository, EventPublisher eventPublisher) {
-		this.eventPublisher = eventPublisher;
+	public RepositoryHandler(Repository repository, EventBroker eventBroker) {
+		this.eventPublisher = eventBroker;
 		this.repository = repository;
 		this.git = Git.wrap(repository);
-		this.pullHandler = new PullHandler(this::invalidate, eventPublisher);
-		this.pushHandler = new PushHandler(this::invalidate, eventPublisher);
+		this.pullHandler = new PullHandler(this::invalidate, eventBroker);
+		this.pushHandler = new PushHandler(this::invalidate, eventBroker);
 		// TODO provide proper credentials provider
 		this.credentialsProvider = new DialogUsernamePasswordProvider();
+		eventBroker.subscribe(RepositoryOperations.values(), (topic, repo) -> {
+			if(repo == this) {
+			switch ((RepositoryOperations)topic) {
+			case BRANCH:
+				this.branch();
+				break;
+			case FETCH:
+				this.fetch();
+				break;
+			case POP:
+				this.pop();
+				break;
+			case PULL:
+				this.pull();
+				break;
+			case PUSH:
+				this.push();
+				break;
+			case REDO:
+				this.redo();
+				break;
+			case STASH:
+				this.stash();
+				break;
+			case UNDO:
+				this.undo();
+				break;
+			default:
+				throw new IllegalArgumentException("Unknown operation: " + topic);
+			}
+		}
+		});
 		this.invalidate();
 	}
 
@@ -41,35 +75,40 @@ public class RepositoryHandler {
 		}
 	}
 
-	public void undo() {
+	private void undo() {
+		System.out.println("Performing 'undo' on " + repository);
+		this.invalidate();
+	}
+	
+	private void fetch() {
 		System.out.println("Performing 'undo' on " + repository);
 		this.invalidate();
 	}
 
-	public void redo() {
+	private void redo() {
 		System.out.println("Performing 'redo' on " + repository);
 		this.invalidate();
 	}
 
-	public void pull() {
+	private void pull() {
 		this.pullHandler.pull(git, Constants.DEFAULT_REMOTE_NAME, this.credentialsProvider);
 	}
 
-	public void push() {
+	private void push() {
 		this.pushHandler.push(git, Constants.DEFAULT_REMOTE_NAME, this.credentialsProvider);
 	}
 
-	public void branch() {
+	private void branch() {
 		System.out.println("Performing 'branch' on " + repository);
 		this.invalidate();
 	}
 
-	public void stash() {
+	private void stash() {
 		System.out.println("Performing 'stach' on " + repository);
 		this.invalidate();
 	}
 
-	public void pop() {
+	private void pop() {
 		System.out.println("Performing 'pop' on " + repository);
 		this.invalidate();
 	}
