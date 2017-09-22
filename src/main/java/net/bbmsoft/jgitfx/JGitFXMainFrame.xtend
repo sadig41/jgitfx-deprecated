@@ -331,6 +331,12 @@ class JGitFXMainFrame extends BorderPane {
 			Platform.runLater[this.repositoryOverview.expanded = true]
 		}
 	}
+	
+	def void commit() {
+		if(this.repositoryHandler !== null) {
+			this.eventBroker.publish(RepositoryOperations.COMMIT, this.repositoryHandler)
+		}
+	}
 
 	def void stageAll() {
 		println("stage " + this.unstagedFilesTable.items)

@@ -375,7 +375,7 @@
                               <Label text="Commit message:" />
                               <TextField promptText="Summary" />
                               <TextArea maxHeight="1.7976931348623157E308" promptText="Description" VBox.vgrow="ALWAYS" />
-                              <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="46.0" mnemonicParsing="false" text="Commit" />
+                              <Button fx:id="commitButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="46.0" mnemonicParsing="false" onAction="#commit" text="Commit" />
                            </children>
                         </VBox>
                      </children>

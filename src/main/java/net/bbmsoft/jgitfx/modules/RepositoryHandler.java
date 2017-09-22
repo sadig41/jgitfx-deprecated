@@ -61,6 +61,9 @@ public class RepositoryHandler {
 			case UNDO:
 				this.undo();
 				break;
+			case COMMIT:
+				this.commit();
+				break;
 			default:
 				throw new IllegalArgumentException("Unknown operation: " + topic);
 			}
@@ -73,6 +76,11 @@ public class RepositoryHandler {
 		if (this.autoInvalidate) {
 			eventPublisher.publish(RepositoryTopic.REPO_UPDATED, this);
 		}
+	}
+	
+	private void commit() {
+		System.out.println("Performing 'commit' on " + repository);
+		this.invalidate();
 	}
 
 	private void undo() {
