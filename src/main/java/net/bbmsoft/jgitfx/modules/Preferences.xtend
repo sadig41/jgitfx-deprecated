@@ -132,17 +132,20 @@ class Preferences {
 	static class FilePropertyAdaptor implements JsonSerializer<ObjectProperty<File>>, JsonDeserializer<ObjectProperty<File>> {
 
 		override serialize(ObjectProperty<File> src, Type typeOfSrc, JsonSerializationContext context) {
-			new JsonPrimitive(src.get.absolutePath)
+			new JsonPrimitive(src?.get?.absolutePath ?: '')
 		}
 
 		override deserialize(JsonElement json, Type typeOfT,
 			JsonDeserializationContext context) throws JsonParseException {
-			val value = try {
-					new File(json.asString)
+			val value = json.asString
+			val initiaValue = if(!value.trim.isEmpty) {
+				try {
+					new File(value)
 				} catch (Throwable th) {
 					null
 				}
-			new SimpleObjectProperty<File>(value)
+			}
+			new SimpleObjectProperty<File>(initiaValue)
 		}
 
 	}
