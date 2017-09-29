@@ -11,11 +11,14 @@ import javafx.collections.ObservableList
 import javafx.concurrent.Task
 import javafx.fxml.FXML
 import javafx.scene.Parent
+import javafx.scene.control.Button
 import javafx.scene.control.Label
 import javafx.scene.control.MenuItem
 import javafx.scene.control.SelectionMode
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView
+import javafx.scene.control.TextArea
+import javafx.scene.control.TextField
 import javafx.scene.control.TitledPane
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
@@ -23,6 +26,7 @@ import javafx.scene.layout.BorderPane
 import net.bbmsoft.fxtended.annotations.app.FXMLRoot
 import net.bbmsoft.fxtended.annotations.binding.BindableProperty
 import net.bbmsoft.jgitfx.event.EventBroker
+import net.bbmsoft.jgitfx.event.RepositoryOperations
 import net.bbmsoft.jgitfx.event.UserInteraction
 import net.bbmsoft.jgitfx.modules.ChangedFilesAnimator
 import net.bbmsoft.jgitfx.modules.CommitInfoAnimator
@@ -41,7 +45,6 @@ import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.lib.Repository
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
-import net.bbmsoft.jgitfx.event.RepositoryOperations
 
 @FXMLRoot
 class JGitFXMainFrame extends BorderPane {
@@ -65,6 +68,10 @@ class JGitFXMainFrame extends BorderPane {
 	@FXML TableColumn<DiffEntry, String> commitFileColumn
 
 	@FXML TreeView<RepositoryWrapper> repositoryTree
+	
+	@FXML TextField commitMessageTextField
+	@FXML TextArea commitMessageTextArea
+	@FXML Button commitButton
 
 	@FXML TitledPane repositoryOverview
 	@FXML TitledPane repositoriesList
@@ -96,6 +103,8 @@ class JGitFXMainFrame extends BorderPane {
 	RepositoryTableVisualizer historyVisualizer
 	Preferences prefs
 	EventBroker eventBroker
+	
+	StagingAnimator stagingAnimator
 
 	new(Preferences prefs, ExecutorService gitWorker, EventBroker eventBroker) {
 		this()
@@ -103,6 +112,7 @@ class JGitFXMainFrame extends BorderPane {
 		this.eventBroker = eventBroker
 		updateHistoryColumnsVisibility
 		this.historyTable.columns.forEach[col|col.visibleProperty >> [this.prefs.setColumnVisible(col.id, it)]]
+		this.eventBroker.subscribe(#[RepositoryOperations.STAGE, RepositoryOperations.UNSTAGE])[if($1 == repositoryHandler) updateCommitButton]
 	}
 
 	def ObservableList<Task<?>> getTaskList() {
@@ -141,14 +151,21 @@ class JGitFXMainFrame extends BorderPane {
 				this.repositoryHandler?.repository
 			])
 
-		val stagingAnimator = new StagingAnimator(this.unstagedFilesTable, this.unstagedTypeColum,
+		this.stagingAnimator = new StagingAnimator(this.unstagedFilesTable, this.unstagedTypeColum,
 			this.unstagedFileColum, this.stagedFilesTable, this.stagedTypeColum, this.stagedFileColum)
 		this.repositoryHandlerProperty >> stagingAnimator
 		
 		this.unstagedFilesTable.selectionModel.selectionMode = SelectionMode.MULTIPLE
 		this.stagedFilesTable.selectionModel.selectionMode = SelectionMode.MULTIPLE
+		
+		this.commitMessageTextField.textProperty >> [updateCommitButton]
 
 		Platform.runLater[this.repositoriesList.expanded = true]
+	}
+	
+	private def void updateCommitButton() {
+		val commitMessage = commitMessageTextField.text
+		this.commitButton.disable = commitMessage === null || commitMessage.trim.empty || !this.stagingAnimator.hasStagedChanges
 	}
 
 	private def updateTreeItemMap(List<? extends TreeItem<RepositoryWrapper>> added,
@@ -334,8 +351,19 @@ class JGitFXMainFrame extends BorderPane {
 	
 	def void commit() {
 		if(this.repositoryHandler !== null) {
+			RepositoryOperations.COMMIT.message = commitMessage
+			// TODO some more validation
+			this.commitMessageTextField.text = null
+			this.commitMessageTextArea.text = null
 			this.eventBroker.publish(RepositoryOperations.COMMIT, this.repositoryHandler)
 		}
+	}
+	
+	private def String getCommitMessage() {
+		val details = this.commitMessageTextArea.text.trim
+		'''«this.commitMessageTextField.text.trim»«IF !details.empty»
+		
+		«details»«ENDIF»'''
 	}
 
 	def void stageAll() {
@@ -361,5 +389,9 @@ class JGitFXMainFrame extends BorderPane {
 	def void discardSelectedStaged() {
 		println("discard " + this.stagedFilesTable.selectionModel.selectedItems)
 	}
+	
+	private def stage(DiffEntry file) {}
+	
+	private def unstage(DiffEntry file) {}
 	
 }

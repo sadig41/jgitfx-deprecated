@@ -18,7 +18,7 @@
 	<properties>
 		<assembly.plugin.version>3.1.0</assembly.plugin.version>
 	</properties>
-	
+
 	<dependencies>
 
 		<dependency>
@@ -64,7 +64,7 @@
 		<dependency>
 			<groupId>org.controlsfx</groupId>
 			<artifactId>controlsfx</artifactId>
-			<version>8.40.13</version>
+			<version>8.40.14</version>
 		</dependency>
 
 	</dependencies>

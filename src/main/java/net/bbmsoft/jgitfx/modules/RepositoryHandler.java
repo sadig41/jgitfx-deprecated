@@ -11,6 +11,9 @@ import net.bbmsoft.jgitfx.event.EventBroker;
 import net.bbmsoft.jgitfx.event.EventPublisher;
 import net.bbmsoft.jgitfx.event.RepositoryOperations;
 import net.bbmsoft.jgitfx.event.RepositoryTopic;
+import net.bbmsoft.jgitfx.modules.operations.CommitHandler;
+import net.bbmsoft.jgitfx.modules.operations.PullHandler;
+import net.bbmsoft.jgitfx.modules.operations.PushHandler;
 
 public class RepositoryHandler {
 
@@ -19,6 +22,7 @@ public class RepositoryHandler {
 
 	private final PullHandler pullHandler;
 	private final PushHandler pushHandler;
+	private final CommitHandler commitHandler;
 
 	private final CredentialsProvider credentialsProvider;
 
@@ -32,16 +36,18 @@ public class RepositoryHandler {
 		this.git = Git.wrap(repository);
 		this.pullHandler = new PullHandler(this::invalidate, eventBroker);
 		this.pushHandler = new PushHandler(this::invalidate, eventBroker);
+		this.commitHandler = new CommitHandler(this::invalidate, eventBroker);
 		// TODO provide proper credentials provider
 		this.credentialsProvider = new DialogUsernamePasswordProvider();
 		eventBroker.subscribe(RepositoryOperations.values(), (topic, repo) -> {
 			if(repo == this) {
-			switch ((RepositoryOperations)topic) {
+			RepositoryOperations operation = (RepositoryOperations)topic;
+			switch (operation) {
 			case BRANCH:
-				this.branch();
+				this.branch(operation.getMessage());
 				break;
 			case FETCH:
-				this.fetch();
+				this.fetch(operation.getMessage());
 				break;
 			case POP:
 				this.pop();
@@ -56,13 +62,13 @@ public class RepositoryHandler {
 				this.redo();
 				break;
 			case STASH:
-				this.stash();
+				this.stash(operation.getMessage());
 				break;
 			case UNDO:
 				this.undo();
 				break;
 			case COMMIT:
-				this.commit();
+				this.commit(operation.getMessage());
 				break;
 			default:
 				throw new IllegalArgumentException("Unknown operation: " + topic);
@@ -78,8 +84,8 @@ public class RepositoryHandler {
 		}
 	}
 	
-	private void commit() {
-		System.out.println("Performing 'commit' on " + repository);
+	private void commit(String message) {
+		this.commitHandler.commit(git, message);
 		this.invalidate();
 	}
 
@@ -88,7 +94,7 @@ public class RepositoryHandler {
 		this.invalidate();
 	}
 	
-	private void fetch() {
+	private void fetch(String branch) {
 		System.out.println("Performing 'undo' on " + repository);
 		this.invalidate();
 	}
@@ -106,12 +112,12 @@ public class RepositoryHandler {
 		this.pushHandler.push(git, Constants.DEFAULT_REMOTE_NAME, this.credentialsProvider);
 	}
 
-	private void branch() {
+	private void branch(String name) {
 		System.out.println("Performing 'branch' on " + repository);
 		this.invalidate();
 	}
 
-	private void stash() {
+	private void stash(String name) {
 		System.out.println("Performing 'stach' on " + repository);
 		this.invalidate();
 	}

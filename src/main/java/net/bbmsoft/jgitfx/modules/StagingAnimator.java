@@ -24,6 +24,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import net.bbmsoft.bbm.utils.concurrent.ThreadUtils;
 
 public class StagingAnimator implements ChangeListener<RepositoryHandler> {
 
@@ -78,6 +79,8 @@ public class StagingAnimator implements ChangeListener<RepositoryHandler> {
 	}
 
 	private void updateStagedFiles() {
+		
+		ThreadUtils.checkFxThread();
 
 		if (this.respository == null) {
 			unstagedFilesTable.getItems().clear();
@@ -130,5 +133,10 @@ public class StagingAnimator implements ChangeListener<RepositoryHandler> {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public boolean hasStagedChanges() {
+		ThreadUtils.checkFxThread();
+		return !this.stagedFilesTable.getItems().isEmpty();
 	}
 }

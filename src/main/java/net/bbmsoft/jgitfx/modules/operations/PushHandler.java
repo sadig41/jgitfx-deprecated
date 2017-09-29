@@ -1,4 +1,4 @@
-package net.bbmsoft.jgitfx.modules;
+package net.bbmsoft.jgitfx.modules.operations;
 
 import java.util.function.Supplier;
 
@@ -22,6 +22,8 @@ import net.bbmsoft.jgitfx.event.EventPublisher;
 import net.bbmsoft.jgitfx.event.TaskTopic;
 import net.bbmsoft.jgitfx.messaging.Message;
 import net.bbmsoft.jgitfx.messaging.MessageType;
+import net.bbmsoft.jgitfx.modules.RepositoryActionHandler;
+import net.bbmsoft.jgitfx.modules.RepositoryHandler;
 import net.bbmsoft.jgitfx.modules.RepositoryHandler.Task;
 
 public class PushHandler extends RepositoryActionHandler<Iterable<PushResult>> {
