@@ -1,97 +1,102 @@
 package net.bbmsoft.jgitfx
 
+import com.google.inject.Guice
 import java.io.File
 import javafx.scene.Scene
 import javafx.stage.Stage
-import net.bbmsoft.bbm.utils.concurrent.SimpleTaskHelper
+import javax.inject.Inject
 import net.bbmsoft.bbm.utils.concurrent.TaskHelper
 import net.bbmsoft.fxtended.annotations.app.launcher.Subapplication
+import net.bbmsoft.jgitfx.event.AppStatus
 import net.bbmsoft.jgitfx.event.EventBroker
 import net.bbmsoft.jgitfx.event.EventBroker.Topic
 import net.bbmsoft.jgitfx.event.EventPublisher
 import net.bbmsoft.jgitfx.event.RepositoryRegistryTopic
-import net.bbmsoft.jgitfx.event.RepositoryTopic
-import net.bbmsoft.jgitfx.event.SimpleEventBroker
 import net.bbmsoft.jgitfx.event.TaskTopic
 import net.bbmsoft.jgitfx.event.UserInteraction
-import net.bbmsoft.jgitfx.messaging.DialogMessenger
+import net.bbmsoft.jgitfx.inject.impl.JGitFXModule
 import net.bbmsoft.jgitfx.messaging.Message
 import net.bbmsoft.jgitfx.messaging.MessageType
 import net.bbmsoft.jgitfx.messaging.MessengerListener
-import net.bbmsoft.jgitfx.modules.AppDirectoryProvider
-import net.bbmsoft.jgitfx.modules.GitWorkerExecutorManager
 import net.bbmsoft.jgitfx.modules.Preferences
-import net.bbmsoft.jgitfx.modules.RepositoryListener
 import net.bbmsoft.jgitfx.modules.RepositoryOpener
-import net.bbmsoft.jgitfx.registry.impl.JsonFilePersistor
-import net.bbmsoft.jgitfx.registry.impl.PersistingRepositoryRegistry
+import net.bbmsoft.jgitfx.registry.RepositoryRegistry
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
 
 class JGitFX extends Subapplication {
 
+	final JGitFXMainFrame jGitFXMainFrame
+	final EventBroker eventBroker
+	final Preferences prefs
+
+	Stage stage
+
 	def static void main(String[] args) {
-		launch
+		Subapplication.launch[|Guice.createInjector(new JGitFXModule).getInstance(JGitFX)]
 	}
 
-	override start(Stage stage) throws Exception {
+	@Inject
+	private new(
+		JGitFXMainFrame jGitFXMainFrame,
+		TaskHelper gitTaskHelper,
+		EventBroker eventBroker,
+		MessengerListener messageListener,
+		RepositoryRegistry repoRegistry,
+		RepositoryOpener opener,
+		Preferences prefs
+	) {
+		this.jGitFXMainFrame = jGitFXMainFrame
+		this.eventBroker = eventBroker
+		this.prefs = prefs
 
-		val eventBroker = new SimpleEventBroker
-
-		val messageListener = new MessengerListener(new DialogMessenger)
-		
-		eventBroker.subscribe(MessageType.values, messageListener)
+		eventBroker.subscribe(MessageType.values(), messageListener)
 		eventBroker.subscribe(RepositoryRegistryTopic.REPO_NOT_FOUND)[repoNotFound($1, eventBroker)]
 
-		val gitWorker = new GitWorkerExecutorManager
-		val prefs = Preferences.loadFromFile(AppDirectoryProvider.getFilePathFromAppDirectory('config.json'))
-		val jGitFXMainFrame = new JGitFXMainFrame(prefs, gitWorker, eventBroker)
-		val repositoryRegistryListener = new RepositoryListener(jGitFXMainFrame) => [appStarting = true]
-		
-		eventBroker.subscribe(RepositoryTopic.values, repositoryRegistryListener)
-
-		val TaskHelper gitTaskHelper = new SimpleTaskHelper(jGitFXMainFrame.taskList, gitWorker)
-
-		eventBroker.subscribe(TaskTopic.PullTask.STARTED) [gitTaskHelper.submitTask($1, eventBroker.publish(TaskTopic.PullResult.FINISHED))]
-		eventBroker.subscribe(TaskTopic.PushTask.STARTED) [gitTaskHelper.submitTask($1, eventBroker.publish(TaskTopic.PushResult.FINISHED))]
-		eventBroker.subscribe(TaskTopic.FetchTask.STARTED) [gitTaskHelper.submitTask($1, eventBroker.publish(TaskTopic.FetchResult.FINISHED))]
-		eventBroker.subscribe(TaskTopic.CommitTask.STARTED) [gitTaskHelper.submitTask($1, eventBroker.publish(TaskTopic.CommitResult.FINISHED))]
-		eventBroker.subscribe(TaskTopic.MergeTask.STARTED) [gitTaskHelper.submitTask($1, eventBroker.publish(TaskTopic.MergeResult.FINISHED))]
-		eventBroker.subscribe(TaskTopic.RebaseTask.STARTED) [gitTaskHelper.submitTask($1, eventBroker.publish(TaskTopic.RebaseResult.FINISHED))]
-		eventBroker.subscribe(TaskTopic.StageTask.STARTED) [gitTaskHelper.submitTask($1, eventBroker.publish(TaskTopic.StageResult.FINISHED))]
-
-		val persistor = new JsonFilePersistor
-		val repoRegistry = new PersistingRepositoryRegistry(persistor, eventBroker)
-		val opener = new RepositoryOpener
+		eventBroker.subscribe(TaskTopic.PullTask.STARTED) [
+			gitTaskHelper.submitTask($1, eventBroker.publish(TaskTopic.PullResult.FINISHED))
+		]
+		eventBroker.subscribe(TaskTopic.PushTask.STARTED) [
+			gitTaskHelper.submitTask($1, eventBroker.publish(TaskTopic.PushResult.FINISHED))
+		]
+		eventBroker.subscribe(TaskTopic.FetchTask.STARTED) [
+			gitTaskHelper.submitTask($1, eventBroker.publish(TaskTopic.FetchResult.FINISHED))
+		]
+		eventBroker.subscribe(TaskTopic.CommitTask.STARTED) [
+			gitTaskHelper.submitTask($1, eventBroker.publish(TaskTopic.CommitResult.FINISHED))
+		]
+		eventBroker.subscribe(TaskTopic.MergeTask.STARTED) [
+			gitTaskHelper.submitTask($1, eventBroker.publish(TaskTopic.MergeResult.FINISHED))
+		]
+		eventBroker.subscribe(TaskTopic.RebaseTask.STARTED) [
+			gitTaskHelper.submitTask($1, eventBroker.publish(TaskTopic.RebaseResult.FINISHED))
+		]
+		eventBroker.subscribe(TaskTopic.StageTask.STARTED) [
+			gitTaskHelper.submitTask($1, eventBroker.publish(TaskTopic.StageResult.FINISHED))
+		]
 
 		eventBroker.subscribe(UserInteraction.CLONE)[println('clone')]
 		eventBroker.subscribe(UserInteraction.BATCH_CLONE)[println('batch clone')]
 		eventBroker.subscribe(UserInteraction.INIT_REPO)[println('init')]
-		eventBroker.subscribe(UserInteraction.OPEN_REPO)[opener.openRepo(stage, repoRegistry)]
+		eventBroker.subscribe(UserInteraction.OPEN_REPO)[opener.openRepo(this.stage, repoRegistry)]
 		eventBroker.subscribe(UserInteraction.QUIT)[println('quit')]
 		eventBroker.subscribe(UserInteraction.SHOW_ABOUT)[println('about')]
+		
+		this.eventBroker.publish(AppStatus.STARTING, System.currentTimeMillis)
+	}
 
-		jGitFXMainFrame => [
+	override start(Stage stage) throws Exception {
 
-			repositoryRegistry = repoRegistry
+		this.stage = stage
 
-			val lastOpened = prefs.lastOpened
-			if (lastOpened !== null) {
-				val lastOpenedHandler = repoRegistry.getRepositoryHandler(lastOpened)
-				if (lastOpenedHandler !== null) {
-					open(lastOpenedHandler.repository)
-				}
-			}
-		]
+		stage.scene = new Scene(this.jGitFXMainFrame)
 
-		repositoryRegistryListener.appStarting = false
-
-		stage.scene = new Scene(jGitFXMainFrame)
-
-		stage.maximized = prefs.maximized
+		stage.maximized = this.prefs.maximized
 		stage.maximizedProperty > [
-			prefs.maximized = stage.maximized
+			this.prefs.maximized = stage.maximized
 		]
+
+		this.eventBroker.publish(AppStatus.STARTED, System.currentTimeMillis)
 
 		stage.show
 	}

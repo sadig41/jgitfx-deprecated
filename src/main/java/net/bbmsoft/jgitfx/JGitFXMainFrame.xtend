@@ -5,7 +5,6 @@ import java.util.HashMap
 import java.util.List
 import java.util.Map
 import java.util.ResourceBundle
-import java.util.concurrent.ExecutorService
 import javafx.application.Platform
 import javafx.collections.ObservableList
 import javafx.concurrent.Task
@@ -23,11 +22,17 @@ import javafx.scene.control.TitledPane
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.scene.layout.BorderPane
+import javax.inject.Inject
+import net.bbmsoft.bbm.utils.concurrent.TaskHelper
 import net.bbmsoft.fxtended.annotations.app.FXMLRoot
 import net.bbmsoft.fxtended.annotations.binding.BindableProperty
+import net.bbmsoft.jgitfx.event.AppStatus
 import net.bbmsoft.jgitfx.event.EventBroker
 import net.bbmsoft.jgitfx.event.RepositoryOperations
+import net.bbmsoft.jgitfx.event.RepositoryTopic
 import net.bbmsoft.jgitfx.event.UserInteraction
+import net.bbmsoft.jgitfx.messaging.Message
+import net.bbmsoft.jgitfx.messaging.MessageType
 import net.bbmsoft.jgitfx.modules.ChangedFilesAnimator
 import net.bbmsoft.jgitfx.modules.CommitInfoAnimator
 import net.bbmsoft.jgitfx.modules.Preferences
@@ -68,7 +73,7 @@ class JGitFXMainFrame extends BorderPane {
 	@FXML TableColumn<DiffEntry, String> commitFileColumn
 
 	@FXML TreeView<RepositoryWrapper> repositoryTree
-	
+
 	@FXML TextField commitMessageTextField
 	@FXML TextArea commitMessageTextArea
 	@FXML Button commitButton
@@ -94,25 +99,54 @@ class JGitFXMainFrame extends BorderPane {
 	@FXML MenuItem popContextMenuItem
 
 	@FXML TaskProgressView<Task<?>> tasksView
-	
-	@BindableProperty RepositoryRegistry repositoryRegistry
+
 	@BindableProperty RepositoryHandler repositoryHandler
 
-	Map<Repository, TreeItem<RepositoryWrapper>> repositoryTreeItems
+	RepositoryRegistry repositoryRegistry
+	Map<String, TreeItem<RepositoryWrapper>> repositoryTreeItems
 	TreeItem<RepositoryWrapper> rootRepoTreeItem
 	RepositoryTableVisualizer historyVisualizer
 	Preferences prefs
 	EventBroker eventBroker
-	
+
 	StagingAnimator stagingAnimator
 
-	new(Preferences prefs, ExecutorService gitWorker, EventBroker eventBroker) {
+	@Inject
+	private new(Preferences prefs, EventBroker eventBroker, RepositoryRegistry repoRegistry, TaskHelper taskHelper) {
+
 		this()
 		this.prefs = prefs
 		this.eventBroker = eventBroker
-		updateHistoryColumnsVisibility
+		this.repositoryRegistry = repoRegistry
 		this.historyTable.columns.forEach[col|col.visibleProperty >> [this.prefs.setColumnVisible(col.id, it)]]
-		this.eventBroker.subscribe(#[RepositoryOperations.STAGE, RepositoryOperations.UNSTAGE])[if($1 == repositoryHandler) updateCommitButton]
+
+		this.eventBroker.subscribe(AppStatus.STARTED) [
+			this.repositoryRegistry.registeredRepositories.forEach[addRepoTreeItem]
+			val lastOpened = prefs.lastOpened
+			if (lastOpened !== null) {
+				val lastOpenedHandler = repoRegistry.getRepositoryHandler(lastOpened)
+				if (lastOpenedHandler !== null) {
+					open(lastOpenedHandler.repository)
+				}
+			}
+		]
+		this.eventBroker.subscribe(#[RepositoryOperations.STAGE, RepositoryOperations.UNSTAGE]) [
+			if($1 == repositoryHandler) updateCommitButton
+		]
+		this.eventBroker.subscribe(RepositoryTopic.REPO_LOADED) [
+			addRepoTreeItem($1.repository)
+			open($1.repository)
+		]
+		this.eventBroker.subscribe(RepositoryTopic.REPO_UPDATED)[updateRepo($1)]
+
+		taskHelper.taskList = this.tasksView.tasks
+
+		updateHistoryColumnsVisibility
+	}
+
+	private def addRepoTreeItem(Repository repository) {
+		val treeItem = new TreeItem(new RepositoryWrapper(repository))
+		this.rootRepoTreeItem.children.add(treeItem)
 	}
 
 	def ObservableList<Task<?>> getTaskList() {
@@ -154,24 +188,25 @@ class JGitFXMainFrame extends BorderPane {
 		this.stagingAnimator = new StagingAnimator(this.unstagedFilesTable, this.unstagedTypeColum,
 			this.unstagedFileColum, this.stagedFilesTable, this.stagedTypeColum, this.stagedFileColum)
 		this.repositoryHandlerProperty >> stagingAnimator
-		
+
 		this.unstagedFilesTable.selectionModel.selectionMode = SelectionMode.MULTIPLE
 		this.stagedFilesTable.selectionModel.selectionMode = SelectionMode.MULTIPLE
-		
+
 		this.commitMessageTextField.textProperty >> [updateCommitButton]
 
 		Platform.runLater[this.repositoriesList.expanded = true]
 	}
-	
+
 	private def void updateCommitButton() {
 		val commitMessage = commitMessageTextField.text
-		this.commitButton.disable = commitMessage === null || commitMessage.trim.empty || !this.stagingAnimator.hasStagedChanges
+		this.commitButton.disable = commitMessage === null || commitMessage.trim.empty ||
+			!this.stagingAnimator.hasStagedChanges
 	}
 
 	private def updateTreeItemMap(List<? extends TreeItem<RepositoryWrapper>> added,
 		List<? extends TreeItem<RepositoryWrapper>> removed) {
-		added.forEach[this.repositoryTreeItems.put(value.repository, it)]
-		removed.forEach[this.repositoryTreeItems.remove(value.repository)]
+		added.forEach[this.repositoryTreeItems.put(value.repository.directory.absolutePath, it)]
+		removed.forEach[this.repositoryTreeItems.remove(value.repository.directory.absolutePath)]
 	}
 
 	private def updateRepositoryTreeContextMenu() {
@@ -188,14 +223,10 @@ class JGitFXMainFrame extends BorderPane {
 
 	}
 
-	def updateRepo(RepositoryHandler repoHandler) {
+	private def updateRepo(RepositoryHandler repoHandler) {
 		// TODO
 		println('''Updating view of «repoHandler?.repository»''')
 		this.historyVisualizer.repository = repoHandler.repository
-	}
-
-	def getRepositoryTreeItems() {
-		this.rootRepoTreeItem.children
 	}
 
 	def undo() {
@@ -207,13 +238,13 @@ class JGitFXMainFrame extends BorderPane {
 	}
 
 	def pull() {
-		if(this.repositoryHandler !== null) {
+		if (this.repositoryHandler !== null) {
 			this.eventBroker.publish(RepositoryOperations.PULL, this.repositoryHandler)
 		}
 	}
 
 	def push() {
-		if(this.repositoryHandler !== null) {
+		if (this.repositoryHandler !== null) {
 			this.eventBroker.publish(RepositoryOperations.PUSH, this.repositoryHandler)
 		}
 	}
@@ -231,13 +262,13 @@ class JGitFXMainFrame extends BorderPane {
 	}
 
 	private def undo(RepositoryHandler repo) {
-		if(repo !== null) {
+		if (repo !== null) {
 			this.eventBroker.publish(RepositoryOperations.UNDO, repo)
 		}
 	}
 
 	private def redo(RepositoryHandler repo) {
-		if(repo !== null) {
+		if (repo !== null) {
 			this.eventBroker.publish(RepositoryOperations.REDO, repo)
 		}
 	}
@@ -251,19 +282,19 @@ class JGitFXMainFrame extends BorderPane {
 	}
 
 	private def branch(RepositoryHandler repo) {
-		if(repo !== null) {
+		if (repo !== null) {
 			this.eventBroker.publish(RepositoryOperations.BRANCH, repo)
 		}
 	}
 
 	private def stash(RepositoryHandler repo) {
-		if(repo !== null) {
+		if (repo !== null) {
 			this.eventBroker.publish(RepositoryOperations.STASH, repo)
 		}
 	}
 
 	private def pop(RepositoryHandler repo) {
-		if(repo !== null) {
+		if (repo !== null) {
 			this.eventBroker.publish(RepositoryOperations.POP, repo)
 		}
 	}
@@ -333,24 +364,30 @@ class JGitFXMainFrame extends BorderPane {
 	}
 
 	def void open(Repository repository) {
-		this.repositoryTreeItems.get(repository)?.open
+		this.repositoryTreeItems.get(repository.directory.absolutePath)?.open
 	}
 
 	private def void open(TreeItem<RepositoryWrapper> repoItem) {
-		val repository = repoItem.value.repository
-		this.repositoryHandler?.setAutoInvalidate(false)
-		this.repositoryHandler = getHandler(repository)
-		this.repositoryHandler.setAutoInvalidate(true)
-		this.breadcrumb.selectedCrumb = repoItem
-		this.prefs.lastOpened = repository.directory
-		if (prefs.switchToRepositoryOverview) {
-			// delay so it also works on startup
-			Platform.runLater[this.repositoryOverview.expanded = true]
+		try {
+			val repository = repoItem.value.repository
+			this.repositoryHandler?.setAutoInvalidate(false)
+			this.repositoryHandler = getHandler(repository)
+			this.repositoryHandler.setAutoInvalidate(true)
+			this.breadcrumb.selectedCrumb = repoItem
+			this.prefs.lastOpened = repository.directory
+			if (prefs.switchToRepositoryOverview) {
+				// delay so it also works on startup
+				Platform.runLater[this.repositoryOverview.expanded = true]
+			}
+		} catch (Throwable th) {
+			val title = 'Failed to open repository'
+			val body = '''An error occurded while opening the repository:  «IF th.message !== null»«th.message»«ELSE»«th.class.simpleName»«ENDIF»'''
+			this.eventBroker.publish(MessageType.ERROR, new Message(title, body, th))
 		}
 	}
-	
+
 	def void commit() {
-		if(this.repositoryHandler !== null) {
+		if (this.repositoryHandler !== null) {
 			RepositoryOperations.COMMIT.message = commitMessage
 			// TODO some more validation
 			this.commitMessageTextField.text = null
@@ -358,7 +395,7 @@ class JGitFXMainFrame extends BorderPane {
 			this.eventBroker.publish(RepositoryOperations.COMMIT, this.repositoryHandler)
 		}
 	}
-	
+
 	private def String getCommitMessage() {
 		val details = this.commitMessageTextArea.text.trim
 		'''«this.commitMessageTextField.text.trim»«IF !details.empty»
@@ -369,38 +406,38 @@ class JGitFXMainFrame extends BorderPane {
 	def void stageAll() {
 		this.unstagedFilesTable.items.stage
 	}
-	
+
 	def void unstageAll() {
 		this.stagedFilesTable.items.unstage
 	}
-	
+
 	def void stageSelected() {
 		this.unstagedFilesTable.selectionModel.selectedItems.stage
 	}
-	
+
 	def void discardSelectedUnstaged() {
 		this.unstagedFilesTable.selectionModel.selectedItems.discard
 	}
-	
+
 	def void unstageSelected() {
 		this.stagedFilesTable.selectionModel.selectedItems.unstage
 	}
-	
+
 	def void discardSelectedStaged() {
 		this.stagedFilesTable.selectionModel.selectedItems.discard
 	}
-	
+
 	private def stage(DiffEntry ... files) {
-		RepositoryOperations.STAGE.message = files.map[newPath].reduce['''«$0»,«$1»''']
+		RepositoryOperations.STAGE.diffs = files
 		this.eventBroker.publish(RepositoryOperations.STAGE, this.repositoryHandler)
 	}
-	
+
 	private def unstage(DiffEntry ... files) {
 		println("unstage " + files)
 	}
-	
+
 	private def discard(DiffEntry ... files) {
 		println("discard " + files)
 	}
-	
+
 }

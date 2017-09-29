@@ -1,8 +1,10 @@
 package net.bbmsoft.jgitfx.modules;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.CredentialsProvider;
@@ -74,7 +76,7 @@ public class RepositoryHandler {
 				this.commit(operation.getMessage());
 				break;
 			case STAGE:
-				this.stage(operation.getMessage());
+				this.stage(operation.getDiffs());
 				break;
 			default:
 				throw new IllegalArgumentException("Unknown operation: " + topic);
@@ -84,8 +86,8 @@ public class RepositoryHandler {
 		this.invalidate();
 	}
 
-	private void stage(String message) {
-		this.stageHandler.stage(git, message);
+	private void stage(List<DiffEntry> diffs) {
+		this.stageHandler.stage(git, diffs);
 		this.invalidate();
 	}
 

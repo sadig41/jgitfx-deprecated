@@ -23,6 +23,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.Parent;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import net.bbmsoft.jgitfx.utils.StagingHelper;
 import net.bbmsoft.jgitfx.wrappers.HistoryEntry;
 
 public class ChangedFilesAnimator implements ChangeListener<HistoryEntry> {
@@ -46,23 +47,7 @@ public class ChangedFilesAnimator implements ChangeListener<HistoryEntry> {
 
 		this.typeColumn
 				.setCellValueFactory(cdf -> new SimpleObjectProperty<ChangeType>(cdf.getValue().getChangeType()));
-		this.fileColumn.setCellValueFactory(cdf -> new SimpleStringProperty(getFilepath(cdf.getValue())));
-	}
-
-	private String getFilepath(DiffEntry diff) {
-		ChangeType changeType = diff.getChangeType();
-		switch (changeType) {
-		case ADD:
-		case MODIFY:
-			return diff.getNewPath();
-		case DELETE:
-			return diff.getOldPath();
-		case COPY:
-		case RENAME:
-			new StringBuilder(diff.getOldPath()).append(" -> ").append(diff.getNewPath()).toString();
-		default:
-			throw new IllegalArgumentException("Unknown change type: " + changeType);
-		}
+		this.fileColumn.setCellValueFactory(cdf -> new SimpleStringProperty(StagingHelper.getFilePath(cdf.getValue())));
 	}
 
 	@Override

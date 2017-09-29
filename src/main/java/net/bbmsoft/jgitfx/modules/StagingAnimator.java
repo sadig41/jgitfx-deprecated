@@ -6,7 +6,6 @@ import java.util.List;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
-import org.eclipse.jgit.diff.DiffEntry.ChangeType;
 import org.eclipse.jgit.dircache.DirCacheIterator;
 import org.eclipse.jgit.errors.CorruptObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
@@ -25,6 +24,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import net.bbmsoft.bbm.utils.concurrent.ThreadUtils;
+import net.bbmsoft.jgitfx.utils.StagingHelper;
 
 public class StagingAnimator implements ChangeListener<RepositoryHandler> {
 
@@ -50,27 +50,13 @@ public class StagingAnimator implements ChangeListener<RepositoryHandler> {
 
 		this.unstagedTypeColum
 				.setCellValueFactory(cdf -> new SimpleStringProperty(cdf.getValue().getChangeType().toString()));
-		this.unstagedFileColum.setCellValueFactory(cdf -> new SimpleStringProperty(getFilepath(cdf.getValue())));
+		this.unstagedFileColum.setCellValueFactory(cdf -> new SimpleStringProperty(StagingHelper.getFilePath(cdf.getValue())));
 		this.stagedTypeColum
 				.setCellValueFactory(cdf -> new SimpleStringProperty(cdf.getValue().getChangeType().toString()));
-		this.stagedFileColum.setCellValueFactory(cdf -> new SimpleStringProperty(getFilepath(cdf.getValue())));
+		this.stagedFileColum.setCellValueFactory(cdf -> new SimpleStringProperty(StagingHelper.getFilePath(cdf.getValue())));
 	}
 
-	private String getFilepath(DiffEntry diff) {
-		ChangeType changeType = diff.getChangeType();
-		switch (changeType) {
-		case ADD:
-		case MODIFY:
-			return diff.getNewPath();
-		case DELETE:
-			return diff.getOldPath();
-		case COPY:
-		case RENAME:
-			new StringBuilder(diff.getOldPath()).append(" -> ").append(diff.getNewPath()).toString();
-		default:
-			throw new IllegalArgumentException("Unknown change type: " + changeType);
-		}
-	}
+	
 
 	private void setRepository(Repository respository) throws CorruptObjectException, IOException {
 		this.respository = respository;

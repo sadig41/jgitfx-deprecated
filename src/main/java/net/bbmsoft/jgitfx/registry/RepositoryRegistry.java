@@ -9,7 +9,7 @@ import net.bbmsoft.jgitfx.modules.RepositoryHandler;
 
 public interface RepositoryRegistry {
 
-	public List<File> getRegisteredRepositories();
+	public List<Repository> getRegisteredRepositories();
 
 	public RepositoryHandler getRepositoryHandler(File directory);
 

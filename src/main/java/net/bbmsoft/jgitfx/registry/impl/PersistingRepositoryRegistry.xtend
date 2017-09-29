@@ -7,6 +7,8 @@ import java.util.List
 import java.util.Map
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
+import javax.inject.Inject
+import javax.inject.Singleton
 import net.bbmsoft.bbm.utils.Persistor
 import net.bbmsoft.jgitfx.event.EventBroker
 import net.bbmsoft.jgitfx.event.RepositoryRegistryTopic
@@ -20,46 +22,40 @@ import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
+import org.eclipse.xtend.lib.annotations.Accessors
 
+@Singleton
 class PersistingRepositoryRegistry implements RepositoryRegistry {
 
-	final ObservableList<File> registeredRepositories
+	@Accessors final ObservableList<Repository> registeredRepositories
 	final Persistor<List<File>> persistor
-	final Map<File, Repository> repositories
-	final Map<Repository, RepositoryHandler> handlers
+	final Map<String, RepositoryHandler> handlers
 
 	final EventBroker eventBroker
 
-	new(Persistor<List<File>> persistor, EventBroker eventBroker) {
-		this(persistor, FXCollections.observableArrayList, eventBroker)
-	}
-
-	new(Persistor<List<File>> persistor, ObservableList<File> repositories, EventBroker eventBroker) {
-
-		this.registeredRepositories = repositories
+	@Inject
+	private new(Persistor<List<File>> persistor, EventBroker eventBroker) {
+		
+		this.registeredRepositories = FXCollections.observableArrayList
 		this.persistor = persistor
 		this.eventBroker = eventBroker
-		this.repositories = new HashMap
 		this.handlers = new HashMap
 		this.registeredRepositories >> [ added, removed |
-			added.forEach[this.eventBroker.publish(RepositoryRegistryTopic.REPO_ADDED, it)]
-			removed.forEach[this.eventBroker.publish(RepositoryRegistryTopic.REPO_REMOVED, it)]
+			added.forEach[this.eventBroker.publish(RepositoryRegistryTopic.REPO_ADDED, directory)]
+			removed.forEach[this.eventBroker.publish(RepositoryRegistryTopic.REPO_REMOVED, directory)]
 		]
 		this.persistor.load[forEach[registerRepository]]
-		this.registeredRepositories > [this.persistor.persist(this.registeredRepositories)]
+		this.registeredRepositories > [this.persistor.persist(this.registeredRepositories.map[directory])]
 	}
 
 	override RepositoryHandler getRepositoryHandler(Repository repository) {
-		this.handlers.get(repository)
+		getRepositoryHandler(repository.directory)
 	}
 
 	override RepositoryHandler getRepositoryHandler(File repositoryDirectory) {
-		val repository = this.repositories.get(repositoryDirectory)
-		if (repository !== null) {
-			this.handlers.get(repository)
-		}
+		this.handlers.get(repositoryDirectory.absolutePath)
 	}
-	
+
 	private def RepositoryHandler createHandler(Repository repository) {
 		return new RepositoryHandler(repository, this.eventBroker)
 	}
@@ -79,21 +75,16 @@ class PersistingRepositoryRegistry implements RepositoryRegistry {
 		builder.build
 	}
 
-	override getRegisteredRepositories() {
-		return this.registeredRepositories
-	}
-
 	override registerRepository(File repositoryFile) {
 
-		if (!this.registeredRepositories.contains(repositoryFile)) {
+		if (!this.registeredRepositories.exists[directory.absolutePath == repositoryFile.absolutePath]) {
 			try {
 				val repo = loadRepo(repositoryFile)
-				this.repositories.put(repo.directory, repo)
-				this.repositories.put(repo.workTree, repo)
 				val handler = createHandler(repo)
-				this.handlers.put(repo, handler)
-				val result = this.registeredRepositories.add(repo.directory)
-				if(result) {
+				this.handlers.put(repo.workTree.absolutePath, handler)
+				this.handlers.put(repo.directory.absolutePath, handler)
+				val result = this.registeredRepositories.add(repo)
+				if (result) {
 					this.eventBroker.publish(RepositoryTopic.REPO_LOADED, handler)
 				}
 				result
@@ -101,16 +92,20 @@ class PersistingRepositoryRegistry implements RepositoryRegistry {
 				this.eventBroker.publish(RepositoryRegistryTopic.REPO_NOT_FOUND, repositoryFile)
 				false
 			} catch (Throwable e) {
-				this.eventBroker.publish(MessageType.ERROR, new Message('Could not open', '''Repositroy at «repositoryFile» could not be loaded:''', e))
+				this.eventBroker.publish(MessageType.ERROR,
+					new Message(
+						'Could not open', '''Repositroy at «repositoryFile» could not be loaded: «IF e.message !== null»«e.message»«ELSE»«e.class.simpleName»«ENDIF»''',
+						e))
+					false
+				}
+			} else {
 				false
 			}
-		} else {
-			false
 		}
-	}
 
-	override removeRepository(File repositoryFile) {
-		throw new UnsupportedOperationException("TODO: auto-generated method stub")
-	}
+		override removeRepository(File repositoryFile) {
+			throw new UnsupportedOperationException("TODO: auto-generated method stub")
+		}
 
-}
+	}
+	

@@ -23,7 +23,9 @@ import java.util.function.Function
 import net.bbmsoft.bbm.utils.Persistor
 import net.bbmsoft.bbm.utils.Persistor.ExceptionHandler
 import net.bbmsoft.jgitfx.modules.AppDirectoryProvider
+import javax.inject.Singleton
 
+@Singleton
 class JsonFilePersistor implements Persistor<List<File>> {
 
 	final Function<File, Appendable> appendableSupplier
