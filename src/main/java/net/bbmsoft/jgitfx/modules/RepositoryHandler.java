@@ -14,6 +14,7 @@ import net.bbmsoft.jgitfx.event.RepositoryTopic;
 import net.bbmsoft.jgitfx.modules.operations.CommitHandler;
 import net.bbmsoft.jgitfx.modules.operations.PullHandler;
 import net.bbmsoft.jgitfx.modules.operations.PushHandler;
+import net.bbmsoft.jgitfx.modules.operations.StageHandler;
 
 public class RepositoryHandler {
 
@@ -23,6 +24,7 @@ public class RepositoryHandler {
 	private final PullHandler pullHandler;
 	private final PushHandler pushHandler;
 	private final CommitHandler commitHandler;
+	private final StageHandler stageHandler;
 
 	private final CredentialsProvider credentialsProvider;
 
@@ -37,6 +39,7 @@ public class RepositoryHandler {
 		this.pullHandler = new PullHandler(this::invalidate, eventBroker);
 		this.pushHandler = new PushHandler(this::invalidate, eventBroker);
 		this.commitHandler = new CommitHandler(this::invalidate, eventBroker);
+		this.stageHandler = new StageHandler(this::invalidate, eventBroker);
 		// TODO provide proper credentials provider
 		this.credentialsProvider = new DialogUsernamePasswordProvider();
 		eventBroker.subscribe(RepositoryOperations.values(), (topic, repo) -> {
@@ -70,11 +73,19 @@ public class RepositoryHandler {
 			case COMMIT:
 				this.commit(operation.getMessage());
 				break;
+			case STAGE:
+				this.stage(operation.getMessage());
+				break;
 			default:
 				throw new IllegalArgumentException("Unknown operation: " + topic);
 			}
 		}
 		});
+		this.invalidate();
+	}
+
+	private void stage(String message) {
+		this.stageHandler.stage(git, message);
 		this.invalidate();
 	}
 

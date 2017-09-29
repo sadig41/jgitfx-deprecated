@@ -1,5 +1,6 @@
 package net.bbmsoft.jgitfx.event;
 
+import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import net.bbmsoft.jgitfx.event.EventBroker.Topic;
@@ -36,6 +37,14 @@ public class TaskTopic {
 	}
 
 	public static enum CommitResult implements Topic<RevCommit> {
+		FINISHED;
+	}
+	
+	public static enum StageTask implements Topic<Task<DirCache>> {
+		STARTED;
+	}
+
+	public static enum StageResult implements Topic<DirCache> {
 		FINISHED;
 	}
 

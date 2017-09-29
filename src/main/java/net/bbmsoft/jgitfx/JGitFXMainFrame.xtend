@@ -367,31 +367,40 @@ class JGitFXMainFrame extends BorderPane {
 	}
 
 	def void stageAll() {
-		println("stage " + this.unstagedFilesTable.items)
+		this.unstagedFilesTable.items.stage
 	}
 	
 	def void unstageAll() {
-		println("unstage " + this.stagedFilesTable.items)
+		this.stagedFilesTable.items.unstage
 	}
 	
 	def void stageSelected() {
-		println("stage " + this.unstagedFilesTable.selectionModel.selectedItems)
+		this.unstagedFilesTable.selectionModel.selectedItems.stage
 	}
 	
 	def void discardSelectedUnstaged() {
-		println("discard " + this.unstagedFilesTable.selectionModel.selectedItems)
+		this.unstagedFilesTable.selectionModel.selectedItems.discard
 	}
 	
 	def void unstageSelected() {
-		println("unstage " + this.stagedFilesTable.selectionModel.selectedItems)
+		this.stagedFilesTable.selectionModel.selectedItems.unstage
 	}
 	
 	def void discardSelectedStaged() {
-		println("discard " + this.stagedFilesTable.selectionModel.selectedItems)
+		this.stagedFilesTable.selectionModel.selectedItems.discard
 	}
 	
-	private def stage(DiffEntry file) {}
+	private def stage(DiffEntry ... files) {
+		RepositoryOperations.STAGE.message = files.map[newPath].reduce['''«$0»,«$1»''']
+		this.eventBroker.publish(RepositoryOperations.STAGE, this.repositoryHandler)
+	}
 	
-	private def unstage(DiffEntry file) {}
+	private def unstage(DiffEntry ... files) {
+		println("unstage " + files)
+	}
+	
+	private def discard(DiffEntry ... files) {
+		println("discard " + files)
+	}
 	
 }

@@ -58,6 +58,7 @@ class JGitFX extends Subapplication {
 		eventBroker.subscribe(TaskTopic.CommitTask.STARTED) [gitTaskHelper.submitTask($1, eventBroker.publish(TaskTopic.CommitResult.FINISHED))]
 		eventBroker.subscribe(TaskTopic.MergeTask.STARTED) [gitTaskHelper.submitTask($1, eventBroker.publish(TaskTopic.MergeResult.FINISHED))]
 		eventBroker.subscribe(TaskTopic.RebaseTask.STARTED) [gitTaskHelper.submitTask($1, eventBroker.publish(TaskTopic.RebaseResult.FINISHED))]
+		eventBroker.subscribe(TaskTopic.StageTask.STARTED) [gitTaskHelper.submitTask($1, eventBroker.publish(TaskTopic.StageResult.FINISHED))]
 
 		val persistor = new JsonFilePersistor
 		val repoRegistry = new PersistingRepositoryRegistry(persistor, eventBroker)
