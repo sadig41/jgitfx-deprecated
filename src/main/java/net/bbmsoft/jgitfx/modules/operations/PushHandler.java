@@ -23,6 +23,7 @@ import net.bbmsoft.jgitfx.event.TaskTopic;
 import net.bbmsoft.jgitfx.messaging.Message;
 import net.bbmsoft.jgitfx.messaging.MessageType;
 import net.bbmsoft.jgitfx.modules.RepositoryActionHandler;
+import net.bbmsoft.jgitfx.utils.ErrorHelper;
 
 public class PushHandler extends RepositoryActionHandler<Iterable<PushResult>> {
 
@@ -71,7 +72,7 @@ public class PushHandler extends RepositoryActionHandler<Iterable<PushResult>> {
 		} catch (TransportException e) {
 			MessageType type = MessageType.ERROR;
 			String title = "Pushing to " + remote + " failed!";
-			Throwable cause = getRoot((Throwable) e, th -> th.getCause());
+			Throwable cause = ErrorHelper.getRoot((Throwable) e, th -> th.getCause());
 			String body = cause.getLocalizedMessage();
 			publish(type, new Message(title, body));
 		} catch (GitAPIException e) {

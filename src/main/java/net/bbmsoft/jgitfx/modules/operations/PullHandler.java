@@ -24,6 +24,7 @@ import net.bbmsoft.jgitfx.messaging.Message;
 import net.bbmsoft.jgitfx.messaging.MessageType;
 import net.bbmsoft.jgitfx.modules.InteractiveCredentialsProvider;
 import net.bbmsoft.jgitfx.modules.RepositoryActionHandler;
+import net.bbmsoft.jgitfx.utils.ErrorHelper;
 
 public class PullHandler extends RepositoryActionHandler<PullResult> {
 
@@ -78,7 +79,7 @@ public class PullHandler extends RepositoryActionHandler<PullResult> {
 			
 			MessageType type = MessageType.ERROR;
 			String title = "Pulling form " + remote + " failed!";
-			Throwable cause = getRoot((Throwable) e, th -> th.getCause());
+			Throwable cause = ErrorHelper.getRoot((Throwable) e, th -> th.getCause());
 			String body = cause.getLocalizedMessage();
 			publish(type, new Message(title, body));
 		} catch (GitAPIException e) {

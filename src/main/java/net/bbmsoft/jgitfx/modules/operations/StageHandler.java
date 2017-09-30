@@ -15,16 +15,25 @@ import org.eclipse.jgit.diff.DiffEntry.ChangeType;
 
 import com.google.common.collect.Iterables;
 
+import net.bbmsoft.jgitfx.event.EventPublisher;
+import net.bbmsoft.jgitfx.messaging.Message;
+import net.bbmsoft.jgitfx.messaging.MessageType;
 import net.bbmsoft.jgitfx.utils.StagingHelper;
 
-public class StageHandler  {
+public class StageHandler {
 
 	private static final List<ChangeType> ADD_TYPES = Arrays.asList(ChangeType.ADD, ChangeType.COPY, ChangeType.MODIFY,
 			ChangeType.RENAME);
 	private static final List<ChangeType> REMOVE_TYPES = Arrays.asList(ChangeType.DELETE, ChangeType.RENAME);
 
+	private final EventPublisher eventPublisher;
+
+	public StageHandler(EventPublisher eventPublisher) {
+		this.eventPublisher = eventPublisher;
+	}
+
 	public void stage(Git git, List<DiffEntry> diffs) {
-		
+
 		if (Iterables.any(diffs, diff -> added(diff))) {
 			addFiles(git, diffs);
 		}
@@ -33,7 +42,7 @@ public class StageHandler  {
 			removeFiles(git, diffs);
 		}
 	}
-	
+
 	public void unstage(Git git, List<DiffEntry> diffs) {
 		ResetCommand resetCommand = git.reset();
 		diffs.forEach(diff -> resetCommand.addPath(StagingHelper.getFilePath(diff)));
@@ -45,9 +54,12 @@ public class StageHandler  {
 		} catch (GitAPIException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (Throwable th) {
+			StringBuilder sb = new StringBuilder("Changes in the following files could not be removed from the index:\n");
+			diffs.forEach(diff -> sb.append("\n").append(StagingHelper.getFilePath(diff)));
+			this.eventPublisher.publish(MessageType.ERROR, new Message("Failed to reset changes", sb.toString(), th));
 		}
 	}
-
 
 	private boolean removed(DiffEntry diff) {
 		return REMOVE_TYPES.contains(diff.getChangeType());
@@ -72,6 +84,10 @@ public class StageHandler  {
 		} catch (GitAPIException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (Throwable th) {
+			StringBuilder sb = new StringBuilder("Changes in the following files could not be added to the index:\n");
+			diffs.forEach(diff -> sb.append("\n").append(StagingHelper.getFilePath(diff)));
+			this.eventPublisher.publish(MessageType.ERROR, new Message("Failed to add changes", sb.toString(), th));
 		}
 	}
 
@@ -90,6 +106,10 @@ public class StageHandler  {
 		} catch (GitAPIException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (Throwable th) {
+			StringBuilder sb = new StringBuilder("The following files could not be added to the index:\n");
+			diffs.forEach(diff -> sb.append("\n").append(StagingHelper.getFilePath(diff)));
+			this.eventPublisher.publish(MessageType.ERROR, new Message("Failed to add files", sb.toString(), th));
 		}
 	}
 }

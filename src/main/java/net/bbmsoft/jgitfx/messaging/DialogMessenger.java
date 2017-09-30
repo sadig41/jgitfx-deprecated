@@ -36,7 +36,7 @@ public class DialogMessenger implements Messenger {
 		
 		Alert alert = new Alert(getAltertType(topic));
 		alert.setTitle(message.getTitle());
-		alert.setHeaderText(null);
+		alert.setHeaderText(message.getHeader());
 		alert.setContentText(message.getBody());
 		
 		if(message.getThrowable() == null) {

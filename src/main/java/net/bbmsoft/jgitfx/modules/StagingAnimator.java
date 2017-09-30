@@ -38,7 +38,7 @@ public class StagingAnimator implements ChangeListener<RepositoryHandler> {
 	private final TableColumn<DiffEntry, String> stagedTypeColum;
 	private final TableColumn<DiffEntry, String> stagedFileColum;
 
-	private Repository respository;
+	private Repository repository;
 
 	public StagingAnimator(TableView<DiffEntry> unstagedFilesTable, TableColumn<DiffEntry, String> unstagedTypeColum,
 			TableColumn<DiffEntry, String> unstagedFileColum, TableView<DiffEntry> stagedFilesTable,
@@ -62,15 +62,19 @@ public class StagingAnimator implements ChangeListener<RepositoryHandler> {
 				.setCellValueFactory(cdf -> new SimpleStringProperty(StagingHelper.getFilePath(cdf.getValue())));
 
 		broker.subscribe(RepositoryTopic.REPO_UPDATED, (topic, repo) -> {
-			if (this.respository != null && repo.getRepository().getDirectory().getAbsolutePath()
-					.equals(this.respository.getDirectory().getAbsolutePath())) {
+			if (this.repository != null && isRelevant(repo)) {
 				updateStagedFiles();
 			}
 		});
 	}
 
-	private void setRepository(Repository respository) throws CorruptObjectException, IOException {
-		this.respository = respository;
+	private boolean isRelevant(RepositoryHandler repo) {
+		return repo == null || repo.getRepository().getDirectory().getAbsolutePath()
+				.equals(this.repository.getDirectory().getAbsolutePath());
+	}
+
+	private void setRepository(Repository repository) throws CorruptObjectException, IOException {
+		this.repository = repository;
 		updateStagedFiles();
 		// make sure index gets updated when it changes
 	}
@@ -82,13 +86,13 @@ public class StagingAnimator implements ChangeListener<RepositoryHandler> {
 		List<DiffEntry> selectedStaged = new ArrayList<>(this.stagedFilesTable.getSelectionModel().getSelectedItems());
 		List<DiffEntry> selectedUnstaged = new ArrayList<>(this.unstagedFilesTable.getSelectionModel().getSelectedItems());
 
-		if (this.respository == null) {
+		if (this.repository == null) {
 			this.unstagedFilesTable.getItems().clear();
 			this.stagedFilesTable.getItems().clear();
 			return;
 		}
 
-		try (Git git = Git.wrap(this.respository)) {
+		try (Git git = Git.wrap(this.repository)) {
 
 			List<DiffEntry> diff = git.diff().call();
 			diff.sort((a, b) -> a.getChangeType().compareTo(b.getChangeType()));
@@ -99,8 +103,8 @@ public class StagingAnimator implements ChangeListener<RepositoryHandler> {
 			AbstractTreeIterator newTree = new DirCacheIterator(git.getRepository().readDirCache());
 
 			ObjectId id = git.getRepository().resolve(Constants.HEAD);
-			RevCommit headCommit = this.respository.parseCommit(id);
-			AbstractTreeIterator oldTree = getTree(headCommit, this.respository);
+			RevCommit headCommit = this.repository.parseCommit(id);
+			AbstractTreeIterator oldTree = getTree(headCommit, this.repository);
 			List<DiffEntry> indexDiff = git.diff().setNewTree(newTree).setOldTree(oldTree).call();
 
 			this.stagedFilesTable.getItems().setAll(indexDiff);

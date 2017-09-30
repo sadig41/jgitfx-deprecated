@@ -11,6 +11,7 @@ import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.CredentialsProvider;
 
+import javafx.application.Platform;
 import net.bbmsoft.jgitfx.event.EventBroker;
 import net.bbmsoft.jgitfx.event.EventBroker.Topic;
 import net.bbmsoft.jgitfx.event.EventPublisher;
@@ -44,13 +45,13 @@ public class RepositoryHandler {
 		this.pullHandler = new PullHandler(eventBroker);
 		this.pushHandler = new PushHandler(eventBroker);
 		this.commitHandler = new CommitHandler(eventBroker);
-		this.stageHandler = new StageHandler();
+		this.stageHandler = new StageHandler(eventBroker);
 		// TODO provide proper credentials provider
 		this.credentialsProvider = new DialogUsernamePasswordProvider();
 		eventBroker.subscribe(RepositoryOperations.values(), (topic, repo) -> evaluateRepositoryOperation(topic, repo));
-		this.repository.getListenerList().addRefsChangedListener(this::refsChanged);
-		this.repository.getListenerList().addIndexChangedListener(this::indexChanged);
-		this.repository.getListenerList().addConfigChangedListener(this::configChanged);
+		this.repository.getListenerList().addRefsChangedListener(e -> Platform.runLater(() -> this.refsChanged(e)));
+		this.repository.getListenerList().addIndexChangedListener(e -> Platform.runLater(() -> this.indexChanged(e)));
+		this.repository.getListenerList().addConfigChangedListener(e -> Platform.runLater(() -> this.configChanged(e)));
 		this.invalidate();
 	}
 	

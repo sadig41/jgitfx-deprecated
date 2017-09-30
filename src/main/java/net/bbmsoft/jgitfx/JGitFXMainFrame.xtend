@@ -121,6 +121,8 @@ class JGitFXMainFrame extends BorderPane {
 		this.historyTable.columns.forEach[col|col.visibleProperty >> [this.prefs.setColumnVisible(col.id, it)]]
 		this.stagingAnimator = new StagingAnimator(this.unstagedFilesTable, this.unstagedTypeColum,
 			this.unstagedFileColum, this.stagedFilesTable, this.stagedTypeColum, this.stagedFileColum, this.eventBroker)
+		this.historyVisualizer = new RepositoryTableVisualizer(this.historyTable, this.refsColumn,
+			this.commitMessageColumn, this.authorColumn, this.timeColumn, this.eventBroker)
 			
 		this.repositoryHandlerProperty >> stagingAnimator
 
@@ -141,7 +143,13 @@ class JGitFXMainFrame extends BorderPane {
 			addRepoTreeItem($1.repository)
 			open($1.repository)
 		]
-		this.eventBroker.subscribe(RepositoryTopic.REPO_UPDATED)[updateRepo($1)]
+		this.eventBroker.subscribe(RepositoryTopic.REPO_OPENED)[
+			this.historyVisualizer.repository = $1.repository
+			if (prefs.switchToRepositoryOverview) {
+				// delay so it also works on startup
+				Platform.runLater[this.repositoryOverview.expanded = true]
+			}
+		]
 
 		taskHelper.taskList = this.tasksView.tasks
 
@@ -163,8 +171,6 @@ class JGitFXMainFrame extends BorderPane {
 
 	override initialize(URL location, ResourceBundle resources) {
 
-		this.historyVisualizer = new RepositoryTableVisualizer(this.historyTable, this.refsColumn,
-			this.commitMessageColumn, this.authorColumn, this.timeColumn)
 		this.repositoryTreeItems = new HashMap
 		this.rootRepoTreeItem = new TreeItem(new DummyWrapper('JGitFX'))
 		this.rootRepoTreeItem.children >> [updateTreeItemMap($0, $1)]
@@ -221,12 +227,6 @@ class JGitFXMainFrame extends BorderPane {
 		this.stashContextMenuItem.disable = size <= 0 || size > 1
 		this.popContextMenuItem.disable = size <= 0 || size > 1
 
-	}
-
-	private def updateRepo(RepositoryHandler repoHandler) {
-		// TODO
-		println('''Updating view of «repoHandler?.repository»''')
-		this.historyVisualizer.repository = repoHandler.repository
 	}
 
 	def undo() {
@@ -352,7 +352,7 @@ class JGitFXMainFrame extends BorderPane {
 	}
 
 	def openRepo() {
-		this.eventBroker.publish(UserInteraction.OPEN_REPO, null)
+		this.eventBroker.publish(UserInteraction.ADD_REPO, null)
 	}
 
 	def quit() {
@@ -375,10 +375,7 @@ class JGitFXMainFrame extends BorderPane {
 			this.repositoryHandler.setAutoInvalidate(true)
 			this.breadcrumb.selectedCrumb = repoItem
 			this.prefs.lastOpened = repository.directory
-			if (prefs.switchToRepositoryOverview) {
-				// delay so it also works on startup
-				Platform.runLater[this.repositoryOverview.expanded = true]
-			}
+			this.eventBroker.publish(RepositoryTopic.REPO_OPENED, this.repositoryHandler)
 		} catch (Throwable th) {
 			val title = 'Failed to open repository'
 			val body = '''An error occurded while opening the repository:  «IF th.message !== null»«th.message»«ELSE»«th.class.simpleName»«ENDIF»'''

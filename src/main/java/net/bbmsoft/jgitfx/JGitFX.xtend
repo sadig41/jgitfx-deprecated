@@ -23,6 +23,7 @@ import net.bbmsoft.jgitfx.modules.RepositoryOpener
 import net.bbmsoft.jgitfx.registry.RepositoryRegistry
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
+import net.bbmsoft.jgitfx.event.RepositoryTopic
 
 class JGitFX extends Subapplication {
 
@@ -78,7 +79,7 @@ class JGitFX extends Subapplication {
 		eventBroker.subscribe(UserInteraction.CLONE)[println('clone')]
 		eventBroker.subscribe(UserInteraction.BATCH_CLONE)[println('batch clone')]
 		eventBroker.subscribe(UserInteraction.INIT_REPO)[println('init')]
-		eventBroker.subscribe(UserInteraction.OPEN_REPO)[opener.openRepo(this.stage, repoRegistry)]
+		eventBroker.subscribe(UserInteraction.ADD_REPO)[opener.openRepo(this.stage, repoRegistry)]
 		eventBroker.subscribe(UserInteraction.QUIT)[println('quit')]
 		eventBroker.subscribe(UserInteraction.SHOW_ABOUT)[println('about')]
 
@@ -90,6 +91,7 @@ class JGitFX extends Subapplication {
 		this.stage = stage
 
 		stage.scene = new Scene(this.jGitFXMainFrame)
+		stage.focusedProperty >> [this.eventBroker.publish(RepositoryTopic.REPO_UPDATED, null)]
 
 		stage.maximized = this.prefs.maximized
 		stage.maximizedProperty > [

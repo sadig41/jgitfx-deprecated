@@ -1,6 +1,5 @@
 package net.bbmsoft.jgitfx.modules;
 
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.eclipse.jgit.lib.Repository;
@@ -24,16 +23,6 @@ public abstract class RepositoryActionHandler<R> {
 	
 	protected <T> void publish(Topic<T> topic, T payload) {
 		this.eventPublisher.publish(topic, payload);
-	}
-	
-	protected <T> T getRoot(T child, Function<T, T> parentProvider) {
-		
-		T parent = parentProvider.apply((T)child);
-		if(parent == null) {
-			return child;
-		} else {
-			return getRoot(parent, parentProvider);
-		}
 	}
 	
 	public static class Task<T> extends javafx.concurrent.Task<T> {

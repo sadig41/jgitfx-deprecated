@@ -20,6 +20,8 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import net.bbmsoft.jgitfx.event.EventBroker;
+import net.bbmsoft.jgitfx.event.RepositoryTopic;
 import net.bbmsoft.jgitfx.wrappers.HistoryEntry;
 
 public class RepositoryTableVisualizer {
@@ -33,7 +35,7 @@ public class RepositoryTableVisualizer {
 
 	public RepositoryTableVisualizer(TableView<HistoryEntry> table, TableColumn<HistoryEntry, String> branchColumn,
 			TableColumn<HistoryEntry, String> commitMessageColumn, TableColumn<HistoryEntry, String> authorColumn,
-			TableColumn<HistoryEntry, String> timeColumn) {
+			TableColumn<HistoryEntry, String> timeColumn, EventBroker eventBroker) {
 
 		this.table = table;
 		this.refMap = new HashMap<>();
@@ -59,6 +61,17 @@ public class RepositoryTableVisualizer {
 		timeColumn.setCellValueFactory(cdf -> {
 			return new SimpleStringProperty(getCommitTime(cdf.getValue().getCommit()));
 		});
+		
+		eventBroker.subscribe(RepositoryTopic.REPO_UPDATED, (topic, repo) -> {
+			if (this.repository != null && isRelevant(repo)) {
+				updateRepositoryView();
+			}
+		});
+	}
+
+	private boolean isRelevant(RepositoryHandler repo) {
+		return repo == null || repo.getRepository().getDirectory().getAbsolutePath()
+				.equals(this.repository.getDirectory().getAbsolutePath());
 	}
 
 	private String getCommitTime(RevCommit commit) {
@@ -124,8 +137,12 @@ public class RepositoryTableVisualizer {
 
 		this.repository = repository;
 
+		updateRepositoryView();
+	}
+
+	private void updateRepositoryView() {
 		try {
-			this.updateRepositoryView();
+			this.doUpdateRepositoryView();
 		} catch (NoHeadException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -138,7 +155,7 @@ public class RepositoryTableVisualizer {
 		}
 	}
 
-	private void updateRepositoryView() throws NoHeadException, GitAPIException, IOException {
+	private void doUpdateRepositoryView() throws NoHeadException, GitAPIException, IOException {
 
 		// TODO possibly move to background thread if too slow
 		

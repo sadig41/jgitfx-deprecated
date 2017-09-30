@@ -50,9 +50,9 @@ class PersistingRepositoryRegistry implements RepositoryRegistry {
 		this.persistor.load[forEach[registerRepository]]
 		this.registeredRepositories > [this.persistor.persist(this.registeredRepositories.map[directory])]
 		
-		Executors.newSingleThreadScheduledExecutor[new Thread(it, 'Refresh Scheduler') => [daemon = true]] => [
-			scheduleAtFixedRate([Platform.runLater[refreshAll]], 3, 3, TimeUnit.SECONDS)
-		]
+//		Executors.newSingleThreadScheduledExecutor[new Thread(it, 'Refresh Scheduler') => [daemon = true]] => [
+//			scheduleAtFixedRate([Platform.runLater[refreshAll]], 3, 3, TimeUnit.SECONDS)
+//		]
 	}
 	
 	private def refreshAll() {
