@@ -5,9 +5,6 @@ import java.io.IOException
 import java.util.HashMap
 import java.util.List
 import java.util.Map
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import javafx.application.Platform
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import javax.inject.Inject

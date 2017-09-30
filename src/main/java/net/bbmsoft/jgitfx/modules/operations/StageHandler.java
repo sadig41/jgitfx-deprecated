@@ -7,7 +7,6 @@ import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.RmCommand;
-import org.eclipse.jgit.api.errors.CheckoutConflictException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoFilepatternException;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -48,12 +47,6 @@ public class StageHandler {
 		diffs.forEach(diff -> resetCommand.addPath(StagingHelper.getFilePath(diff)));
 		try {
 			resetCommand.call();
-		} catch (CheckoutConflictException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (GitAPIException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (Throwable th) {
 			StringBuilder sb = new StringBuilder("Changes in the following files could not be removed from the index:\n");
 			diffs.forEach(diff -> sb.append("\n").append(StagingHelper.getFilePath(diff)));
