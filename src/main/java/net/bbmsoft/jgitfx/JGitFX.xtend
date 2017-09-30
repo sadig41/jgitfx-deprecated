@@ -9,9 +9,9 @@ import net.bbmsoft.bbm.utils.concurrent.TaskHelper
 import net.bbmsoft.fxtended.annotations.app.launcher.Subapplication
 import net.bbmsoft.jgitfx.event.AppStatus
 import net.bbmsoft.jgitfx.event.EventBroker
-import net.bbmsoft.jgitfx.event.EventBroker.Topic
 import net.bbmsoft.jgitfx.event.EventPublisher
 import net.bbmsoft.jgitfx.event.RepositoryRegistryTopic
+import net.bbmsoft.jgitfx.event.RepositoryTopic
 import net.bbmsoft.jgitfx.event.TaskTopic
 import net.bbmsoft.jgitfx.event.UserInteraction
 import net.bbmsoft.jgitfx.inject.impl.JGitFXModule
@@ -23,7 +23,6 @@ import net.bbmsoft.jgitfx.modules.RepositoryOpener
 import net.bbmsoft.jgitfx.registry.RepositoryRegistry
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
-import net.bbmsoft.jgitfx.event.RepositoryTopic
 
 class JGitFX extends Subapplication {
 
@@ -54,26 +53,8 @@ class JGitFX extends Subapplication {
 		eventBroker.subscribe(MessageType.values(), messageListener)
 		eventBroker.subscribe(RepositoryRegistryTopic.REPO_NOT_FOUND)[repoNotFound($1, eventBroker)]
 
-		eventBroker.subscribe(TaskTopic.PullTask.STARTED) [
-			gitTaskHelper.submitTask($1, eventBroker.publish(TaskTopic.PullResult.FINISHED))
-		]
-		eventBroker.subscribe(TaskTopic.PushTask.STARTED) [
-			gitTaskHelper.submitTask($1, eventBroker.publish(TaskTopic.PushResult.FINISHED))
-		]
-		eventBroker.subscribe(TaskTopic.FetchTask.STARTED) [
-			gitTaskHelper.submitTask($1, eventBroker.publish(TaskTopic.FetchResult.FINISHED))
-		]
-		eventBroker.subscribe(TaskTopic.CommitTask.STARTED) [
-			gitTaskHelper.submitTask($1, eventBroker.publish(TaskTopic.CommitResult.FINISHED))
-		]
-		eventBroker.subscribe(TaskTopic.MergeTask.STARTED) [
-			gitTaskHelper.submitTask($1, eventBroker.publish(TaskTopic.MergeResult.FINISHED))
-		]
-		eventBroker.subscribe(TaskTopic.RebaseTask.STARTED) [
-			gitTaskHelper.submitTask($1, eventBroker.publish(TaskTopic.RebaseResult.FINISHED))
-		]
-		eventBroker.subscribe(TaskTopic.StageTask.STARTED) [
-			gitTaskHelper.submitTask($1, eventBroker.publish(TaskTopic.StageResult.FINISHED))
+		eventBroker.subscribe(TaskTopic.TASK_STARTED) [
+			gitTaskHelper.submitTask($1, null)
 		]
 
 		eventBroker.subscribe(UserInteraction.CLONE)[println('clone')]
@@ -101,10 +82,6 @@ class JGitFX extends Subapplication {
 		this.eventBroker.publish(AppStatus.STARTED, System.currentTimeMillis)
 
 		stage.show
-	}
-
-	private def <T> publish(EventBroker eventBroker, Topic<T> topic) {
-		[eventBroker.publish(topic, it)]
 	}
 
 	private def repoNotFound(File dir, EventPublisher publisher) {

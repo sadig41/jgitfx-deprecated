@@ -27,11 +27,12 @@ public class PushHandler extends RepositoryActionHandler<Iterable<PushResult>> {
 		Task<Iterable<PushResult>> pushTask = new PushTask(this, repository, remote);
 		pushTask.setResultSupplier(() -> doPush(git, remote, credetialsProvider, pushTask));
 
-		publish(TaskTopic.PushTask.STARTED, pushTask);
+		publish(TaskTopic.TASK_STARTED, pushTask);
 	}
 
 	private Iterable<PushResult> doPush(Git git, String remote, CredentialsProvider credetialsProvider,
 			ProgressMonitor progressMonitor) {
+		
 		try {
 			return git.push().setCredentialsProvider(credetialsProvider).setProgressMonitor(progressMonitor)
 					.setRemote(remote).call();
@@ -45,6 +46,7 @@ public class PushHandler extends RepositoryActionHandler<Iterable<PushResult>> {
 		} catch (Throwable th) {
 			publishError(remote, th);
 		}
+		
 		return null;
 	}
 
@@ -60,7 +62,7 @@ public class PushHandler extends RepositoryActionHandler<Iterable<PushResult>> {
 
 		public PushTask(PushHandler handler, Repository repository,
 				String remote) {
-			super(handler, repository, TaskTopic.PushResult.FINISHED);
+			super(handler, repository);
 			this.remote = remote;
 			updateTitle("Push " + repository.getWorkTree().getName());
 			updateMessage("Pending...");

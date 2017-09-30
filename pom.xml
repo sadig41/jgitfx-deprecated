@@ -47,7 +47,7 @@
 		<dependency>
 			<groupId>net.bbmsoft</groupId>
 			<artifactId>bbm-utils</artifactId>
-			<version>1.1.6</version>
+			<version>1.1.7-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>

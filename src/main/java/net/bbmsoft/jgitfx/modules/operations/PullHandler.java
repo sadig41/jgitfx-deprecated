@@ -24,14 +24,15 @@ public class PullHandler extends RepositoryActionHandler<PullResult> {
 
 		Repository repository = git.getRepository();
 
-		Task<PullResult> pullTask = new PullTask(this, repository, remote);
+		PullTask pullTask = new PullTask(this, repository, remote);
 		pullTask.setResultSupplier(() -> doPull(git, remote, credetialsProvider, pullTask));
 		
-		publish(TaskTopic.PullTask.STARTED, pullTask);
+		publish(TaskTopic.TASK_STARTED, pullTask);
 	}
 
 	private PullResult doPull(Git git, String remote, CredentialsProvider credetialsProvider,
 			ProgressMonitor progressMonitor) {
+				
 		try {
 			return git.pull().setCredentialsProvider(credetialsProvider).setProgressMonitor(progressMonitor)
 					.setRemote(remote).call();
@@ -45,6 +46,7 @@ public class PullHandler extends RepositoryActionHandler<PullResult> {
 		} catch (Throwable th) {
 			publishError(remote, th);
 		}
+		
 		return null;
 	}
 
@@ -59,7 +61,7 @@ public class PullHandler extends RepositoryActionHandler<PullResult> {
 		private String remote;
 
 		public PullTask(PullHandler handler, Repository repository, String remote) {
-			super(handler, repository, TaskTopic.PullResult.FINISHED);
+			super(handler, repository);
 			this.remote = remote;
 			updateTitle("Pull " + repository.getWorkTree().getName());
 			updateMessage("Pending...");

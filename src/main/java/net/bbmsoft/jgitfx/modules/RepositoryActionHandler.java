@@ -9,6 +9,7 @@ import org.eclipse.jgit.lib.Repository;
 import javafx.application.Platform;
 import net.bbmsoft.jgitfx.event.EventBroker.Topic;
 import net.bbmsoft.jgitfx.event.EventPublisher;
+import net.bbmsoft.jgitfx.event.TaskTopic;
 
 public abstract class RepositoryActionHandler<R> {
 	
@@ -30,16 +31,14 @@ public abstract class RepositoryActionHandler<R> {
 	public static abstract class Task<T> extends javafx.concurrent.Task<T> implements ProgressMonitor {
 
 		private final Repository repository;
-		private final Topic<T> resultTopic;
 		private final RepositoryActionHandler<T> handler;
 		private final AtomicInteger toDo;
 		
 		private volatile Supplier<T> resultSupplier;
 
-		public Task(RepositoryActionHandler<T> handler, Repository repository, Topic<T> resultTopic) {
+		public Task(RepositoryActionHandler<T> handler, Repository repository) {
 			this.handler = handler;
 			this.repository = repository;
-			this.resultTopic = resultTopic;
 			this.toDo = new AtomicInteger();
 		}
 
@@ -50,8 +49,7 @@ public abstract class RepositoryActionHandler<R> {
 			if(resultSupplier != null) {
 				result = resultSupplier.get();
 			}
-			final T finalResult = result;
-			Platform.runLater(() -> this.handler.publish(this.resultTopic, finalResult));
+			Platform.runLater(() -> this.handler.publish(TaskTopic.TASK_FINISHED, this));
 			return result;
 		}
 

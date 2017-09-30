@@ -6,7 +6,6 @@ import java.util.List
 import java.util.Map
 import java.util.ResourceBundle
 import javafx.application.Platform
-import javafx.collections.ObservableList
 import javafx.concurrent.Task
 import javafx.fxml.FXML
 import javafx.scene.Parent
@@ -150,6 +149,12 @@ class JGitFXMainFrame extends BorderPane {
 				Platform.runLater[this.repositoryOverview.expanded = true]
 			}
 		]
+		
+		this.tasksView.tasks >> [
+			val tasksRunning = !this.tasksView.tasks.empty
+			this.tasksView.visible = tasksRunning
+			this.tasksView.managed = tasksRunning
+		]
 
 		taskHelper.taskList = this.tasksView.tasks
 
@@ -159,10 +164,6 @@ class JGitFXMainFrame extends BorderPane {
 	private def addRepoTreeItem(Repository repository) {
 		val treeItem = new TreeItem(new RepositoryWrapper(repository))
 		this.rootRepoTreeItem.children.add(treeItem)
-	}
-
-	def ObservableList<Task<?>> getTaskList() {
-		this.tasksView.tasks
 	}
 
 	private def updateHistoryColumnsVisibility() {

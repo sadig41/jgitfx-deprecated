@@ -52,9 +52,9 @@ class PersistingRepositoryRegistry implements RepositoryRegistry {
 //		]
 	}
 	
-	private def refreshAll() {
-		this.handlers.values.forEach[invalidate]
-	}
+//	private def refreshAll() {
+//		this.handlers.values.forEach[invalidate]
+//	}
 
 	override RepositoryHandler getRepositoryHandler(Repository repository) {
 		getRepositoryHandler(repository.directory)
