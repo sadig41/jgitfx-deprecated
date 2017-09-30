@@ -7,8 +7,6 @@ import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.RmCommand;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.NoFilepatternException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffEntry.ChangeType;
 
@@ -71,12 +69,6 @@ public class StageHandler {
 		}
 		try {
 			removeCommand.call();
-		} catch (NoFilepatternException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (GitAPIException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (Throwable th) {
 			StringBuilder sb = new StringBuilder("Changes in the following files could not be added to the index:\n");
 			diffs.forEach(diff -> sb.append("\n").append(StagingHelper.getFilePath(diff)));
@@ -93,12 +85,6 @@ public class StageHandler {
 		}
 		try {
 			addCommand.call();
-		} catch (NoFilepatternException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (GitAPIException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (Throwable th) {
 			StringBuilder sb = new StringBuilder("The following files could not be added to the index:\n");
 			diffs.forEach(diff -> sb.append("\n").append(StagingHelper.getFilePath(diff)));
