@@ -1,6 +1,7 @@
 package net.bbmsoft.jgitfx.modules;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jgit.api.Git;
@@ -18,7 +19,6 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.treewalk.AbstractTreeIterator;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 
-import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -78,11 +78,13 @@ public class StagingAnimator implements ChangeListener<RepositoryHandler> {
 	private void updateStagedFiles() {
 
 		ThreadUtils.checkFxThread();
-		
-		this.unstagedFilesTable.getItems().clear();
-		this.stagedFilesTable.getItems().clear();
-		
-		if (this.respository == null) {	
+
+		List<DiffEntry> selectedStaged = new ArrayList<>(this.stagedFilesTable.getSelectionModel().getSelectedItems());
+		List<DiffEntry> selectedUnstaged = new ArrayList<>(this.unstagedFilesTable.getSelectionModel().getSelectedItems());
+
+		if (this.respository == null) {
+			this.unstagedFilesTable.getItems().clear();
+			this.stagedFilesTable.getItems().clear();
 			return;
 		}
 
@@ -92,6 +94,7 @@ public class StagingAnimator implements ChangeListener<RepositoryHandler> {
 			diff.sort((a, b) -> a.getChangeType().compareTo(b.getChangeType()));
 
 			this.unstagedFilesTable.getItems().setAll(diff);
+			StagingHelper.applyToMatching(diff, selectedUnstaged, d -> this.unstagedFilesTable.getSelectionModel().select(d));
 
 			AbstractTreeIterator newTree = new DirCacheIterator(git.getRepository().readDirCache());
 
@@ -101,6 +104,7 @@ public class StagingAnimator implements ChangeListener<RepositoryHandler> {
 			List<DiffEntry> indexDiff = git.diff().setNewTree(newTree).setOldTree(oldTree).call();
 
 			this.stagedFilesTable.getItems().setAll(indexDiff);
+			StagingHelper.applyToMatching(indexDiff, selectedStaged, d -> this.stagedFilesTable.getSelectionModel().select(d));
 
 		} catch (GitAPIException e) {
 			e.printStackTrace();

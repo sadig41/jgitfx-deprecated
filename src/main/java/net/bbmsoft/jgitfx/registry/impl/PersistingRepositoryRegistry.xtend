@@ -5,6 +5,9 @@ import java.io.IOException
 import java.util.HashMap
 import java.util.List
 import java.util.Map
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import javafx.application.Platform
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import javax.inject.Inject
@@ -20,13 +23,13 @@ import net.bbmsoft.jgitfx.registry.RepositoryRegistry
 import org.eclipse.jgit.errors.RepositoryNotFoundException
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
+import org.eclipse.xtend.lib.annotations.Accessors
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
-import org.eclipse.xtend.lib.annotations.Accessors
 
 @Singleton
 class PersistingRepositoryRegistry implements RepositoryRegistry {
-
+	
 	@Accessors final ObservableList<Repository> registeredRepositories
 	final Persistor<List<File>> persistor
 	final Map<String, RepositoryHandler> handlers
@@ -46,6 +49,14 @@ class PersistingRepositoryRegistry implements RepositoryRegistry {
 		]
 		this.persistor.load[forEach[registerRepository]]
 		this.registeredRepositories > [this.persistor.persist(this.registeredRepositories.map[directory])]
+		
+		Executors.newSingleThreadScheduledExecutor[new Thread(it, 'Refresh Scheduler') => [daemon = true]] => [
+			scheduleAtFixedRate([Platform.runLater[refreshAll]], 3, 3, TimeUnit.SECONDS)
+		]
+	}
+	
+	private def refreshAll() {
+		this.handlers.values.forEach[invalidate]
 	}
 
 	override RepositoryHandler getRepositoryHandler(Repository repository) {

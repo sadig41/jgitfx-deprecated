@@ -141,6 +141,8 @@ public class RepositoryTableVisualizer {
 	private void updateRepositoryView() throws NoHeadException, GitAPIException, IOException {
 
 		// TODO possibly move to background thread if too slow
+		
+		HistoryEntry selected = this.table.getSelectionModel().getSelectedItem();
 
 		Git git = Git.wrap(this.repository);
 
@@ -168,5 +170,6 @@ public class RepositoryTableVisualizer {
 
 		commitsIterable.forEach(rev -> commits.add(new HistoryEntry(rev)));
 		this.table.getItems().setAll(commits);
+		this.table.getSelectionModel().select(selected);
 	}
 }

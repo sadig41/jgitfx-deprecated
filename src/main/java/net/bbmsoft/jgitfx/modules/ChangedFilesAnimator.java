@@ -81,6 +81,8 @@ public class ChangedFilesAnimator implements ChangeListener<HistoryEntry> {
 
 		if (commit != null) {
 			
+			DiffEntry selected = this.changedFilesOverview.getSelectionModel().getSelectedItem();
+			
 			this.wipOverview.setVisible(false);
 			this.changedFilesOverview.setVisible(true);
 			
@@ -92,6 +94,7 @@ public class ChangedFilesAnimator implements ChangeListener<HistoryEntry> {
 							.setNewTree(getTree(commit, repo)).call();
 					diff.sort((a, b) -> a.getChangeType().compareTo(b.getChangeType()));
 					this.changedFilesOverview.getItems().setAll(diff);
+					StagingHelper.applyToMatching(diff, selected, d -> this.changedFilesOverview.getSelectionModel().select(d));
 					
 				} catch (IncorrectObjectTypeException e) {
 					e.printStackTrace();

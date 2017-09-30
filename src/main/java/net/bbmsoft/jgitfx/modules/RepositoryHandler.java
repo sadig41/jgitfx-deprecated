@@ -123,7 +123,7 @@ public class RepositoryHandler {
 		this.invalidate();
 	}
 
-	private void invalidate() {
+	public void invalidate() {
 		if (this.autoInvalidate) {
 			eventPublisher.publish(RepositoryTopic.REPO_UPDATED, this);
 		}
