@@ -15,13 +15,11 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import net.bbmsoft.jgitfx.event.EventPublisher;
 import net.bbmsoft.jgitfx.event.TaskTopic;
 import net.bbmsoft.jgitfx.modules.RepositoryActionHandler;
-import net.bbmsoft.jgitfx.modules.RepositoryHandler;
-import net.bbmsoft.jgitfx.modules.RepositoryHandler.Task;
 
 public class CommitHandler extends RepositoryActionHandler<RevCommit> {
 
-	public CommitHandler(Runnable updateCallback, EventPublisher publisher) {
-		super(updateCallback, publisher);
+	public CommitHandler(EventPublisher publisher) {
+		super(publisher);
 	}
 
 	public void commit(Git git, String message) {
@@ -30,7 +28,7 @@ public class CommitHandler extends RepositoryActionHandler<RevCommit> {
 			throw new IllegalArgumentException("Invalid commit message!");
 		}
 
-		Task<RevCommit> commitTask = new CommitTask(() -> doCommit(git, message), git, message);
+		Task<RevCommit> commitTask = new CommitTask(this, () -> doCommit(git, message), git, message);
 
 		publish(TaskTopic.CommitTask.STARTED, commitTask);
 	}
@@ -63,16 +61,10 @@ public class CommitHandler extends RepositoryActionHandler<RevCommit> {
 		return null;
 	}
 
-	@Override
-	protected void evaluateResult(RevCommit result) {
-		// TODO Auto-generated method stub
+	static class CommitTask extends Task<RevCommit> {
 
-	}
-
-	static class CommitTask extends RepositoryHandler.Task<RevCommit> {
-
-		public CommitTask(Supplier<RevCommit> resultSupplier, Git git, String message) {
-			super(resultSupplier, git.getRepository());
+		public CommitTask(CommitHandler handler, Supplier<RevCommit> resultSupplier, Git git, String message) {
+			super(handler, resultSupplier, git.getRepository(), TaskTopic.CommitResult.FINISHED);
 			updateTitle("Commit \"" + message.split("\n")[0] + "\"");
 			updateMessage("Pending...");
 		}

@@ -12,6 +12,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jgit.lib.Repository;
 
+import net.bbmsoft.jgitfx.modules.RepositoryActionHandler.Task;
+
 public class GitWorkerExecutorManager extends AbstractExecutorService {
 
 	private final ExecutorService fallbackExecutor = Executors
@@ -51,8 +53,8 @@ public class GitWorkerExecutorManager extends AbstractExecutorService {
 	@Override
 	public Future<?> submit(Runnable task) {
 
-		if (task instanceof RepositoryHandler.Task<?>) {
-			Repository repo = ((RepositoryHandler.Task<?>) task).getRepository();
+		if (task instanceof Task<?>) {
+			Repository repo = ((Task<?>) task).getRepository();
 			ExecutorService exec = this.executors.get(repo);
 			if (exec == null) {
 				exec = Executors.newSingleThreadExecutor(new GitThreadFactory(repo.getWorkTree().getName()));

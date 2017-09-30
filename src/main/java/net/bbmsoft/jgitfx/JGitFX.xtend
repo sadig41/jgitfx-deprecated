@@ -81,7 +81,7 @@ class JGitFX extends Subapplication {
 		eventBroker.subscribe(UserInteraction.OPEN_REPO)[opener.openRepo(this.stage, repoRegistry)]
 		eventBroker.subscribe(UserInteraction.QUIT)[println('quit')]
 		eventBroker.subscribe(UserInteraction.SHOW_ABOUT)[println('about')]
-		
+
 		this.eventBroker.publish(AppStatus.STARTING, System.currentTimeMillis)
 	}
 

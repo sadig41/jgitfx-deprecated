@@ -2,57 +2,52 @@ package net.bbmsoft.jgitfx.modules.operations;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Supplier;
 
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.RmCommand;
+import org.eclipse.jgit.api.errors.CheckoutConflictException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoFilepatternException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffEntry.ChangeType;
-import org.eclipse.jgit.dircache.DirCache;
 
 import com.google.common.collect.Iterables;
 
-import net.bbmsoft.jgitfx.event.EventPublisher;
-import net.bbmsoft.jgitfx.event.TaskTopic;
-import net.bbmsoft.jgitfx.modules.RepositoryActionHandler;
-import net.bbmsoft.jgitfx.modules.RepositoryHandler;
-import net.bbmsoft.jgitfx.modules.RepositoryHandler.Task;
+import net.bbmsoft.jgitfx.utils.StagingHelper;
 
-public class StageHandler extends RepositoryActionHandler<DirCache> {
+public class StageHandler  {
 
 	private static final List<ChangeType> ADD_TYPES = Arrays.asList(ChangeType.ADD, ChangeType.COPY, ChangeType.MODIFY,
 			ChangeType.RENAME);
 	private static final List<ChangeType> REMOVE_TYPES = Arrays.asList(ChangeType.DELETE, ChangeType.RENAME);
 
-	public StageHandler(Runnable updateCallback, EventPublisher publisher) {
-		super(updateCallback, publisher);
-	}
-
 	public void stage(Git git, List<DiffEntry> diffs) {
-
-		Task<DirCache> stageTask = new StageTask(() -> doStage(git, diffs), git, diffs.size());
-
-		publish(TaskTopic.StageTask.STARTED, stageTask);
-
-	}
-
-	private DirCache doStage(Git git, List<DiffEntry> diffs) {
-
-		DirCache cache = null;
-
+		
 		if (Iterables.any(diffs, diff -> added(diff))) {
-			cache = addFiles(git, diffs, cache);
+			addFiles(git, diffs);
 		}
 
 		if (Iterables.any(diffs, diff -> removed(diff))) {
-			cache = removeFiles(git, diffs, cache);
+			removeFiles(git, diffs);
 		}
-
-		return cache;
 	}
+	
+	public void unstage(Git git, List<DiffEntry> diffs) {
+		ResetCommand resetCommand = git.reset();
+		diffs.forEach(diff -> resetCommand.addPath(StagingHelper.getFilePath(diff)));
+		try {
+			resetCommand.call();
+		} catch (CheckoutConflictException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (GitAPIException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 
 	private boolean removed(DiffEntry diff) {
 		return REMOVE_TYPES.contains(diff.getChangeType());
@@ -62,7 +57,7 @@ public class StageHandler extends RepositoryActionHandler<DirCache> {
 		return ADD_TYPES.contains(diff.getChangeType());
 	}
 
-	private DirCache removeFiles(Git git, List<DiffEntry> diffs, DirCache cache) {
+	private void removeFiles(Git git, List<DiffEntry> diffs) {
 		RmCommand removeCommand = git.rm();
 		for (DiffEntry diff : diffs) {
 			if (removed(diff)) {
@@ -70,7 +65,7 @@ public class StageHandler extends RepositoryActionHandler<DirCache> {
 			}
 		}
 		try {
-			cache = removeCommand.call();
+			removeCommand.call();
 		} catch (NoFilepatternException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -78,10 +73,9 @@ public class StageHandler extends RepositoryActionHandler<DirCache> {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return cache;
 	}
 
-	private DirCache addFiles(Git git, List<DiffEntry> diffs, DirCache cache) {
+	private void addFiles(Git git, List<DiffEntry> diffs) {
 		AddCommand addCommand = git.add();
 		for (DiffEntry diff : diffs) {
 			if (added(diff)) {
@@ -89,7 +83,7 @@ public class StageHandler extends RepositoryActionHandler<DirCache> {
 			}
 		}
 		try {
-			cache = addCommand.call();
+			addCommand.call();
 		} catch (NoFilepatternException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -97,30 +91,5 @@ public class StageHandler extends RepositoryActionHandler<DirCache> {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return cache;
 	}
-
-	@Override
-	protected void evaluateResult(DirCache result) {
-		// TODO Auto-generated method stub
-
-	}
-
-	static class StageTask extends RepositoryHandler.Task<DirCache> {
-
-		public StageTask(Supplier<DirCache> resultSupplier, Git git, int size) {
-			super(resultSupplier, git.getRepository());
-			updateTitle("Staging " + size + " changes...");
-			updateMessage("Pending...");
-		}
-
-		@Override
-		protected DirCache call() {
-			updateMessage("Staging changes ...");
-			DirCache result = super.call();
-			updateMessage("Done.");
-			return result;
-		}
-	}
-
 }

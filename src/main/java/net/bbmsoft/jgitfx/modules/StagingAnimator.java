@@ -18,12 +18,15 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.treewalk.AbstractTreeIterator;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import net.bbmsoft.bbm.utils.concurrent.ThreadUtils;
+import net.bbmsoft.jgitfx.event.EventBroker;
+import net.bbmsoft.jgitfx.event.RepositoryTopic;
 import net.bbmsoft.jgitfx.utils.StagingHelper;
 
 public class StagingAnimator implements ChangeListener<RepositoryHandler> {
@@ -39,7 +42,8 @@ public class StagingAnimator implements ChangeListener<RepositoryHandler> {
 
 	public StagingAnimator(TableView<DiffEntry> unstagedFilesTable, TableColumn<DiffEntry, String> unstagedTypeColum,
 			TableColumn<DiffEntry, String> unstagedFileColum, TableView<DiffEntry> stagedFilesTable,
-			TableColumn<DiffEntry, String> stagedTypeColum, TableColumn<DiffEntry, String> stagedFileColum) {
+			TableColumn<DiffEntry, String> stagedTypeColum, TableColumn<DiffEntry, String> stagedFileColum,
+			EventBroker broker) {
 
 		this.unstagedFilesTable = unstagedFilesTable;
 		this.unstagedTypeColum = unstagedTypeColum;
@@ -50,13 +54,20 @@ public class StagingAnimator implements ChangeListener<RepositoryHandler> {
 
 		this.unstagedTypeColum
 				.setCellValueFactory(cdf -> new SimpleStringProperty(cdf.getValue().getChangeType().toString()));
-		this.unstagedFileColum.setCellValueFactory(cdf -> new SimpleStringProperty(StagingHelper.getFilePath(cdf.getValue())));
+		this.unstagedFileColum
+				.setCellValueFactory(cdf -> new SimpleStringProperty(StagingHelper.getFilePath(cdf.getValue())));
 		this.stagedTypeColum
 				.setCellValueFactory(cdf -> new SimpleStringProperty(cdf.getValue().getChangeType().toString()));
-		this.stagedFileColum.setCellValueFactory(cdf -> new SimpleStringProperty(StagingHelper.getFilePath(cdf.getValue())));
-	}
+		this.stagedFileColum
+				.setCellValueFactory(cdf -> new SimpleStringProperty(StagingHelper.getFilePath(cdf.getValue())));
 
-	
+		broker.subscribe(RepositoryTopic.REPO_UPDATED, (topic, repo) -> {
+			if (this.respository != null && repo.getRepository().getDirectory().getAbsolutePath()
+					.equals(this.respository.getDirectory().getAbsolutePath())) {
+				updateStagedFiles();
+			}
+		});
+	}
 
 	private void setRepository(Repository respository) throws CorruptObjectException, IOException {
 		this.respository = respository;
@@ -65,12 +76,13 @@ public class StagingAnimator implements ChangeListener<RepositoryHandler> {
 	}
 
 	private void updateStagedFiles() {
-		
-		ThreadUtils.checkFxThread();
 
-		if (this.respository == null) {
-			unstagedFilesTable.getItems().clear();
-			stagedFilesTable.getItems().clear();
+		ThreadUtils.checkFxThread();
+		
+		this.unstagedFilesTable.getItems().clear();
+		this.stagedFilesTable.getItems().clear();
+		
+		if (this.respository == null) {	
 			return;
 		}
 
@@ -120,7 +132,7 @@ public class StagingAnimator implements ChangeListener<RepositoryHandler> {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public boolean hasStagedChanges() {
 		ThreadUtils.checkFxThread();
 		return !this.stagedFilesTable.getItems().isEmpty();

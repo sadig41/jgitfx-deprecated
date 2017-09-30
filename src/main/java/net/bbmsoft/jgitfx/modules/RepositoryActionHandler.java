@@ -1,17 +1,19 @@
 package net.bbmsoft.jgitfx.modules;
 
 import java.util.function.Function;
+import java.util.function.Supplier;
 
+import org.eclipse.jgit.lib.Repository;
+
+import javafx.application.Platform;
 import net.bbmsoft.jgitfx.event.EventBroker.Topic;
 import net.bbmsoft.jgitfx.event.EventPublisher;
 
 public abstract class RepositoryActionHandler<R> {
 	
-	private final Runnable updateCallback;
 	private final EventPublisher eventPublisher;
 
-	public RepositoryActionHandler(Runnable updateCallback, EventPublisher publisher) {
-		this.updateCallback = updateCallback;
+	public RepositoryActionHandler(EventPublisher publisher) {
 		this.eventPublisher = publisher;
 	}
 
@@ -19,17 +21,6 @@ public abstract class RepositoryActionHandler<R> {
 		// TODO implement proper exception handling
 		e.printStackTrace();
 	}
-	
-	protected void done(R result) {
-		
-		this.evaluateResult(result);
-		
-		if(this.updateCallback != null) {
-			this.updateCallback.run();
-		}
-	}
-
-	protected abstract void evaluateResult(R result);
 	
 	protected <T> void publish(Topic<T> topic, T payload) {
 		this.eventPublisher.publish(topic, payload);
@@ -43,5 +34,32 @@ public abstract class RepositoryActionHandler<R> {
 		} else {
 			return getRoot(parent, parentProvider);
 		}
+	}
+	
+	public static class Task<T> extends javafx.concurrent.Task<T> {
+
+		private final Supplier<T> resultSupplier;
+		private final Repository repository;
+		private final Topic<T> resultTopic;
+		private RepositoryActionHandler<T> handler;
+
+		public Task(RepositoryActionHandler<T> handler, Supplier<T> resultSupplier, Repository repository, Topic<T> resultTopic) {
+			this.handler = handler;
+			this.resultSupplier = resultSupplier;
+			this.repository = repository;
+			this.resultTopic = resultTopic;
+		}
+
+		@Override
+		protected T call() {
+			T result = this.resultSupplier.get();
+			Platform.runLater(() -> this.handler.publish(this.resultTopic, result));
+			return result;
+		}
+
+		public Repository getRepository() {
+			return repository;
+		}
+
 	}
 }

@@ -23,13 +23,11 @@ import net.bbmsoft.jgitfx.event.TaskTopic;
 import net.bbmsoft.jgitfx.messaging.Message;
 import net.bbmsoft.jgitfx.messaging.MessageType;
 import net.bbmsoft.jgitfx.modules.RepositoryActionHandler;
-import net.bbmsoft.jgitfx.modules.RepositoryHandler;
-import net.bbmsoft.jgitfx.modules.RepositoryHandler.Task;
 
 public class PushHandler extends RepositoryActionHandler<Iterable<PushResult>> {
 
-	public PushHandler(Runnable updateCallback, EventPublisher eventPublisher) {
-		super(updateCallback, eventPublisher);
+	public PushHandler(EventPublisher eventPublisher) {
+		super(eventPublisher);
 	}
 
 	public void push(Git git, String remote, CredentialsProvider credetialsProvider) {
@@ -38,7 +36,7 @@ public class PushHandler extends RepositoryActionHandler<Iterable<PushResult>> {
 
 		ProgressMonitor progressMonitor = new TextProgressMonitor();
 
-		Task<Iterable<PushResult>> pushTask = new PushTask(
+		Task<Iterable<PushResult>> pushTask = new PushTask(this,
 				() -> doPush(git, remote, credetialsProvider, progressMonitor), repository, remote);
 
 		publish(TaskTopic.PushTask.STARTED, pushTask);
@@ -83,17 +81,13 @@ public class PushHandler extends RepositoryActionHandler<Iterable<PushResult>> {
 		return null;
 	}
 
-	@Override
-	protected void evaluateResult(Iterable<PushResult> result) {
-		// TODO Auto-generated method stub
-	}
-
-	static class PushTask extends RepositoryHandler.Task<Iterable<PushResult>> {
+	static class PushTask extends Task<Iterable<PushResult>> {
 
 		private String remote;
 
-		public PushTask(Supplier<Iterable<PushResult>> resultSupplier, Repository repository, String remote) {
-			super(resultSupplier, repository);
+		public PushTask(PushHandler handler, Supplier<Iterable<PushResult>> resultSupplier, Repository repository,
+				String remote) {
+			super(handler, resultSupplier, repository, TaskTopic.PushResult.FINISHED);
 			this.remote = remote;
 			updateTitle("Push " + repository.getWorkTree().getName());
 			updateMessage("Pending...");

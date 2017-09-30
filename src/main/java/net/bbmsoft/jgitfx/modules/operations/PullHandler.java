@@ -24,13 +24,11 @@ import net.bbmsoft.jgitfx.messaging.Message;
 import net.bbmsoft.jgitfx.messaging.MessageType;
 import net.bbmsoft.jgitfx.modules.InteractiveCredentialsProvider;
 import net.bbmsoft.jgitfx.modules.RepositoryActionHandler;
-import net.bbmsoft.jgitfx.modules.RepositoryHandler;
-import net.bbmsoft.jgitfx.modules.RepositoryHandler.Task;
 
 public class PullHandler extends RepositoryActionHandler<PullResult> {
 
-	public PullHandler(Runnable updateCallback, EventPublisher eventPublisher) {
-		super(updateCallback, eventPublisher);
+	public PullHandler(EventPublisher eventPublisher) {
+		super(eventPublisher);
 	}
 
 	public void pull(Git git, String remote,
@@ -40,7 +38,7 @@ public class PullHandler extends RepositoryActionHandler<PullResult> {
 
 		ProgressMonitor progressMonitor = new TextProgressMonitor();
 
-		Task<PullResult> pullTask = new PullTask(() -> doPull(git, remote, credetialsProvider, progressMonitor),
+		Task<PullResult> pullTask = new PullTask(this, () -> doPull(git, remote, credetialsProvider, progressMonitor),
 				repository, remote);
 		
 		publish(TaskTopic.PullTask.STARTED, pullTask);
@@ -90,17 +88,12 @@ public class PullHandler extends RepositoryActionHandler<PullResult> {
 		return null;
 	}
 
-	@Override
-	protected void evaluateResult(PullResult result) {
-		// TODO Auto-generated method stub
-	}
-
-	static class PullTask extends RepositoryHandler.Task<PullResult> {
+	public static class PullTask extends Task<PullResult> {
 
 		private String remote;
 
-		public PullTask(Supplier<PullResult> resultSupplier, Repository repository, String remote) {
-			super(resultSupplier, repository);
+		public PullTask(PullHandler handler, Supplier<PullResult> resultSupplier, Repository repository, String remote) {
+			super(handler, resultSupplier, repository, TaskTopic.PullResult.FINISHED);
 			this.remote = remote;
 			updateTitle("Pull " + repository.getWorkTree().getName());
 			updateMessage("Pending...");

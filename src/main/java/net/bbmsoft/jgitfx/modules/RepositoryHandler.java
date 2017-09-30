@@ -1,15 +1,18 @@
 package net.bbmsoft.jgitfx.modules;
 
 import java.util.List;
-import java.util.function.Supplier;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.events.ConfigChangedEvent;
+import org.eclipse.jgit.events.IndexChangedEvent;
+import org.eclipse.jgit.events.RefsChangedEvent;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.CredentialsProvider;
 
 import net.bbmsoft.jgitfx.event.EventBroker;
+import net.bbmsoft.jgitfx.event.EventBroker.Topic;
 import net.bbmsoft.jgitfx.event.EventPublisher;
 import net.bbmsoft.jgitfx.event.RepositoryOperations;
 import net.bbmsoft.jgitfx.event.RepositoryTopic;
@@ -31,22 +34,45 @@ public class RepositoryHandler {
 	private final CredentialsProvider credentialsProvider;
 
 	private boolean autoInvalidate;
-	
+
 	private EventPublisher eventPublisher;
 
 	public RepositoryHandler(Repository repository, EventBroker eventBroker) {
 		this.eventPublisher = eventBroker;
 		this.repository = repository;
 		this.git = Git.wrap(repository);
-		this.pullHandler = new PullHandler(this::invalidate, eventBroker);
-		this.pushHandler = new PushHandler(this::invalidate, eventBroker);
-		this.commitHandler = new CommitHandler(this::invalidate, eventBroker);
-		this.stageHandler = new StageHandler(this::invalidate, eventBroker);
+		this.pullHandler = new PullHandler(eventBroker);
+		this.pushHandler = new PushHandler(eventBroker);
+		this.commitHandler = new CommitHandler(eventBroker);
+		this.stageHandler = new StageHandler();
 		// TODO provide proper credentials provider
 		this.credentialsProvider = new DialogUsernamePasswordProvider();
-		eventBroker.subscribe(RepositoryOperations.values(), (topic, repo) -> {
-			if(repo == this) {
-			RepositoryOperations operation = (RepositoryOperations)topic;
+		eventBroker.subscribe(RepositoryOperations.values(), (topic, repo) -> evaluateRepositoryOperation(topic, repo));
+		this.repository.getListenerList().addRefsChangedListener(this::refsChanged);
+		this.repository.getListenerList().addIndexChangedListener(this::indexChanged);
+		this.repository.getListenerList().addConfigChangedListener(this::configChanged);
+		this.invalidate();
+	}
+	
+	private void refsChanged(RefsChangedEvent e) {
+		// TODO add more specific ref change handling
+		this.invalidate();
+	}
+	
+	private void indexChanged(IndexChangedEvent e) {
+		// TODO add more specific index change handling
+		this.invalidate();
+	}
+	
+	private void configChanged(ConfigChangedEvent e) {
+		// TODO add more specific config change handling
+		this.invalidate();
+	}
+
+	private void evaluateRepositoryOperation(Topic<RepositoryHandler> topic, RepositoryHandler repo) {
+		
+		if (repo == this) {
+			RepositoryOperations operation = (RepositoryOperations) topic;
 			switch (operation) {
 			case BRANCH:
 				this.branch(operation.getMessage());
@@ -78,16 +104,22 @@ public class RepositoryHandler {
 			case STAGE:
 				this.stage(operation.getDiffs());
 				break;
+			case UNSTAGE:
+				this.unstage(operation.getDiffs());
+				break;
 			default:
 				throw new IllegalArgumentException("Unknown operation: " + topic);
 			}
 		}
-		});
-		this.invalidate();
 	}
 
 	private void stage(List<DiffEntry> diffs) {
 		this.stageHandler.stage(git, diffs);
+		this.invalidate();
+	}
+
+	private void unstage(List<DiffEntry> diffs) {
+		this.stageHandler.unstage(git, diffs);
 		this.invalidate();
 	}
 
@@ -96,7 +128,7 @@ public class RepositoryHandler {
 			eventPublisher.publish(RepositoryTopic.REPO_UPDATED, this);
 		}
 	}
-	
+
 	private void commit(String message) {
 		this.commitHandler.commit(git, message);
 		this.invalidate();
@@ -106,7 +138,7 @@ public class RepositoryHandler {
 		System.out.println("Performing 'undo' on " + repository);
 		this.invalidate();
 	}
-	
+
 	private void fetch(String branch) {
 		System.out.println("Performing 'undo' on " + repository);
 		this.invalidate();
@@ -142,27 +174,6 @@ public class RepositoryHandler {
 
 	public Repository getRepository() {
 		return repository;
-	}
-
-	public static class Task<T> extends javafx.concurrent.Task<T> {
-
-		private final Supplier<T> resultSupplier;
-		private final Repository repository;
-
-		public Task(Supplier<T> resultSupplier, Repository repository) {
-			this.resultSupplier = resultSupplier;
-			this.repository = repository;
-		}
-
-		@Override
-		protected T call() {
-			return this.resultSupplier.get();
-		}
-
-		public Repository getRepository() {
-			return repository;
-		}
-
 	}
 
 	public void setAutoInvalidate(boolean value) {

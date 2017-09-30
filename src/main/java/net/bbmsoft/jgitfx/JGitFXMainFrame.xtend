@@ -119,6 +119,10 @@ class JGitFXMainFrame extends BorderPane {
 		this.eventBroker = eventBroker
 		this.repositoryRegistry = repoRegistry
 		this.historyTable.columns.forEach[col|col.visibleProperty >> [this.prefs.setColumnVisible(col.id, it)]]
+		this.stagingAnimator = new StagingAnimator(this.unstagedFilesTable, this.unstagedTypeColum,
+			this.unstagedFileColum, this.stagedFilesTable, this.stagedTypeColum, this.stagedFileColum, this.eventBroker)
+			
+		this.repositoryHandlerProperty >> stagingAnimator
 
 		this.eventBroker.subscribe(AppStatus.STARTED) [
 			this.repositoryRegistry.registeredRepositories.forEach[addRepoTreeItem]
@@ -184,10 +188,6 @@ class JGitFXMainFrame extends BorderPane {
 				this.commitFileColumn) [
 				this.repositoryHandler?.repository
 			])
-
-		this.stagingAnimator = new StagingAnimator(this.unstagedFilesTable, this.unstagedTypeColum,
-			this.unstagedFileColum, this.stagedFilesTable, this.stagedTypeColum, this.stagedFileColum)
-		this.repositoryHandlerProperty >> stagingAnimator
 
 		this.unstagedFilesTable.selectionModel.selectionMode = SelectionMode.MULTIPLE
 		this.stagedFilesTable.selectionModel.selectionMode = SelectionMode.MULTIPLE
@@ -433,7 +433,8 @@ class JGitFXMainFrame extends BorderPane {
 	}
 
 	private def unstage(DiffEntry ... files) {
-		println("unstage " + files)
+		RepositoryOperations.UNSTAGE.diffs = files
+		this.eventBroker.publish(RepositoryOperations.UNSTAGE, this.repositoryHandler)
 	}
 
 	private def discard(DiffEntry ... files) {

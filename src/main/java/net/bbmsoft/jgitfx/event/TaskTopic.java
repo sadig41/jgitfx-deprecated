@@ -4,7 +4,7 @@ import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import net.bbmsoft.jgitfx.event.EventBroker.Topic;
-import net.bbmsoft.jgitfx.modules.RepositoryHandler.Task;
+import net.bbmsoft.jgitfx.modules.RepositoryActionHandler.Task;
 
 public class TaskTopic {
 
@@ -39,7 +39,7 @@ public class TaskTopic {
 	public static enum CommitResult implements Topic<RevCommit> {
 		FINISHED;
 	}
-	
+
 	public static enum StageTask implements Topic<Task<DirCache>> {
 		STARTED;
 	}
