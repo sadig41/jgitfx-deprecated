@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffEntry.ChangeType;
+import org.eclipse.jgit.lib.AbbreviatedObjectId;
 import org.eclipse.xtext.xbase.lib.IterableExtensions;
 
 public class StagingHelper {
@@ -21,6 +22,21 @@ public class StagingHelper {
 		case COPY:
 		case RENAME:
 			new StringBuilder(diff.getOldPath()).append(" -> ").append(diff.getNewPath()).toString();
+		default:
+			throw new IllegalArgumentException("Unknown change type: " + changeType);
+		}
+	}
+	
+	public static AbbreviatedObjectId getID(DiffEntry diff) {
+		ChangeType changeType = diff.getChangeType();
+		switch (changeType) {
+		case ADD:
+		case MODIFY:
+		case COPY:
+		case RENAME:
+			return diff.getNewId();
+		case DELETE:
+			return diff.getOldId();
 		default:
 			throw new IllegalArgumentException("Unknown change type: " + changeType);
 		}

@@ -34,6 +34,7 @@ import net.bbmsoft.jgitfx.messaging.Message
 import net.bbmsoft.jgitfx.messaging.MessageType
 import net.bbmsoft.jgitfx.modules.ChangedFilesAnimator
 import net.bbmsoft.jgitfx.modules.CommitInfoAnimator
+import net.bbmsoft.jgitfx.modules.DiffAnimator
 import net.bbmsoft.jgitfx.modules.Preferences
 import net.bbmsoft.jgitfx.modules.RepositoryHandler
 import net.bbmsoft.jgitfx.modules.RepositoryTableVisualizer
@@ -98,6 +99,8 @@ class JGitFXMainFrame extends BorderPane {
 	@FXML MenuItem popContextMenuItem
 
 	@FXML TaskProgressView<Task<?>> tasksView
+	
+	@FXML TextArea diffTextArea
 
 	@BindableProperty RepositoryHandler repositoryHandler
 
@@ -122,7 +125,7 @@ class JGitFXMainFrame extends BorderPane {
 			this.unstagedFileColum, this.stagedFilesTable, this.stagedTypeColum, this.stagedFileColum, this.eventBroker)
 		this.historyVisualizer = new RepositoryTableVisualizer(this.historyTable, this.refsColumn,
 			this.commitMessageColumn, this.authorColumn, this.timeColumn, this.eventBroker)
-			
+
 		this.repositoryHandlerProperty >> stagingAnimator
 
 		this.eventBroker.subscribe(AppStatus.STARTED) [
@@ -142,19 +145,32 @@ class JGitFXMainFrame extends BorderPane {
 			addRepoTreeItem($1.repository)
 			open($1.repository)
 		]
-		this.eventBroker.subscribe(RepositoryTopic.REPO_OPENED)[
+		this.eventBroker.subscribe(RepositoryTopic.REPO_OPENED) [
 			this.historyVisualizer.repository = $1.repository
 			if (prefs.switchToRepositoryOverview) {
 				// delay so it also works on startup
 				Platform.runLater[this.repositoryOverview.expanded = true]
 			}
 		]
-		
+
 		this.tasksView.tasks >> [
 			val tasksRunning = !this.tasksView.tasks.empty
 			this.tasksView.visible = tasksRunning
 			this.tasksView.managed = tasksRunning
 		]
+		
+		
+		this.historyTable.selectionModel.selectedItemProperty.addListener(
+			new CommitInfoAnimator(this.commitMessageLabel, this.authorLabel, this.emailLabel, this.timeLabel,
+				this.hashLabel, this.parentHashLabel))
+		this.historyTable.selectionModel.selectedItemProperty.addListener(
+			new ChangedFilesAnimator(this.wipOverview, this.changedFilesOverview, this.commitTypeColumn,
+				this.commitFileColumn, [
+					this.repositoryHandler?.repository
+				], this.eventBroker))
+			
+		new DiffAnimator([this.diffTextArea.appendText = '''«it»
+		'''], [this.diffTextArea.text = null], this.eventBroker);
 
 		taskHelper.taskList = this.tasksView.tasks
 
@@ -186,15 +202,6 @@ class JGitFXMainFrame extends BorderPane {
 
 		this.repositoryTree.selectionModel.selectionMode = SelectionMode.MULTIPLE
 		this.repositoryTree.selectionModel.selectedItems > [updateRepositoryTreeContextMenu]
-
-		this.historyTable.selectionModel.selectedItemProperty.addListener(
-			new CommitInfoAnimator(this.commitMessageLabel, this.authorLabel, this.emailLabel, this.timeLabel,
-				this.hashLabel, this.parentHashLabel))
-		this.historyTable.selectionModel.selectedItemProperty.addListener(
-			new ChangedFilesAnimator(this.wipOverview, this.changedFilesOverview, this.commitTypeColumn,
-				this.commitFileColumn) [
-				this.repositoryHandler?.repository
-			])
 
 		this.unstagedFilesTable.selectionModel.selectionMode = SelectionMode.MULTIPLE
 		this.stagedFilesTable.selectionModel.selectionMode = SelectionMode.MULTIPLE

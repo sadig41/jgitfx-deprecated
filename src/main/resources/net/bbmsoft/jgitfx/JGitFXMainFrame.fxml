@@ -270,7 +270,7 @@
                   </TableView>
                   <VBox>
                      <children>
-                        <TextArea editable="false" VBox.vgrow="ALWAYS" />
+                        <TextArea fx:id="diffTextArea" editable="false" VBox.vgrow="ALWAYS" />
                         <TaskProgressView fx:id="tasksView" />
                      </children>
                   </VBox>

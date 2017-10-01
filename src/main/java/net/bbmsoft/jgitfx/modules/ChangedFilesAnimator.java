@@ -23,6 +23,8 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.Parent;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import net.bbmsoft.jgitfx.event.DiffTopic;
+import net.bbmsoft.jgitfx.event.EventPublisher;
 import net.bbmsoft.jgitfx.utils.StagingHelper;
 import net.bbmsoft.jgitfx.wrappers.HistoryEntry;
 
@@ -34,20 +36,28 @@ public class ChangedFilesAnimator implements ChangeListener<HistoryEntry> {
 	private final Supplier<Repository> repoSupplier;
 	private final TableColumn<DiffEntry, ChangeType> typeColumn;
 	private final TableColumn<DiffEntry, String> fileColumn;
+	private final EventPublisher eventPublisher;
 
 	public ChangedFilesAnimator(Parent wipOverview, TableView<DiffEntry> changedFilesOverview,
 			TableColumn<DiffEntry, ChangeType> typeColumn, TableColumn<DiffEntry, String> fileColumn,
-			Supplier<Repository> repoSupplier) {
+			Supplier<Repository> repoSupplier, EventPublisher eventPublisher) {
 
 		this.wipOverview = wipOverview;
 		this.changedFilesOverview = changedFilesOverview;
 		this.typeColumn = typeColumn;
 		this.fileColumn = fileColumn;
 		this.repoSupplier = repoSupplier;
+		this.eventPublisher = eventPublisher;
 
 		this.typeColumn
 				.setCellValueFactory(cdf -> new SimpleObjectProperty<ChangeType>(cdf.getValue().getChangeType()));
 		this.fileColumn.setCellValueFactory(cdf -> new SimpleStringProperty(StagingHelper.getFilePath(cdf.getValue())));
+		
+		this.changedFilesOverview.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> publishSelectedEntry(nv));
+	}
+
+	private void publishSelectedEntry(DiffEntry diff) {
+		this.eventPublisher.publish(DiffTopic.DIFF_ENTRY_SELECTED, diff);
 	}
 
 	@Override

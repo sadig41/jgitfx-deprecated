@@ -25,7 +25,9 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import net.bbmsoft.bbm.utils.concurrent.ThreadUtils;
+import net.bbmsoft.jgitfx.event.DiffTopic;
 import net.bbmsoft.jgitfx.event.EventBroker;
+import net.bbmsoft.jgitfx.event.EventPublisher;
 import net.bbmsoft.jgitfx.event.RepositoryTopic;
 import net.bbmsoft.jgitfx.utils.StagingHelper;
 
@@ -39,6 +41,7 @@ public class StagingAnimator implements ChangeListener<RepositoryHandler> {
 	private final TableColumn<DiffEntry, String> stagedFileColum;
 
 	private Repository repository;
+	private EventPublisher eventPublisher;
 
 	public StagingAnimator(TableView<DiffEntry> unstagedFilesTable, TableColumn<DiffEntry, String> unstagedTypeColum,
 			TableColumn<DiffEntry, String> unstagedFileColum, TableView<DiffEntry> stagedFilesTable,
@@ -51,6 +54,7 @@ public class StagingAnimator implements ChangeListener<RepositoryHandler> {
 		this.stagedFilesTable = stagedFilesTable;
 		this.stagedTypeColum = stagedTypeColum;
 		this.stagedFileColum = stagedFileColum;
+		this.eventPublisher = broker;
 
 		this.unstagedTypeColum
 				.setCellValueFactory(cdf -> new SimpleStringProperty(cdf.getValue().getChangeType().toString()));
@@ -66,6 +70,13 @@ public class StagingAnimator implements ChangeListener<RepositoryHandler> {
 				updateStagedFiles();
 			}
 		});
+		
+		this.unstagedFilesTable.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> publishSelectedEntry(nv));
+		this.stagedFilesTable.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> publishSelectedEntry(nv));
+	}
+
+	private void publishSelectedEntry(DiffEntry diff) {
+		this.eventPublisher.publish(DiffTopic.DIFF_ENTRY_SELECTED, diff);
 	}
 
 	private boolean isRelevant(RepositoryHandler repo) {
