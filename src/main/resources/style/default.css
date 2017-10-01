@@ -1,0 +1,16 @@
+.diff-partition:diff-header,
+.diff-partition:diff-file-header {
+	-fx-fill:		grey;
+}
+
+.diff-partition:diff-file-header {
+	-fx-opacity:	0.4;
+}
+
+.diff-partition:diff-added {
+	-fx-fill:	green;
+}
+
+.diff-partition:diff-removed {
+	-fx-fill:	red;
+}

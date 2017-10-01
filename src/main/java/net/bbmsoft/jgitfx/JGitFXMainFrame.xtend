@@ -21,6 +21,7 @@ import javafx.scene.control.TitledPane
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.scene.layout.BorderPane
+import javafx.scene.text.TextFlow
 import javax.inject.Inject
 import net.bbmsoft.bbm.utils.concurrent.TaskHelper
 import net.bbmsoft.fxtended.annotations.app.FXMLRoot
@@ -35,6 +36,7 @@ import net.bbmsoft.jgitfx.messaging.MessageType
 import net.bbmsoft.jgitfx.modules.ChangedFilesAnimator
 import net.bbmsoft.jgitfx.modules.CommitInfoAnimator
 import net.bbmsoft.jgitfx.modules.DiffAnimator
+import net.bbmsoft.jgitfx.modules.DiffTextFormatter
 import net.bbmsoft.jgitfx.modules.Preferences
 import net.bbmsoft.jgitfx.modules.RepositoryHandler
 import net.bbmsoft.jgitfx.modules.RepositoryTableVisualizer
@@ -99,8 +101,8 @@ class JGitFXMainFrame extends BorderPane {
 	@FXML MenuItem popContextMenuItem
 
 	@FXML TaskProgressView<Task<?>> tasksView
-	
-	@FXML TextArea diffTextArea
+
+	@FXML TextFlow diffTextFlow
 
 	@BindableProperty RepositoryHandler repositoryHandler
 
@@ -158,8 +160,7 @@ class JGitFXMainFrame extends BorderPane {
 			this.tasksView.visible = tasksRunning
 			this.tasksView.managed = tasksRunning
 		]
-		
-		
+
 		this.historyTable.selectionModel.selectedItemProperty.addListener(
 			new CommitInfoAnimator(this.commitMessageLabel, this.authorLabel, this.emailLabel, this.timeLabel,
 				this.hashLabel, this.parentHashLabel))
@@ -168,9 +169,10 @@ class JGitFXMainFrame extends BorderPane {
 				this.commitFileColumn, [
 					this.repositoryHandler?.repository
 				], this.eventBroker))
-			
-		new DiffAnimator([this.diffTextArea.appendText = '''«it»
-		'''], [this.diffTextArea.text = null], this.eventBroker);
+
+		new DiffTextFormatter(this.diffTextFlow) => [
+			new DiffAnimator(it, it, it, this.eventBroker)
+		]
 
 		taskHelper.taskList = this.tasksView.tasks
 

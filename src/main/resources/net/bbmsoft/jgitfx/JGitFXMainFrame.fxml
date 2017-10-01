@@ -9,6 +9,7 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.SplitPane?>
@@ -27,6 +28,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.TextFlow?>
 <?import org.controlsfx.control.BreadCrumbBar?>
 <?import org.controlsfx.control.TaskProgressView?>
 
@@ -270,7 +272,11 @@
                   </TableView>
                   <VBox>
                      <children>
-                        <TextArea fx:id="diffTextArea" editable="false" VBox.vgrow="ALWAYS" />
+                        <ScrollPane fitToHeight="true" fitToWidth="true" VBox.vgrow="ALWAYS">
+                           <content>
+                              <TextFlow fx:id="diffTextFlow" prefHeight="200.0" prefWidth="200.0" />
+                           </content>
+                        </ScrollPane>
                         <TaskProgressView fx:id="tasksView" />
                      </children>
                   </VBox>
