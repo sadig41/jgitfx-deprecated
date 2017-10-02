@@ -33,7 +33,6 @@ public abstract class RepositoryActionHandler<R> {
 
 		private final Repository repository;
 		private final RepositoryActionHandler<T> handler;
-		private final TextProgressMonitor delegate;
 		
 		private int toDo;
 		private int done;
@@ -43,7 +42,6 @@ public abstract class RepositoryActionHandler<R> {
 		public Task(RepositoryActionHandler<T> handler, Repository repository) {
 			this.handler = handler;
 			this.repository = repository;
-			this.delegate = new TextProgressMonitor();
 		}
 
 		@Override
@@ -67,7 +65,6 @@ public abstract class RepositoryActionHandler<R> {
 
 		@Override
 		public void beginTask(String title, int totalWork) {
-			this.delegate.beginTask(title, totalWork);
 			this.done = 0;
 			this.toDo = totalWork;
 			updateProgress(this.done);
@@ -76,14 +73,12 @@ public abstract class RepositoryActionHandler<R> {
 
 		@Override
 		public void update(int completed) {
-			this.delegate.update(completed);
-			this.done = Math.min(this.toDo, this.done + completed);
+			this.done += completed;
 			updateProgress(this.done);
 		}
 
 		@Override
 		public void endTask() {
-			this.delegate.endTask();
 			updateProgress(this.toDo);
 		}
 
