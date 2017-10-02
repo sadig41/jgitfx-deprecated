@@ -404,7 +404,7 @@ class JGitFXMainFrame extends BorderPane {
 	}
 
 	private def String getCommitMessage() {
-		val details = this.commitMessageTextArea.text.trim
+		val details = this.commitMessageTextArea.text?.trim ?: ''
 		'''«this.commitMessageTextField.text.trim»«IF !details.empty»
 		
 		«details»«ENDIF»'''
