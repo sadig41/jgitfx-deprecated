@@ -28,7 +28,6 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.TextFlow?>
 <?import org.controlsfx.control.BreadCrumbBar?>
 <?import org.controlsfx.control.TaskProgressView?>
 
@@ -274,7 +273,7 @@
                      <children>
                         <ScrollPane fitToHeight="true" fitToWidth="true" VBox.vgrow="ALWAYS">
                            <content>
-                              <TextFlow fx:id="diffTextFlow" prefHeight="200.0" prefWidth="200.0" />
+                              <VBox fx:id="diffTextContainer" />
                            </content>
                         </ScrollPane>
                         <TaskProgressView fx:id="tasksView" />

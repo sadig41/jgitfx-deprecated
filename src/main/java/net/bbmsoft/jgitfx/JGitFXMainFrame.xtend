@@ -21,12 +21,13 @@ import javafx.scene.control.TitledPane
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.scene.layout.BorderPane
-import javafx.scene.text.TextFlow
+import javafx.scene.layout.Pane
 import javax.inject.Inject
 import net.bbmsoft.bbm.utils.concurrent.TaskHelper
 import net.bbmsoft.fxtended.annotations.app.FXMLRoot
 import net.bbmsoft.fxtended.annotations.binding.BindableProperty
 import net.bbmsoft.jgitfx.event.AppStatus
+import net.bbmsoft.jgitfx.event.CommitMessageTopic
 import net.bbmsoft.jgitfx.event.EventBroker
 import net.bbmsoft.jgitfx.event.RepositoryOperations
 import net.bbmsoft.jgitfx.event.RepositoryTopic
@@ -52,7 +53,6 @@ import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.lib.Repository
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
-import net.bbmsoft.jgitfx.event.CommitMessageTopic
 
 @FXMLRoot
 class JGitFXMainFrame extends BorderPane {
@@ -103,7 +103,7 @@ class JGitFXMainFrame extends BorderPane {
 
 	@FXML TaskProgressView<Task<?>> tasksView
 
-	@FXML TextFlow diffTextFlow
+	@FXML Pane diffTextContainer
 
 	@BindableProperty RepositoryHandler repositoryHandler
 
@@ -171,7 +171,7 @@ class JGitFXMainFrame extends BorderPane {
 					this.repositoryHandler?.repository
 				], this.eventBroker))
 
-		new DiffTextFormatter(this.diffTextFlow) => [
+		new DiffTextFormatter(this.diffTextContainer.children) => [
 			new DiffAnimator(outputStream, it, it, this.eventBroker)
 		]
 
@@ -372,6 +372,7 @@ class JGitFXMainFrame extends BorderPane {
 
 	def about() {
 		this.eventBroker.publish(UserInteraction.SHOW_ABOUT, null)
+		this.scene.stylesheets.all = #['style/default.css']
 	}
 
 	def void open(Repository repository) {
