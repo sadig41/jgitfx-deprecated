@@ -408,7 +408,7 @@ class JGitFXMainFrame extends BorderPane {
 	def void commit() {
 		
 		val commitMessage = commitMessage
-		if(commitMessage === null || commitMessage.trim.empty) {
+		if(commitMessage === null || commitMessage.trim.empty || this.stagedFilesTable.items.empty) {
 			return
 		}
 		
