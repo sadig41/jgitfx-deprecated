@@ -402,6 +402,12 @@ class JGitFXMainFrame extends BorderPane {
 	}
 
 	def void commit() {
+		
+		val commitMessage = commitMessage
+		if(commitMessage === null || commitMessage.trim.empty) {
+			return
+		}
+		
 		if (this.repositoryHandler !== null) {
 			RepositoryOperations.COMMIT.message = commitMessage
 			// TODO some more validation
@@ -413,7 +419,7 @@ class JGitFXMainFrame extends BorderPane {
 
 	private def String getCommitMessage() {
 		val details = this.commitMessageTextArea.text?.trim ?: ''
-		'''«this.commitMessageTextField.text.trim»«IF !details.empty»
+		'''«this.commitMessageTextField.text?.trim ?: ''»«IF !details.empty»
 		
 		«details»«ENDIF»'''
 	}
