@@ -57,6 +57,8 @@ import javafx.scene.input.KeyEvent
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCombination
 import javafx.scene.input.KeyCodeCombination
+import javafx.scene.control.cell.TextFieldTreeCell
+import net.bbmsoft.jgitfx.utils.RepositoryTreeItemStringConverter
 
 @FXMLRoot
 class JGitFXMainFrame extends BorderPane {
@@ -216,6 +218,8 @@ class JGitFXMainFrame extends BorderPane {
 		this.stagedFilesTable.selectionModel.selectionMode = SelectionMode.MULTIPLE
 
 		this.commitMessageTextField.textProperty >> [commitMessageUpdated]
+		
+		this.repositoryTree.cellFactory = TextFieldTreeCell.forTreeView(new RepositoryTreeItemStringConverter)
 
 		Platform.runLater[this.repositoriesList.expanded = true]
 	}

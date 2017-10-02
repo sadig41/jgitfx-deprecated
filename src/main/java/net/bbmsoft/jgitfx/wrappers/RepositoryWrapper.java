@@ -6,10 +6,12 @@ public class RepositoryWrapper {
 
 	private final Repository repository;
 	private final String name;
+	private final String longName;
 
 	public RepositoryWrapper(Repository repository) {
 		this.repository = repository;
 		this.name = this.repository != null ? this.repository.getWorkTree().getName() : null;
+		this.longName = String.format("%s (%s)", this.name, this.repository != null ? this.repository.getWorkTree().getAbsolutePath() : null);
 	}
 
 	@Override
@@ -43,7 +45,15 @@ public class RepositoryWrapper {
 
 	@Override
 	public String toString() {
+		return getName();
+	}
+
+	public String getName() {
 		return name;
+	}
+
+	public String getLongName() {
+		return longName;
 	}
 
 	public static class DummyWrapper extends RepositoryWrapper {
@@ -60,5 +70,14 @@ public class RepositoryWrapper {
 			return name;
 		}
 		
+		@Override
+		public String getName() {
+			return name;
+		}
+
+		@Override
+		public String getLongName() {
+			return name;
+		}
 	}
 }
