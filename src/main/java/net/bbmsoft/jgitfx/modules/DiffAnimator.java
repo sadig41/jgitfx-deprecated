@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
@@ -20,7 +19,6 @@ import net.bbmsoft.jgitfx.event.EventPublisher;
 import net.bbmsoft.jgitfx.event.RepositoryTopic;
 import net.bbmsoft.jgitfx.messaging.Message;
 import net.bbmsoft.jgitfx.messaging.MessageType;
-import net.bbmsoft.jgitfx.utils.LineBufferOutputStream;
 import net.bbmsoft.jgitfx.utils.Resetter;
 import net.bbmsoft.jgitfx.utils.StagingHelper;
 import net.bbmsoft.jgitfx.utils.Terminator;
@@ -36,13 +34,13 @@ public class DiffAnimator {
 	private DiffFormatter diffFormatter;
 	private Terminator terminator;
 
-	public DiffAnimator(Consumer<String> lineConsumer, Resetter resetter, Terminator terminator, EventBroker eventBroker) throws IOException {
+	public DiffAnimator(OutputStream diffOutputStream, Resetter resetter, Terminator terminator, EventBroker eventBroker) throws IOException {
 
 		this.resetter = resetter;
 		this.terminator = terminator;
 		this.eventPublisher = eventBroker;
 		this.blacklist = new ArrayList<>();
-		this.diffOutputStream = new LineBufferOutputStream(lineConsumer);
+		this.diffOutputStream = diffOutputStream;
 
 		eventBroker.subscribe(RepositoryTopic.REPO_OPENED, (topic, repo) -> setRepository(repo));
 		eventBroker.subscribe(DiffTopic.DIFF_ENTRY_SELECTED, (topic, diff) -> setDiff(diff));

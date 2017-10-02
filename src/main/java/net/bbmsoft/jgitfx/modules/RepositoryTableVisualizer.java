@@ -20,6 +20,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import net.bbmsoft.jgitfx.event.CommitMessageTopic;
 import net.bbmsoft.jgitfx.event.EventBroker;
 import net.bbmsoft.jgitfx.event.RepositoryTopic;
 import net.bbmsoft.jgitfx.wrappers.HistoryEntry;
@@ -40,6 +41,10 @@ public class RepositoryTableVisualizer {
 		this.table = table;
 		this.refMap = new HashMap<>();
 		this.wipCommitMessage = new SimpleStringProperty("// WIP");
+		
+		eventBroker.subscribe(CommitMessageTopic.COMMIT_MESSAGE_UPDATED, (topic, message) -> {
+			this.wipCommitMessage.set(message != null && !message.trim().isEmpty() ? "// WIP: " + message : "// WIP");
+		});
 
 		branchColumn.setCellValueFactory(cdf -> {
 			return new SimpleStringProperty(getRefs(cdf.getValue().getCommit()));

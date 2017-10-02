@@ -1,6 +1,8 @@
 package net.bbmsoft.jgitfx.modules;
 
-import java.util.function.Consumer;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -10,7 +12,7 @@ import javafx.scene.text.TextFlow;
 import net.bbmsoft.jgitfx.utils.Resetter;
 import net.bbmsoft.jgitfx.utils.Terminator;
 
-public class DiffTextFormatter implements Resetter, Terminator, Consumer<String> {
+public class DiffTextFormatter implements Resetter, Terminator {
 
 	private final static PseudoClass PSEUDO_CLASS_DIFF_FILE_HEADER = PseudoClass.getPseudoClass("diff-file-header");
 	private final static PseudoClass PSEUDO_CLASS_DIFF_HEADER = PseudoClass.getPseudoClass("diff-header");
@@ -21,14 +23,16 @@ public class DiffTextFormatter implements Resetter, Terminator, Consumer<String>
 			Pattern.DOTALL);
 
 	private final TextFlow textFlow;
-
-	private StringBuilder stringBuilder;
+	private final ByteArrayOutputStream outputStream;
+	
+	private Charset charSet;
 	
 	private boolean showFileHeader;
 
 	public DiffTextFormatter(TextFlow textFlow) {
 		this.textFlow = textFlow;
-		this.stringBuilder = new StringBuilder();
+		this.outputStream = new ByteArrayOutputStream();
+		this.charSet = Charset.forName("UTF-8");
 	}
 
 	private void updateText(String wholeText) {
@@ -57,7 +61,7 @@ public class DiffTextFormatter implements Resetter, Terminator, Consumer<String>
 			textFlow.getChildren().add(text);
 		} else if(!fileHeader) {
 			String[] split = partition.split("\n");
-			Text header = new Text("\n\n" + split[0] + "\n\n");
+			Text header = new Text(split[0] + "\n\n");
 			header.pseudoClassStateChanged(PSEUDO_CLASS_DIFF_HEADER, true);
 			header.getStyleClass().add("diff-partition");
 			textFlow.getChildren().add(header);
@@ -68,12 +72,8 @@ public class DiffTextFormatter implements Resetter, Terminator, Consumer<String>
 				text.getStyleClass().add("diff-partition");
 				textFlow.getChildren().add(text);
 			}
+			textFlow.getChildren().add(new Text("\n\n"));
 		}
-	}
-
-	@Override
-	public void accept(String line) {
-		this.stringBuilder.append(line).append("\n");
 	}
 
 	@Override
@@ -83,7 +83,20 @@ public class DiffTextFormatter implements Resetter, Terminator, Consumer<String>
 
 	@Override
 	public void terminate() {
-		updateText(this.stringBuilder.toString());
-		this.stringBuilder = new StringBuilder();
+		String wholeText = new String(this.outputStream.toByteArray(), this.charSet);
+		updateText(wholeText);
+		this.outputStream.reset();
+	}
+
+	public OutputStream getOutputStream() {
+		return outputStream;
+	}
+
+	public Charset getCharSet() {
+		return charSet;
+	}
+
+	public void setCharSet(Charset charSet) {
+		this.charSet = charSet;
 	}
 }

@@ -4,7 +4,6 @@ import java.util.function.Supplier;
 
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.lib.TextProgressMonitor;
 
 import javafx.application.Platform;
 import javafx.scene.control.ProgressIndicator;

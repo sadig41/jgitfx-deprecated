@@ -52,6 +52,7 @@ import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.lib.Repository
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
+import net.bbmsoft.jgitfx.event.CommitMessageTopic
 
 @FXMLRoot
 class JGitFXMainFrame extends BorderPane {
@@ -141,7 +142,7 @@ class JGitFXMainFrame extends BorderPane {
 			}
 		]
 		this.eventBroker.subscribe(#[RepositoryOperations.STAGE, RepositoryOperations.UNSTAGE]) [
-			if($1 == repositoryHandler) updateCommitButton
+			if($1 == repositoryHandler) commitMessageUpdated(this.commitMessageTextField.text)
 		]
 		this.eventBroker.subscribe(RepositoryTopic.REPO_LOADED) [
 			addRepoTreeItem($1.repository)
@@ -171,7 +172,7 @@ class JGitFXMainFrame extends BorderPane {
 				], this.eventBroker))
 
 		new DiffTextFormatter(this.diffTextFlow) => [
-			new DiffAnimator(it, it, it, this.eventBroker)
+			new DiffAnimator(outputStream, it, it, this.eventBroker)
 		]
 
 		taskHelper.taskList = this.tasksView.tasks
@@ -208,15 +209,15 @@ class JGitFXMainFrame extends BorderPane {
 		this.unstagedFilesTable.selectionModel.selectionMode = SelectionMode.MULTIPLE
 		this.stagedFilesTable.selectionModel.selectionMode = SelectionMode.MULTIPLE
 
-		this.commitMessageTextField.textProperty >> [updateCommitButton]
+		this.commitMessageTextField.textProperty >> [commitMessageUpdated]
 
 		Platform.runLater[this.repositoriesList.expanded = true]
 	}
 
-	private def void updateCommitButton() {
-		val commitMessage = commitMessageTextField.text
+	private def void commitMessageUpdated(String commitMessage) {
 		this.commitButton.disable = commitMessage === null || commitMessage.trim.empty ||
 			!this.stagingAnimator.hasStagedChanges
+		Platform.runLater[this.eventBroker.publish(CommitMessageTopic.COMMIT_MESSAGE_UPDATED, commitMessage)]
 	}
 
 	private def updateTreeItemMap(List<? extends TreeItem<RepositoryWrapper>> added,
