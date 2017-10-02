@@ -4,8 +4,10 @@ import java.util.function.Supplier;
 
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.TextProgressMonitor;
 
 import javafx.application.Platform;
+import javafx.scene.control.ProgressIndicator;
 import net.bbmsoft.jgitfx.event.EventBroker.Topic;
 import net.bbmsoft.jgitfx.event.EventPublisher;
 import net.bbmsoft.jgitfx.event.TaskTopic;
@@ -31,6 +33,7 @@ public abstract class RepositoryActionHandler<R> {
 
 		private final Repository repository;
 		private final RepositoryActionHandler<T> handler;
+		private final TextProgressMonitor delegate;
 		
 		private int toDo;
 		private int done;
@@ -40,6 +43,7 @@ public abstract class RepositoryActionHandler<R> {
 		public Task(RepositoryActionHandler<T> handler, Repository repository) {
 			this.handler = handler;
 			this.repository = repository;
+			this.delegate = new TextProgressMonitor();
 		}
 
 		@Override
@@ -63,21 +67,28 @@ public abstract class RepositoryActionHandler<R> {
 
 		@Override
 		public void beginTask(String title, int totalWork) {
+			this.delegate.beginTask(title, totalWork);
 			this.done = 0;
-			this.toDo = (1 + totalWork);
-			updateProgress(done, toDo);
+			this.toDo = totalWork;
+			updateProgress(this.done);
 			updateMessage(title);
 		}
 
 		@Override
 		public void update(int completed) {
+			this.delegate.update(completed);
 			this.done = Math.min(this.toDo, this.done + completed);
-			updateProgress(done, toDo);
+			updateProgress(this.done);
 		}
 
 		@Override
 		public void endTask() {
-			updateProgress(++this.done, this.toDo);
+			this.delegate.endTask();
+			updateProgress(this.toDo);
+		}
+
+		private void updateProgress(int done) {
+			updateProgress(this.toDo == UNKNOWN ? ProgressIndicator.INDETERMINATE_PROGRESS : done, this.toDo);
 		}
 
 		public Supplier<T> getResultSupplier() {
