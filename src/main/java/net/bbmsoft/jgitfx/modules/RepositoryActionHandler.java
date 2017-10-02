@@ -65,7 +65,7 @@ public abstract class RepositoryActionHandler<R> {
 		@Override
 		public void beginTask(String title, int totalWork) {
 			this.done = 0;
-			this.toDo += (1 + totalWork);
+			this.toDo = (1 + totalWork);
 			updateProgress(done, toDo);
 			updateMessage(title);
 			System.err.printf("Starting task '%s' with %d subtasks\n", title, totalWork);
