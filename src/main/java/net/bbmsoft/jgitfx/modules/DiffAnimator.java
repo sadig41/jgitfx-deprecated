@@ -19,25 +19,19 @@ import net.bbmsoft.jgitfx.event.EventPublisher;
 import net.bbmsoft.jgitfx.event.RepositoryTopic;
 import net.bbmsoft.jgitfx.messaging.Message;
 import net.bbmsoft.jgitfx.messaging.MessageType;
-import net.bbmsoft.jgitfx.utils.Resetter;
 import net.bbmsoft.jgitfx.utils.StagingHelper;
-import net.bbmsoft.jgitfx.utils.Terminator;
 
 public class DiffAnimator {
 
 	private final EventPublisher eventPublisher;
 	private final List<AbbreviatedObjectId> blacklist;
-	private final Resetter resetter;
 	private final OutputStream diffOutputStream;
 
 	private Repository repository;
 	private DiffFormatter diffFormatter;
-	private Terminator terminator;
 
-	public DiffAnimator(OutputStream diffOutputStream, Resetter resetter, Terminator terminator, EventBroker eventBroker) throws IOException {
+	public DiffAnimator(OutputStream diffOutputStream, EventBroker eventBroker) throws IOException {
 
-		this.resetter = resetter;
-		this.terminator = terminator;
 		this.eventPublisher = eventBroker;
 		this.blacklist = new ArrayList<>();
 		this.diffOutputStream = diffOutputStream;
@@ -63,10 +57,13 @@ public class DiffAnimator {
 	}
 
 	private void setDiff(DiffEntry diff) {
-
-		this.resetter.reset();
 		
 		if (diff == null || this.blacklist.contains(StagingHelper.getID(diff))) {
+			try {
+				this.diffOutputStream.flush();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 			return;
 		}
 
@@ -81,8 +78,11 @@ public class DiffAnimator {
 			});
 		}
 		
-		this.terminator.terminate();
-
+		try {
+			this.diffOutputStream.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void doSetDiff(DiffEntry diff) throws IOException, CorruptObjectException, MissingObjectException {

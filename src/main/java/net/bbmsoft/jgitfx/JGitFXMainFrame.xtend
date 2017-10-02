@@ -179,7 +179,7 @@ class JGitFXMainFrame extends BorderPane {
 				], this.eventBroker))
 
 		new DiffTextFormatter(this.diffTextContainer.children) => [
-			new DiffAnimator(outputStream, it, it, this.eventBroker)
+			new DiffAnimator(outputStream, this.eventBroker)
 		]
 
 		taskHelper.taskList = this.tasksView.tasks

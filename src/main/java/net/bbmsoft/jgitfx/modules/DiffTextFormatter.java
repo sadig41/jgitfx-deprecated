@@ -1,42 +1,41 @@
 package net.bbmsoft.jgitfx.modules;
 
-import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.jgit.lib.Constants;
+
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
-import net.bbmsoft.jgitfx.utils.Resetter;
-import net.bbmsoft.jgitfx.utils.Terminator;
+import net.bbmsoft.bbm.utils.io.StringOutputStream;
 
-public class DiffTextFormatter implements Resetter, Terminator {
+public class DiffTextFormatter {
 
 	private final static PseudoClass PSEUDO_CLASS_DIFF_FILE_HEADER = PseudoClass.getPseudoClass("diff-file-header");
 	private final static PseudoClass PSEUDO_CLASS_DIFF_HEADER = PseudoClass.getPseudoClass("diff-header");
 	private final static PseudoClass PSEUDO_CLASS_DIFF_ADDED = PseudoClass.getPseudoClass("diff-added");
 	private final static PseudoClass PSEUDO_CLASS_DIFF_REMOVED = PseudoClass.getPseudoClass("diff-removed");
 
-	private static final Pattern DIFF_HEADER_PATTERN = Pattern.compile("@@ -[0-9]+,[0-9]+ \\+[0-9]+,[0-9]+ @@",
+	private static final Pattern DIFF_HEADER_PATTERN = Pattern.compile("@@ -[0-9]+(,[0-9]+)? \\+[0-9]+(,[0-9]+)? @@",
 			Pattern.DOTALL);
 
 	private final List<Node> diffTextContainer;
-	private final ByteArrayOutputStream outputStream;
-	
-	private Charset charSet;
+	private final StringOutputStream outputStream;
 	
 	private boolean showFileHeader;
 
 	public DiffTextFormatter(List<Node> diffTextContainer) {
 		this.diffTextContainer = diffTextContainer;
-		this.outputStream = new ByteArrayOutputStream();
-		this.charSet = Charset.forName("UTF-8");
+		this.outputStream = new StringOutputStream(s -> update(s));
 		this.showFileHeader = false;
+		
+		this.outputStream.setCharset(Constants.CHARSET);
 	}
 
 	private void updateText(String wholeText) {
@@ -175,16 +174,12 @@ public class DiffTextFormatter implements Resetter, Terminator {
 		}		
 	}
 
-	@Override
-	public void reset() {
-		this.diffTextContainer.clear();
-	}
-
-	@Override
-	public void terminate() {
+	public void update(String wholeText) {
 		try {
-			String wholeText = new String(this.outputStream.toByteArray(), this.charSet);
-			updateText(wholeText);
+			this.diffTextContainer.clear();
+			if(wholeText != null && !wholeText.trim().isEmpty()) {
+				updateText(wholeText);
+			}
 		} finally {
 			this.outputStream.reset();
 		}
@@ -195,11 +190,11 @@ public class DiffTextFormatter implements Resetter, Terminator {
 	}
 
 	public Charset getCharSet() {
-		return charSet;
+		return this.outputStream.getCharset();
 	}
 
 	public void setCharSet(Charset charSet) {
-		this.charSet = charSet;
+		this.outputStream.setCharset(charSet);
 	}
 
 	public boolean isShowFileHeader() {
