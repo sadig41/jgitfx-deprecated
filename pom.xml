@@ -73,6 +73,12 @@
 			<classifier>no_aop</classifier>
 		</dependency>
 
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<optional>true</optional>
+			<scope>runtime</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
