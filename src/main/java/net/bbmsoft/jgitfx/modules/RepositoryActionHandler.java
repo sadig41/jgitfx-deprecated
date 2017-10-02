@@ -66,9 +66,9 @@ public abstract class RepositoryActionHandler<R> {
 
 		@Override
 		public void beginTask(String title, int totalWork) {
-			this.toDo.addAndGet(totalWork);
 			int done = this.done.get();
-			updateProgress(done, totalWork);
+			int toDo = this.toDo.addAndGet(1 + totalWork);
+			updateProgress(done, toDo);
 			updateMessage(title);
 			System.err.printf("Starting task '%s' with %d subtasks\n", title, totalWork);
 		}
@@ -78,15 +78,15 @@ public abstract class RepositoryActionHandler<R> {
 			int done = this.done.addAndGet(completed);
 			int toDo = this.toDo.get();
 			updateProgress(done, toDo);
-			System.err.printf("%d/%d\n", completed, toDo);
+			System.err.printf("%d/%d\n", done, toDo);
 		}
 
 		@Override
 		public void endTask() {
-			int done = this.done.get();
-			int all = this.toDo.get();
-			updateProgress(all, all);
-			System.err.printf("%d/%d\n", done, all);
+			int done = this.done.incrementAndGet();
+			int toDo = this.toDo.get();
+			updateProgress(done, toDo);
+			System.err.printf("%d/%d\n", done, toDo);
 		}
 
 		public Supplier<T> getResultSupplier() {
