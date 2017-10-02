@@ -1,6 +1,5 @@
 package net.bbmsoft.jgitfx.modules;
 
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import org.eclipse.jgit.lib.ProgressMonitor;
@@ -32,16 +31,15 @@ public abstract class RepositoryActionHandler<R> {
 
 		private final Repository repository;
 		private final RepositoryActionHandler<T> handler;
-		private final AtomicInteger toDo;
-		private final AtomicInteger done;
+		
+		private int toDo;
+		private int done;
 		
 		private volatile Supplier<T> resultSupplier;
 
 		public Task(RepositoryActionHandler<T> handler, Repository repository) {
 			this.handler = handler;
 			this.repository = repository;
-			this.toDo = new AtomicInteger();
-			this.done = new AtomicInteger();
 		}
 
 		@Override
@@ -66,8 +64,8 @@ public abstract class RepositoryActionHandler<R> {
 
 		@Override
 		public void beginTask(String title, int totalWork) {
-			int done = this.done.get();
-			int toDo = this.toDo.addAndGet(1 + totalWork);
+			this.done = 0;
+			this.toDo += (1 + totalWork);
 			updateProgress(done, toDo);
 			updateMessage(title);
 			System.err.printf("Starting task '%s' with %d subtasks\n", title, totalWork);
@@ -75,17 +73,14 @@ public abstract class RepositoryActionHandler<R> {
 
 		@Override
 		public void update(int completed) {
-			int done = this.done.addAndGet(completed);
-			int toDo = this.toDo.get();
+			this.done = Math.min(this.toDo, this.done + completed);
 			updateProgress(done, toDo);
 			System.err.printf("%d/%d\n", done, toDo);
 		}
 
 		@Override
 		public void endTask() {
-			int done = this.done.incrementAndGet();
-			int toDo = this.toDo.get();
-			updateProgress(done, toDo);
+			updateProgress(++this.done, this.toDo);
 			System.err.printf("%d/%d\n", done, toDo);
 		}
 
