@@ -33,6 +33,7 @@ public abstract class RepositoryActionHandler<R> {
 		private final Repository repository;
 		private final RepositoryActionHandler<T> handler;
 		private final AtomicInteger toDo;
+		private final AtomicInteger done;
 		
 		private volatile Supplier<T> resultSupplier;
 
@@ -40,6 +41,7 @@ public abstract class RepositoryActionHandler<R> {
 			this.handler = handler;
 			this.repository = repository;
 			this.toDo = new AtomicInteger();
+			this.done = new AtomicInteger();
 		}
 
 		@Override
@@ -59,24 +61,32 @@ public abstract class RepositoryActionHandler<R> {
 
 		@Override
 		public void start(int totalTasks) {
+			System.err.printf("Starting %d tasks\n", totalTasks);
 		}
 
 		@Override
 		public void beginTask(String title, int totalWork) {
-			this.toDo.set(totalWork);
-			updateProgress(0, totalWork);
+			this.toDo.addAndGet(totalWork);
+			int done = this.done.get();
+			updateProgress(done, totalWork);
 			updateMessage(title);
+			System.err.printf("Starting task '%s' with %d subtasks\n", title, totalWork);
 		}
 
 		@Override
 		public void update(int completed) {
-			updateProgress(completed, this.toDo.get());
+			int done = this.done.addAndGet(completed);
+			int toDo = this.toDo.get();
+			updateProgress(done, toDo);
+			System.err.printf("%d/%d\n", completed, toDo);
 		}
 
 		@Override
 		public void endTask() {
+			int done = this.done.get();
 			int all = this.toDo.get();
 			updateProgress(all, all);
+			System.err.printf("%d/%d\n", done, all);
 		}
 
 		public Supplier<T> getResultSupplier() {
