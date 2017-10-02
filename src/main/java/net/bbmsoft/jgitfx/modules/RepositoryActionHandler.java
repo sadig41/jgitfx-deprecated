@@ -59,7 +59,6 @@ public abstract class RepositoryActionHandler<R> {
 
 		@Override
 		public void start(int totalTasks) {
-			System.err.printf("Starting %d tasks\n", totalTasks);
 		}
 
 		@Override
@@ -68,20 +67,17 @@ public abstract class RepositoryActionHandler<R> {
 			this.toDo = (1 + totalWork);
 			updateProgress(done, toDo);
 			updateMessage(title);
-			System.err.printf("Starting task '%s' with %d subtasks\n", title, totalWork);
 		}
 
 		@Override
 		public void update(int completed) {
 			this.done = Math.min(this.toDo, this.done + completed);
 			updateProgress(done, toDo);
-			System.err.printf("%d/%d\n", done, toDo);
 		}
 
 		@Override
 		public void endTask() {
 			updateProgress(++this.done, this.toDo);
-			System.err.printf("%d/%d\n", done, toDo);
 		}
 
 		public Supplier<T> getResultSupplier() {
