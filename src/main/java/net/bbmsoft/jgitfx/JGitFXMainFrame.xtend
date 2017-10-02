@@ -53,9 +53,15 @@ import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.lib.Repository
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
+import javafx.scene.input.KeyEvent
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCombination
+import javafx.scene.input.KeyCodeCombination
 
 @FXMLRoot
 class JGitFXMainFrame extends BorderPane {
+	
+	private static final KeyCombination CONTROL_ENTER = new KeyCodeCombination(KeyCode.ENTER, KeyCombination.CONTROL_DOWN)
 
 	@FXML TableView<HistoryEntry> historyTable
 	@FXML TableColumn<HistoryEntry, String> refsColumn
@@ -123,7 +129,6 @@ class JGitFXMainFrame extends BorderPane {
 		this.prefs = prefs
 		this.eventBroker = eventBroker
 		this.repositoryRegistry = repoRegistry
-		this.historyTable.columns.forEach[col|col.visibleProperty >> [this.prefs.setColumnVisible(col.id, it)]]
 		this.stagingAnimator = new StagingAnimator(this.unstagedFilesTable, this.unstagedTypeColum,
 			this.unstagedFileColum, this.stagedFilesTable, this.stagedTypeColum, this.stagedFileColum, this.eventBroker)
 		this.historyVisualizer = new RepositoryTableVisualizer(this.historyTable, this.refsColumn,
@@ -178,6 +183,7 @@ class JGitFXMainFrame extends BorderPane {
 		taskHelper.taskList = this.tasksView.tasks
 
 		updateHistoryColumnsVisibility
+		this.historyTable.columns.forEach[col|col.visibleProperty >> [this.prefs.setColumnVisible(col.id, it)]]
 	}
 
 	private def addRepoTreeItem(Repository repository) {
@@ -448,6 +454,18 @@ class JGitFXMainFrame extends BorderPane {
 
 	private def discard(DiffEntry ... files) {
 		println("discard " + files)
+	}
+	
+	def commitMessageEntered() {
+		this.commitMessageTextArea.requestFocus
+	}
+	
+	def keyTyped(KeyEvent event) {
+		if(event.source == this.commitMessageTextField || event.source == this.commitMessageTextArea) {
+			if(CONTROL_ENTER.match(event)) {
+				commit
+			}
+		}
 	}
 
 }
