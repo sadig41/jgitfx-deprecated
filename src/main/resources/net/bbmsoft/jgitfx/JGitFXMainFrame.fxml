@@ -255,7 +255,7 @@
                 </TitledPane>
               </panes>
             </Accordion>
-            <SplitPane dividerPositions="0.75" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0">
+            <SplitPane dividerPositions="0.5" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0">
               <items>
                   <TableView fx:id="historyTable" prefHeight="200.0" prefWidth="200.0" tableMenuButtonVisible="true">
                     <columns>

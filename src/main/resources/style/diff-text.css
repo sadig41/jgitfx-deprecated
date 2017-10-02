@@ -1,47 +1,50 @@
 #diffTextContainer {
-	-fx-padding: 0 8 8 8;
+	-fx-padding:			0 8 8 8;
 }
 
 .diff-partition-header {
-	-fx-padding: 8 0 0 0;
-}
-
-.diff-partition-body {
-	-fx-background-color: #4441;
-	-fx-padding: 4;	
-	-fx-spacing: 4;
-	-fx-background-radius:	5;
-}
-
-
-.diff-partition-header>.text,
-.diff-partition-file-header>.text {
-	-fx-fill:		grey;
+	-fx-padding:			8 0 0 0;
+	-fx-opacity:			0.5;
 }
 
 .diff-partition-file-header {
-	-fx-opacity:	0.4;
+	-fx-opacity:			0.3;
 }
 
-/*
-.diff-partition:diff-added>.text {
-	-fx-fill:	green;
+.diff-partition-header>.text,
+.diff-partition-file-header>.text {
+	-fx-fill:				diff-header-foreground;
 }
 
-.diff-partition:diff-removed>.text {
-	-fx-fill:	red;
+.diff-partition-body {
+	-fx-background-color:	diff-body-background;
+	-fx-padding:			4;	
+	-fx-spacing:			4;
+	-fx-background-radius:	5;
 }
-*/
+
+.diff-partition-body .text {
+	-fx-fill:				diff-body-foreground;
+}
 
 .diff-sub-partition {
 	-fx-background-radius:	5;
-	-fx-padding: 0 4 0 4;	
+	-fx-padding:			0 4 0 4;	
 }
 
 .diff-sub-partition:diff-added {
-	-fx-background-color:	#8fa8;
+	-fx-background-color:	diff-added-background;
+}
+
+.diff-sub-partition:diff-added > .text {
+	-fx-fill:				diff-added-foreground;
 }
 
 .diff-sub-partition:diff-removed {
-	-fx-background-color:	#f888;
+	-fx-background-color:	diff-removed-background;
+}
+
+
+.diff-sub-partition:diff-removed > .text {
+	-fx-fill:				diff-removed-foreground;
 }

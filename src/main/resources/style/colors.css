@@ -1,0 +1,32 @@
+.root {
+		
+	diff-header-foreground:			-fx-text-base-color;
+	diff-header-background:			transparent;
+	
+	diff-body-foreground:			-fx-text-base-color;
+	diff-body-background:			ladder(
+        -fx-base,
+        #fff1	45%,
+        #fff3	46%,
+        #fff3	59%,
+        #00000008	60%
+    );
+    
+	diff-added-foreground:			-fx-text-base-color;
+	diff-added-background:			ladder(
+        -fx-base,
+        #3f84	45%,
+        #6f98	46%,
+        #6f98	59%,
+        #8faa	60%
+    );
+    
+	diff-removed-foreground:		-fx-text-base-color;
+	diff-removed-background:		ladder(
+        -fx-base,
+        #f004	45%,
+        #f446 	46%,
+        #f446	59%,
+        #f888	60%
+    );
+}

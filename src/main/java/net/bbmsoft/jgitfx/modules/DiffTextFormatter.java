@@ -67,7 +67,7 @@ public class DiffTextFormatter implements Resetter, Terminator {
 		partitionFlow.getStyleClass().add("diff-partition");
 		
 		if (fileHeader) {
-			Text text = new Text(partition + "\n");
+			Text text = new Text(partition);
 			text.getStyleClass().add("text");
 			text.pseudoClassStateChanged(PSEUDO_CLASS_DIFF_FILE_HEADER, true);
 			partitionFlow.getChildren().add(text);
