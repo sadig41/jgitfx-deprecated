@@ -41,7 +41,7 @@ public class RepositoryStatusMonitor {
 
 		try (Git git = Git.wrap(repo)) {
 
-			List<DiffEntry> diff = git.diff().setOutputStream(System.out).call();
+			List<DiffEntry> diff = git.diff().call();
 
 			AbstractTreeIterator newTree = new DirCacheIterator(repo.readDirCache());
 			ObjectId id = repo.resolve(Constants.HEAD);

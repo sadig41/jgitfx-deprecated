@@ -89,25 +89,6 @@ public class StagingAnimator {
 
 		if (this.repository == null) {
 			this.unstagedFilesTable.getItems().clear();
-			this.stagedFilesTable.getItems().clear();
-			return;
-		}
-
-		List<DiffEntry> selectedStaged = new ArrayList<>(this.stagedFilesTable.getSelectionModel().getSelectedItems());
-		
-		List<DiffEntry> indexDiff = new ArrayList<>(diffs.getValue());
-		indexDiff.sort((a, b) -> a.getChangeType().compareTo(b.getChangeType()));
-
-		this.stagedFilesTable.getItems().setAll(indexDiff);
-		StagingHelper.applyToMatching(indexDiff, selectedStaged,
-				d -> this.stagedFilesTable.getSelectionModel().select(d));
-	}
-
-	private void updateStagedFiles(Pair<Repository, List<DiffEntry>> diffs) {
-
-		if (this.repository == null) {
-			this.unstagedFilesTable.getItems().clear();
-			this.stagedFilesTable.getItems().clear();
 			return;
 		}
 
@@ -120,6 +101,23 @@ public class StagingAnimator {
 		this.unstagedFilesTable.getItems().setAll(diff);
 		StagingHelper.applyToMatching(diff, selectedUnstaged,
 				d -> this.unstagedFilesTable.getSelectionModel().select(d));
+	}
+
+	private void updateStagedFiles(Pair<Repository, List<DiffEntry>> diffs) {
+
+		if (this.repository == null) {
+			this.stagedFilesTable.getItems().clear();
+			return;
+		}
+
+		List<DiffEntry> selectedStaged = new ArrayList<>(this.stagedFilesTable.getSelectionModel().getSelectedItems());
+		
+		List<DiffEntry> indexDiff = new ArrayList<>(diffs.getValue());
+		indexDiff.sort((a, b) -> a.getChangeType().compareTo(b.getChangeType()));
+
+		this.stagedFilesTable.getItems().setAll(indexDiff);
+		StagingHelper.applyToMatching(indexDiff, selectedStaged,
+				d -> this.stagedFilesTable.getSelectionModel().select(d));
 	}
 
 	public boolean hasStagedChanges() {
