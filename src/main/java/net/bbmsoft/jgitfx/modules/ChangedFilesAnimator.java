@@ -96,6 +96,7 @@ public class ChangedFilesAnimator implements ChangeListener<HistoryEntry> {
 	public void changed(ObservableValue<? extends HistoryEntry> observable, HistoryEntry oldValue,
 			HistoryEntry newValue) {
 		this.currentCommit = newValue != null ? newValue.getCommit() : null;
+		this.eventPublisher.publish(DetailedDiffTopic.DIFF_ENTRY_SELECTED, null);
 		Platform.runLater(() -> updateTable(newValue));
 	}
 
