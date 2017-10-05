@@ -1,17 +1,17 @@
-#repositoryTree .tree-cell:staged-changes {
+#repositoryTree .tree-cell:filled:staged-changes {
 	-fx-background:		staged-changes-background;
 	-fx-accent:			staged-changes-highlight;
 }
 
-#repositoryTree .tree-cell:unstaged-changes {
+#repositoryTree .tree-cell:filled:unstaged-changes {
 	-fx-background:		unstaged-changes-background;
 	-fx-accent:			unstaged-changes-highlight;
 }
 
-#repositoryTree .tree-cell:children-out-of-sync {
+#repositoryTree .tree-cell:filled:children-out-of-sync {
 	
 }
 
-#repositoryTree .tree-cell:open {
+#repositoryTree .tree-cell:filled:open {
 	-fx-font-weight: bold;
 }
