@@ -1,23 +1,31 @@
 package net.bbmsoft.jgitfx.modules;
 
 import static net.bbmsoft.jgitfx.utils.RepoHelper.fromHandler;
+import static net.bbmsoft.jgitfx.utils.StagingHelper.getTree;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.dircache.DirCacheIterator;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.treewalk.AbstractTreeIterator;
+import org.eclipse.jgit.treewalk.FileTreeIterator;
 import org.eclipse.xtext.xbase.lib.Pair;
 
-import javafx.beans.Observable;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import net.bbmsoft.bbm.utils.concurrent.ThreadUtils;
+import net.bbmsoft.jgitfx.event.DetailedDiffTopic;
 import net.bbmsoft.jgitfx.event.DiffTopic;
 import net.bbmsoft.jgitfx.event.EventBroker;
 import net.bbmsoft.jgitfx.event.EventPublisher;
 import net.bbmsoft.jgitfx.event.RepositoryTopic;
+import net.bbmsoft.jgitfx.utils.DiffDetails;
 import net.bbmsoft.jgitfx.utils.StagingHelper;
 
 public class StagingAnimator {
@@ -28,11 +36,10 @@ public class StagingAnimator {
 	private final TableView<DiffEntry> stagedFilesTable;
 	private final TableColumn<DiffEntry, String> stagedTypeColum;
 	private final TableColumn<DiffEntry, String> stagedFileColum;
+	private final EventPublisher eventPublisher;
 
 	private Repository repository;
-	private EventPublisher eventPublisher;
 
-	@SuppressWarnings("unchecked")
 	public StagingAnimator(TableView<DiffEntry> unstagedFilesTable, TableColumn<DiffEntry, String> unstagedTypeColum,
 			TableColumn<DiffEntry, String> unstagedFileColum, TableView<DiffEntry> stagedFilesTable,
 			TableColumn<DiffEntry, String> stagedTypeColum, TableColumn<DiffEntry, String> stagedFileColum,
@@ -69,15 +76,38 @@ public class StagingAnimator {
 			}
 		});
 
-		this.unstagedFilesTable.getSelectionModel().getSelectedItems()
-				.addListener((Observable o) -> publishSelectedEntries((List<DiffEntry>) o));
-		this.stagedFilesTable.getSelectionModel().getSelectedItems()
-				.addListener((Observable o) -> publishSelectedEntries((List<DiffEntry>) o));
+		this.unstagedFilesTable.getSelectionModel().selectedItemProperty()
+				.addListener((o, ov, nv) -> publishSelectedEntry(nv, false));
+		this.stagedFilesTable.getSelectionModel().selectedItemProperty()
+				.addListener((o, ov, nv) -> publishSelectedEntry(nv, true));
 	}
 
-	private void publishSelectedEntries(List<DiffEntry> diffs) {
-		this.eventPublisher.publish(DiffTopic.DIFF_ENTRY_SELECTED,
-				Pair.of(this.repository, diffs));
+	private void publishSelectedEntry(DiffEntry diff, boolean staged) {
+		
+		if(diff == null) {
+			this.eventPublisher.publish(DetailedDiffTopic.DIFF_ENTRY_SELECTED, null);
+			return;
+		}
+
+		try {
+			AbstractTreeIterator oldTree, newTree;
+
+			if (staged) {
+				ObjectId id = this.repository.resolve(Constants.HEAD);
+				RevCommit headCommit = this.repository.parseCommit(id);
+				oldTree = getTree(headCommit, this.repository);
+				newTree = new DirCacheIterator(this.repository.readDirCache());
+			} else {
+				oldTree = new DirCacheIterator(this.repository.readDirCache());
+				newTree = new FileTreeIterator(this.repository);
+			}
+
+			DiffDetails dd = new DiffDetails(this.repository, StagingHelper.getFilePath(diff), newTree, oldTree);
+
+			this.eventPublisher.publish(DetailedDiffTopic.DIFF_ENTRY_SELECTED, dd);
+		} catch (Throwable th) {
+			th.printStackTrace();
+		}
 	}
 
 	private boolean isRelevant(Repository repo) {
@@ -111,7 +141,7 @@ public class StagingAnimator {
 		}
 
 		List<DiffEntry> selectedStaged = new ArrayList<>(this.stagedFilesTable.getSelectionModel().getSelectedItems());
-		
+
 		List<DiffEntry> indexDiff = new ArrayList<>(diffs.getValue());
 		indexDiff.sort((a, b) -> a.getChangeType().compareTo(b.getChangeType()));
 

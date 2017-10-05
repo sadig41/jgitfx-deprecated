@@ -15,10 +15,8 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.treewalk.AbstractTreeIterator;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.EmptyTreeIterator;
-import org.eclipse.xtext.xbase.lib.Pair;
 
 import javafx.application.Platform;
-import javafx.beans.Observable;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
@@ -26,10 +24,9 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.Parent;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import net.bbmsoft.jgitfx.event.DiffTopic;
+import net.bbmsoft.jgitfx.event.DetailedDiffTopic;
 import net.bbmsoft.jgitfx.event.EventPublisher;
-import net.bbmsoft.jgitfx.messaging.Message;
-import net.bbmsoft.jgitfx.messaging.MessageType;
+import net.bbmsoft.jgitfx.utils.DiffDetails;
 import net.bbmsoft.jgitfx.utils.StagingHelper;
 import net.bbmsoft.jgitfx.wrappers.HistoryEntry;
 
@@ -42,8 +39,9 @@ public class ChangedFilesAnimator implements ChangeListener<HistoryEntry> {
 	private final TableColumn<DiffEntry, ChangeType> typeColumn;
 	private final TableColumn<DiffEntry, String> fileColumn;
 	private final EventPublisher eventPublisher;
+	
+	private RevCommit currentCommit;
 
-	@SuppressWarnings("unchecked")
 	public ChangedFilesAnimator(Parent wipOverview, TableView<DiffEntry> changedFilesOverview,
 			TableColumn<DiffEntry, ChangeType> typeColumn, TableColumn<DiffEntry, String> fileColumn,
 			Supplier<Repository> repoSupplier, EventPublisher eventPublisher) {
@@ -58,17 +56,46 @@ public class ChangedFilesAnimator implements ChangeListener<HistoryEntry> {
 		this.typeColumn
 				.setCellValueFactory(cdf -> new SimpleObjectProperty<ChangeType>(cdf.getValue().getChangeType()));
 		this.fileColumn.setCellValueFactory(cdf -> new SimpleStringProperty(StagingHelper.getFilePath(cdf.getValue())));
-		
-		this.changedFilesOverview.getSelectionModel().getSelectedItems().addListener((Observable o) -> publishSelectedEntries((List<DiffEntry>) o));
+
+		this.changedFilesOverview.getSelectionModel().selectedItemProperty()
+				.addListener((o, ov, nv) -> publishSelectedEntry(nv));
 	}
 
-	private void publishSelectedEntries(List<DiffEntry> diff) {
-		this.eventPublisher.publish(DiffTopic.DIFF_ENTRY_SELECTED, Pair.of(this.repoSupplier.get(), diff));
+	private void publishSelectedEntry(DiffEntry diff) {
+		
+		if(diff == null) {
+			this.eventPublisher.publish(DetailedDiffTopic.DIFF_ENTRY_SELECTED, null);
+			return;
+		}
+		
+		if(this.currentCommit == null) {
+			return;
+		}
+
+		Repository repo = this.repoSupplier.get();
+		if (repo == null) {
+			return;
+		}
+
+		try {
+			AbstractTreeIterator oldTree, newTree;
+
+			RevCommit parent = this.currentCommit.getParentCount() > 0 ? this.currentCommit.getParent(0) : null;
+			oldTree = parent != null ? getTree(parent, repo) : new EmptyTreeIterator();
+			newTree = getTree(this.currentCommit, repo);
+
+			DiffDetails dd = new DiffDetails(repo, StagingHelper.getFilePath(diff), newTree, oldTree);
+
+			this.eventPublisher.publish(DetailedDiffTopic.DIFF_ENTRY_SELECTED, dd);
+		} catch (Throwable th) {
+			th.printStackTrace();
+		}
 	}
 
 	@Override
 	public void changed(ObservableValue<? extends HistoryEntry> observable, HistoryEntry oldValue,
 			HistoryEntry newValue) {
+		this.currentCommit = newValue != null ? newValue.getCommit() : null;
 		Platform.runLater(() -> updateTable(newValue));
 	}
 
@@ -81,8 +108,7 @@ public class ChangedFilesAnimator implements ChangeListener<HistoryEntry> {
 	}
 
 	private void updateTable(HistoryEntry entry) {
-		
-		
+
 		Repository repo = this.repoSupplier.get();
 		if (repo == null) {
 			return;
@@ -93,39 +119,42 @@ public class ChangedFilesAnimator implements ChangeListener<HistoryEntry> {
 			this.changedFilesOverview.setVisible(false);
 			return;
 		}
-		
+
 		RevCommit commit = entry.getCommit();
 
 		if (commit != null) {
-			
+
 			DiffEntry selected = this.changedFilesOverview.getSelectionModel().getSelectedItem();
-			
+
 			this.wipOverview.setVisible(false);
 			this.changedFilesOverview.setVisible(true);
-			
+
 			RevCommit parent = commit.getParentCount() > 0 ? commit.getParent(0) : null;
-			
+
 			try (Git git = Git.wrap(repo)) {
 
 				AbstractTreeIterator newTree = getTree(commit, repo);
 				AbstractTreeIterator oldTree = parent != null ? getTree(parent, repo) : null;
-				
-				List<DiffEntry> diff = git.diff().setOldTree(oldTree != null ? oldTree : new EmptyTreeIterator()).setNewTree(newTree).call();
-				
+
+				List<DiffEntry> diff = git.diff().setOldTree(oldTree != null ? oldTree : new EmptyTreeIterator())
+						.setNewTree(newTree).call();
+
 				diff.sort((a, b) -> a.getChangeType().compareTo(b.getChangeType()));
 				this.changedFilesOverview.getItems().setAll(diff);
-				StagingHelper.applyToMatching(diff, selected, d -> this.changedFilesOverview.getSelectionModel().select(d));
-				
+				StagingHelper.applyToMatching(diff, selected,
+						d -> this.changedFilesOverview.getSelectionModel().select(d));
+
 			} catch (Throwable th) {
-//				this.eventPublisher.publish(MessageType.ERROR, new Message("Diff failed",
-//						"Could not parse diff for repository " + repo.getDirectory().getAbsolutePath(), th));
+				// this.eventPublisher.publish(MessageType.ERROR, new Message("Diff failed",
+				// "Could not parse diff for repository " +
+				// repo.getDirectory().getAbsolutePath(), th));
 			}
-			
+
 		} else {
 			this.changedFilesOverview.setVisible(false);
 			this.wipOverview.setVisible(true);
 		}
-		
+
 	}
 
 }

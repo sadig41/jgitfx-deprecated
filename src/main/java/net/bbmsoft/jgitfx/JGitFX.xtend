@@ -22,7 +22,6 @@ import net.bbmsoft.jgitfx.modules.RepositoryOpener
 import net.bbmsoft.jgitfx.registry.RepositoryRegistry
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
-import net.bbmsoft.jgitfx.modules.RepositoryStatusMonitor
 
 class JGitFX extends Subapplication {
 
@@ -49,8 +48,6 @@ class JGitFX extends Subapplication {
 		this.jGitFXMainFrame = jGitFXMainFrame
 		this.eventBroker = eventBroker
 		this.prefs = prefs
-		
-		new RepositoryStatusMonitor(eventBroker)
 
 		eventBroker.subscribe(MessageType.values(), messageListener)
 		eventBroker.subscribe(RepositoryRegistryTopic.REPO_NOT_FOUND)[repoNotFound($1, eventBroker)]

@@ -20,6 +20,11 @@ import javafx.scene.control.TextField
 import javafx.scene.control.TitledPane
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
+import javafx.scene.control.cell.TextFieldTreeCell
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCodeCombination
+import javafx.scene.input.KeyCombination
+import javafx.scene.input.KeyEvent
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.Pane
 import javax.inject.Inject
@@ -40,9 +45,11 @@ import net.bbmsoft.jgitfx.modules.DiffAnimator
 import net.bbmsoft.jgitfx.modules.DiffTextFormatter
 import net.bbmsoft.jgitfx.modules.Preferences
 import net.bbmsoft.jgitfx.modules.RepositoryHandler
+import net.bbmsoft.jgitfx.modules.RepositoryStatusMonitor
 import net.bbmsoft.jgitfx.modules.RepositoryTableVisualizer
 import net.bbmsoft.jgitfx.modules.StagingAnimator
 import net.bbmsoft.jgitfx.registry.RepositoryRegistry
+import net.bbmsoft.jgitfx.utils.RepositoryTreeItemStringConverter
 import net.bbmsoft.jgitfx.wrappers.HistoryEntry
 import net.bbmsoft.jgitfx.wrappers.RepositoryWrapper
 import net.bbmsoft.jgitfx.wrappers.RepositoryWrapper.DummyWrapper
@@ -53,17 +60,12 @@ import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.lib.Repository
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
-import javafx.scene.input.KeyEvent
-import javafx.scene.input.KeyCode
-import javafx.scene.input.KeyCombination
-import javafx.scene.input.KeyCodeCombination
-import javafx.scene.control.cell.TextFieldTreeCell
-import net.bbmsoft.jgitfx.utils.RepositoryTreeItemStringConverter
 
 @FXMLRoot
 class JGitFXMainFrame extends BorderPane {
-	
-	private static final KeyCombination CONTROL_ENTER = new KeyCodeCombination(KeyCode.ENTER, KeyCombination.CONTROL_DOWN)
+
+	private static final KeyCombination CONTROL_ENTER = new KeyCodeCombination(KeyCode.ENTER,
+		KeyCombination.CONTROL_DOWN)
 
 	@FXML TableView<HistoryEntry> historyTable
 	@FXML TableColumn<HistoryEntry, String> refsColumn
@@ -177,8 +179,9 @@ class JGitFXMainFrame extends BorderPane {
 				], this.eventBroker))
 
 		new DiffTextFormatter(this.diffTextContainer.children) => [
-			new DiffAnimator(outputStream, this.eventBroker)
+			new DiffAnimator(this.eventBroker, outputStream)
 		]
+		new RepositoryStatusMonitor(eventBroker)
 
 		taskHelper.taskList = this.tasksView.tasks
 
@@ -216,7 +219,7 @@ class JGitFXMainFrame extends BorderPane {
 		this.stagedFilesTable.selectionModel.selectionMode = SelectionMode.MULTIPLE
 
 		this.commitMessageTextField.textProperty >> [commitMessageUpdated]
-		
+
 		this.repositoryTree.cellFactory = TextFieldTreeCell.forTreeView(new RepositoryTreeItemStringConverter)
 
 		Platform.runLater[this.repositoriesList.expanded = true]
@@ -404,12 +407,12 @@ class JGitFXMainFrame extends BorderPane {
 	}
 
 	def void commit() {
-		
+
 		val commitMessage = commitMessage
-		if(commitMessage === null || commitMessage.trim.empty || this.stagedFilesTable.items.empty) {
+		if (commitMessage === null || commitMessage.trim.empty || this.stagedFilesTable.items.empty) {
 			return
 		}
-		
+
 		if (this.repositoryHandler !== null) {
 			RepositoryOperations.COMMIT.message = commitMessage
 			// TODO some more validation
@@ -463,14 +466,14 @@ class JGitFXMainFrame extends BorderPane {
 	private def discard(DiffEntry ... files) {
 		println("discard " + files)
 	}
-	
+
 	def commitMessageEntered() {
 		this.commitMessageTextArea.requestFocus
 	}
-	
+
 	def keyTyped(KeyEvent event) {
-		if(event.source == this.commitMessageTextField || event.source == this.commitMessageTextArea) {
-			if(CONTROL_ENTER.match(event)) {
+		if (event.source == this.commitMessageTextField || event.source == this.commitMessageTextArea) {
+			if (CONTROL_ENTER.match(event)) {
 				commit
 			}
 		}

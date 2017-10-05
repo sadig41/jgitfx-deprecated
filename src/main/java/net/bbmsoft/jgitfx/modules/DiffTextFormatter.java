@@ -1,6 +1,5 @@
 package net.bbmsoft.jgitfx.modules;
 
-import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -174,7 +173,7 @@ public class DiffTextFormatter {
 		}		
 	}
 
-	public void update(String wholeText) {
+	private void update(String wholeText) {
 		try {
 			this.diffTextContainer.clear();
 			if(wholeText != null && !wholeText.trim().isEmpty()) {
@@ -185,7 +184,7 @@ public class DiffTextFormatter {
 		}
 	}
 
-	public OutputStream getOutputStream() {
+	public StringOutputStream getOutputStream() {
 		return outputStream;
 	}
 
