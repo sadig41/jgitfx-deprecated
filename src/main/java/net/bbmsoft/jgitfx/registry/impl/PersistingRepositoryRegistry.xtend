@@ -147,8 +147,23 @@ class PersistingRepositoryRegistry implements RepositoryRegistry {
 			]
 		}
 
-		override removeRepository(File repositoryFile) {
-			throw new UnsupportedOperationException("TODO: auto-generated method stub")
+		override synchronized removeRepository(Repository repository) {
+			
+			val handler1  = this.handlers.remove(repository.workTree.absolutePath)
+			val handler2 = this.handlers.remove(repository.directory.absolutePath)
+			val removed = this.registeredRepositories.remove(repository)
+			
+			this.persistor.persist(this.registeredRepositories.map[directory])
+			
+			val consistent = (handler1 === handler2) && removed
+			
+			if(!consistent) {
+				this.eventBroker.publish(MessageType.ERROR, new Message('Inconsistent remove result', 'The repository registry might have been in an invalid state!'))
+			}
+			
+			this.eventBroker.publish(RepositoryTopic.REPO_REMOVED, handler1 ?: handler2)
+			
+			consistent
 		}
 
 	}

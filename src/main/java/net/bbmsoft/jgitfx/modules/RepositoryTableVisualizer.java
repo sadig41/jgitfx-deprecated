@@ -160,7 +160,10 @@ public class RepositoryTableVisualizer {
 
 	private void doUpdateRepositoryView() throws GitAPIException, IOException {
 
-		// TODO possibly move to background thread if too slow
+		if(this.repository == null) {
+			this.table.getItems().clear();
+			return;
+		}
 		
 		HistoryEntry selected = this.table.getSelectionModel().getSelectedItem();
 

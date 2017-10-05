@@ -111,7 +111,11 @@
                 </Menu>
                 <Menu mnemonicParsing="false" text="Help">
                   <items>
-                    <MenuItem mnemonicParsing="false" onAction="#about" text="About" />
+                    <MenuItem mnemonicParsing="false" onAction="#about" text="About">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="F1" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                           </accelerator>
+                        </MenuItem>
                   </items>
                 </Menu>
               </menus>
@@ -146,7 +150,7 @@
               <panes>
                 <TitledPane fx:id="repositoriesList" animated="false" expanded="true" text="Repositories">
                      <content>
-                        <TreeView fx:id="repositoryTree" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onDragDropped="#dragDropped" onDragOver="#dragOver">
+                        <TreeView fx:id="repositoryTree" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onDragDropped="#dragDropped" onDragOver="#dragOver" onKeyPressed="#keyPressed">
                            <contextMenu>
                               <ContextMenu>
                                 <items>

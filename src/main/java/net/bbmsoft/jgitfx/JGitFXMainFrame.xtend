@@ -2,6 +2,7 @@ package net.bbmsoft.jgitfx
 
 import java.io.File
 import java.net.URL
+import java.util.ArrayList
 import java.util.HashMap
 import java.util.List
 import java.util.Map
@@ -158,7 +159,14 @@ class JGitFXMainFrame extends BorderPane {
 			addRepoTreeItem($1.repository)
 		]
 		this.eventBroker.subscribe(RepositoryTopic.REPO_OPENED) [
-			this.repositoryTreeItems.get($1.repository.directory.absolutePath)?.open
+			this.repositoryTreeItems.get($1?.repository?.directory?.absolutePath).open
+		]
+		this.eventBroker.subscribe(RepositoryTopic.REPO_REMOVED)[
+			val treeItem = this.repositoryTreeItems.remove($1.repository.directory.absolutePath)
+			this.rootRepoTreeItem.children.remove(treeItem)
+			if($1 == this.repositoryHandler) {
+				Platform.runLater[this.eventBroker.publish(RepositoryTopic.REPO_OPENED, null)]
+			}
 		]
 
 		this.tasksView.tasks >> [
@@ -392,14 +400,14 @@ class JGitFXMainFrame extends BorderPane {
 
 	private def void open(TreeItem<RepositoryWrapper> repoItem) {
 		try {
-			val repository = repoItem.value.repository
+			val repository = repoItem?.value?.repository
 			this.repositoryHandler?.setAutoInvalidate(false)
-			this.repositoryHandler = getHandler(repository)
-			this.repositoryHandler.setAutoInvalidate(true)
-			this.breadcrumb.selectedCrumb = repoItem
-			this.prefs.lastOpened = repository.directory
+			this.repositoryHandler = if(repository !== null) getHandler(repository)
+			this.repositoryHandler?.setAutoInvalidate(true)
+			this.breadcrumb.selectedCrumb = repoItem ?: this.rootRepoTreeItem
+			this.prefs.lastOpened = repository?.directory
 			this.historyVisualizer.repository = repository
-			if (prefs.switchToRepositoryOverview) {
+			if (repository !== null && prefs.switchToRepositoryOverview) {
 				// delay so it also works on startup
 				Platform.runLater[this.repositoryOverview.expanded = true]
 			}
@@ -501,6 +509,21 @@ class JGitFXMainFrame extends BorderPane {
 		val Task<?> task = new OpenReposTask(files, this.repositoryRegistry)
 		this.eventBroker.publish(TaskTopic.TASK_STARTED, task)
 
+	}
+	
+	def keyPressed(KeyEvent e) {
+		if(e.source == this.repositoryTree && e.code == KeyCode.DELETE) {
+			removeSelectedRepos
+		}
+	}
+	
+	private def removeSelectedRepos() {
+		new ArrayList(this.repositoryTree.selectionModel.selectedItems).forEach[removeRepo] 
+	}
+	
+	private def removeRepo(TreeItem<RepositoryWrapper> item) {
+		val repository = item.value.repository
+		this.repositoryRegistry.removeRepository(repository)
 	}
 
 	static class OpenReposTask extends Task<Void> {
