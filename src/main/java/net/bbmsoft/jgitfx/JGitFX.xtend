@@ -2,6 +2,7 @@ package net.bbmsoft.jgitfx
 
 import com.google.inject.Guice
 import java.io.File
+import javafx.application.Platform
 import javafx.scene.Scene
 import javafx.stage.Stage
 import javax.inject.Inject
@@ -60,10 +61,9 @@ class JGitFX extends Subapplication {
 		eventBroker.subscribe(UserInteraction.BATCH_CLONE)[println('batch clone')]
 		eventBroker.subscribe(UserInteraction.INIT_REPO)[println('init')]
 		eventBroker.subscribe(UserInteraction.ADD_REPO)[opener.openRepo(this.stage, repoRegistry)]
-		eventBroker.subscribe(UserInteraction.QUIT)[println('quit')]
 		eventBroker.subscribe(UserInteraction.SHOW_ABOUT)[println('about')]
 
-		this.eventBroker.publish(AppStatus.STARTING, System.currentTimeMillis)
+		eventBroker.subscribe(UserInteraction.QUIT)[Platform.runLater[quit]]
 	}
 
 	override start(Stage stage) throws Exception {
@@ -87,6 +87,10 @@ class JGitFX extends Subapplication {
 		val title = 'Failed to load repository'
 		val body = '''«dir.absolutePath» does not seem to contain a valid git repository.'''
 		publisher.publish(MessageType.ERROR, new Message(title, body))
+	}
+
+	override stop() {
+		eventBroker.publish(AppStatus.EXITING, System.currentTimeMillis)
 	}
 
 }

@@ -72,15 +72,11 @@ class PersistingRepositoryRegistry implements RepositoryRegistry {
 				]
 			}
 		]
+		
+		eventBroker.subscribe(AppStatus.EXITING) [shutdown]
 
-//		Executors.newSingleThreadScheduledExecutor[new Thread(it, 'Refresh Scheduler') => [daemon = true]] => [
-//			scheduleAtFixedRate([Platform.runLater[refreshAll]], 3, 3, TimeUnit.SECONDS)
-//		]
 	}
 
-//	private def refreshAll() {
-//		this.handlers.values.forEach[invalidate]
-//	}
 	override RepositoryHandler getRepositoryHandler(Repository repository) {
 		getRepositoryHandler(repository.directory)
 	}
@@ -163,7 +159,13 @@ class PersistingRepositoryRegistry implements RepositoryRegistry {
 			
 			this.eventBroker.publish(RepositoryTopic.REPO_REMOVED, handler1 ?: handler2)
 			
+			repository.close
+			
 			consistent
+		}
+		
+		private synchronized def shutdown() {
+			this.registeredRepositories.forEach[close]
 		}
 
 	}
