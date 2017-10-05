@@ -1,5 +1,6 @@
 package net.bbmsoft.jgitfx
 
+import java.io.File
 import java.net.URL
 import java.util.HashMap
 import java.util.List
@@ -25,6 +26,7 @@ import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
 import javafx.scene.input.KeyEvent
+import javafx.scene.input.TransferMode
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.Pane
 import javax.inject.Inject
@@ -36,6 +38,7 @@ import net.bbmsoft.jgitfx.event.CommitMessageTopic
 import net.bbmsoft.jgitfx.event.EventBroker
 import net.bbmsoft.jgitfx.event.RepositoryOperations
 import net.bbmsoft.jgitfx.event.RepositoryTopic
+import net.bbmsoft.jgitfx.event.TaskTopic
 import net.bbmsoft.jgitfx.event.UserInteraction
 import net.bbmsoft.jgitfx.messaging.Message
 import net.bbmsoft.jgitfx.messaging.MessageType
@@ -60,9 +63,6 @@ import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.lib.Repository
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
-import javafx.scene.input.TransferMode
-import java.io.File
-import net.bbmsoft.jgitfx.event.TaskTopic
 
 @FXMLRoot
 class JGitFXMainFrame extends BorderPane {
@@ -147,7 +147,7 @@ class JGitFXMainFrame extends BorderPane {
 			if (lastOpened !== null) {
 				val lastOpenedHandler = repoRegistry.getRepositoryHandler(lastOpened)
 				if (lastOpenedHandler !== null) {
-					open(lastOpenedHandler.repository)
+					this.eventBroker.publish(RepositoryTopic.REPO_OPENED, lastOpenedHandler)
 				}
 			}
 		]
@@ -156,14 +156,9 @@ class JGitFXMainFrame extends BorderPane {
 		]
 		this.eventBroker.subscribe(RepositoryTopic.REPO_LOADED) [
 			addRepoTreeItem($1.repository)
-			open($1.repository)
 		]
 		this.eventBroker.subscribe(RepositoryTopic.REPO_OPENED) [
-			this.historyVisualizer.repository = $1.repository
-			if (prefs.switchToRepositoryOverview) {
-				// delay so it also works on startup
-				Platform.runLater[this.repositoryOverview.expanded = true]
-			}
+			this.repositoryTreeItems.get($1.repository.directory.absolutePath)?.open
 		]
 
 		this.tasksView.tasks >> [
@@ -215,8 +210,9 @@ class JGitFXMainFrame extends BorderPane {
 		this.repositoryTree.root = rootRepoTreeItem
 		this.repositoryTree.showRoot = false
 		this.repositoryTree.onMouseClicked = [
-			if (clickCount == 2) {
-				this.repositoryTree.selectionModel.selectedItem?.open
+			val selected = this.repositoryTree.selectionModel.selectedItem
+			if (clickCount == 2 && selected !== null) {
+				this.eventBroker.publish(RepositoryTopic.REPO_OPENED, getHandler(selected.value.repository))
 			}
 		]
 
@@ -394,10 +390,6 @@ class JGitFXMainFrame extends BorderPane {
 		this.scene.stylesheets.all = #['style/default.css']
 	}
 
-	def void open(Repository repository) {
-		this.repositoryTreeItems.get(repository.directory.absolutePath)?.open
-	}
-
 	private def void open(TreeItem<RepositoryWrapper> repoItem) {
 		try {
 			val repository = repoItem.value.repository
@@ -406,7 +398,11 @@ class JGitFXMainFrame extends BorderPane {
 			this.repositoryHandler.setAutoInvalidate(true)
 			this.breadcrumb.selectedCrumb = repoItem
 			this.prefs.lastOpened = repository.directory
-			this.eventBroker.publish(RepositoryTopic.REPO_OPENED, this.repositoryHandler)
+			this.historyVisualizer.repository = repository
+			if (prefs.switchToRepositoryOverview) {
+				// delay so it also works on startup
+				Platform.runLater[this.repositoryOverview.expanded = true]
+			}
 		} catch (Throwable th) {
 			val title = 'Failed to open repository'
 			val body = '''An error occurded while opening the repository:  «IF th.message !== null»«th.message»«ELSE»«th.class.simpleName»«ENDIF»'''
@@ -521,7 +517,7 @@ class JGitFXMainFrame extends BorderPane {
 		override protected call() throws Exception {
 			repoDirs?.forEach [ it, i |
 				updateMessage('''Loading «absolutePath»''')
-				registry.registerRepository(it)
+				registry.registerRepository(it, false)
 				updateProgress(i, repoDirs.size)
 			]
 			null

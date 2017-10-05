@@ -15,7 +15,7 @@ public interface RepositoryRegistry {
 
 	public RepositoryHandler getRepositoryHandler(Repository repository);
 	
-	public boolean registerRepository(File repositoryFile);
+	public boolean registerRepository(File repositoryFile, boolean open);
 
 	public boolean removeRepository(File repositoryFile);
 }

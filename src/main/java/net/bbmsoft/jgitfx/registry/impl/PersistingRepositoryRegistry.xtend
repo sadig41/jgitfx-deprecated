@@ -38,7 +38,6 @@ class PersistingRepositoryRegistry implements RepositoryRegistry {
 	final Map<String, RepositoryHandler> handlers
 	final CredentialsProvider credentialsProvider
 	final EventBroker eventBroker
-	
 
 	@Inject
 	private new(Persistor<List<File>> persistor, EventBroker eventBroker) {
@@ -48,7 +47,7 @@ class PersistingRepositoryRegistry implements RepositoryRegistry {
 		this.eventBroker = eventBroker
 		this.handlers = new HashMap
 		this.credentialsProvider = new DialogUsernamePasswordProvider
-		
+
 		this.registeredRepositories >> [ added, removed |
 			val theAdded = new ArrayList(added)
 			val theRemoved = new ArrayList(removed)
@@ -57,7 +56,7 @@ class PersistingRepositoryRegistry implements RepositoryRegistry {
 				theRemoved.forEach[this.eventBroker.publish(RepositoryRegistryTopic.REPO_REMOVED, directory)]
 			]
 		]
-		this.persistor.load[forEach[registerRepository]]
+		this.persistor.load[forEach[registerRepository(false)]]
 		this.registeredRepositories > [
 			Platform.runLater [
 				synchronized (this) {
@@ -105,7 +104,7 @@ class PersistingRepositoryRegistry implements RepositoryRegistry {
 		builder.build
 	}
 
-	override synchronized registerRepository(File repositoryFile) {
+	override synchronized registerRepository(File repositoryFile, boolean open) {
 
 		if (!alreadyRegistered(repositoryFile)) {
 			try {
@@ -115,27 +114,38 @@ class PersistingRepositoryRegistry implements RepositoryRegistry {
 				this.handlers.put(repo.directory.absolutePath, handler)
 				val result = this.registeredRepositories.add(repo)
 				if (result) {
-					ThreadUtils.runOnJavaFXThread[this.eventBroker.publish(RepositoryTopic.REPO_LOADED, handler)]
+					ThreadUtils.runOnJavaFXThread [
+						this.eventBroker.publish(RepositoryTopic.REPO_LOADED, handler)
+						if (open) {
+							this.eventBroker.publish(RepositoryTopic.REPO_OPENED, handler)
+						}
+					]
 				}
 				result
 			} catch (RepositoryNotFoundException e) {
-				ThreadUtils.runOnJavaFXThread[this.eventBroker.publish(RepositoryRegistryTopic.REPO_NOT_FOUND, repositoryFile)]
+				ThreadUtils.runOnJavaFXThread [
+					this.eventBroker.publish(RepositoryRegistryTopic.REPO_NOT_FOUND, repositoryFile)
+				]
 				false
 			} catch (Throwable e) {
-				ThreadUtils.runOnJavaFXThread[this.eventBroker.publish(MessageType.ERROR,
-					new Message(
-						'Could not open', '''Repositroy at «repositoryFile» could not be loaded: «IF e.message !== null»«e.message»«ELSE»«e.class.simpleName»«ENDIF»''',
-						e))]
+				ThreadUtils.runOnJavaFXThread [
+					this.eventBroker.publish(MessageType.ERROR,
+						new Message(
+							'Could not open', '''Repositroy at «repositoryFile» could not be loaded: «IF e.message !== null»«e.message»«ELSE»«e.class.simpleName»«ENDIF»''',
+							e))
+					]
 					false
 				}
 			} else {
 				false
 			}
 		}
-	
-	private def alreadyRegistered(File file) {
-		this.registeredRepositories.exists[directory.absolutePath == file.absolutePath || workTree.absolutePath == file.absolutePath]
-	}
+
+		private def alreadyRegistered(File file) {
+			this.registeredRepositories.exists [
+				directory.absolutePath == file.absolutePath || workTree.absolutePath == file.absolutePath
+			]
+		}
 
 		override removeRepository(File repositoryFile) {
 			throw new UnsupportedOperationException("TODO: auto-generated method stub")

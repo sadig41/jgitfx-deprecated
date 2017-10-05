@@ -24,7 +24,7 @@ public class RepositoryOpener {
 
 		File dir = this.dirChooser.showDialog(root);
 
-		if (dir != null && registry.registerRepository(dir)) {
+		if (dir != null && registry.registerRepository(dir, true)) {
 			this.lastOpened = dir;
 		}
 	}
