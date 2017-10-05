@@ -14,9 +14,9 @@
     
     unstaged-changes-foreground:	-fx-text-background-color;
     unstaged-changes-background:	#fd98;
-    unstaged-changes-highlight:		#f808;
+    unstaged-changes-highlight:		#f80;
     
     staged-changes-foreground:		-fx-text-background-color;
     staged-changes-background:		#ff9a;
-    staged-changes-highlight:		#f80a;
+    staged-changes-highlight:		#f80;
 }
