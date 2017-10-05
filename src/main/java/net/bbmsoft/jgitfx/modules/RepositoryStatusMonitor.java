@@ -17,6 +17,7 @@ import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.treewalk.AbstractTreeIterator;
+import org.eclipse.jgit.treewalk.EmptyTreeIterator;
 import org.eclipse.jgit.treewalk.FileTreeIterator;
 import org.eclipse.jgit.util.io.DisabledOutputStream;
 import org.eclipse.xtext.xbase.lib.Pair;
@@ -74,8 +75,8 @@ public class RepositoryStatusMonitor {
 			diffFmt.setRepository(repo);
 
 			ObjectId id = repo.resolve(Constants.HEAD);
-			RevCommit headCommit = repo.parseCommit(id);
-			AbstractTreeIterator oldTree = getTree(headCommit, repo);
+			RevCommit headCommit = id != null ? repo.parseCommit(id) : null;
+			AbstractTreeIterator oldTree = headCommit != null ? getTree(headCommit, repo) : new EmptyTreeIterator();
 			AbstractTreeIterator newTree = new DirCacheIterator(repo.readDirCache());
 
 			List<DiffEntry> diff = diffFmt.scan(oldTree, newTree);

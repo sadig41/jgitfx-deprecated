@@ -13,6 +13,7 @@ import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.treewalk.AbstractTreeIterator;
+import org.eclipse.jgit.treewalk.EmptyTreeIterator;
 import org.eclipse.jgit.treewalk.FileTreeIterator;
 import org.eclipse.xtext.xbase.lib.Pair;
 
@@ -94,8 +95,8 @@ public class StagingAnimator {
 
 			if (staged) {
 				ObjectId id = this.repository.resolve(Constants.HEAD);
-				RevCommit headCommit = this.repository.parseCommit(id);
-				oldTree = getTree(headCommit, this.repository);
+				RevCommit headCommit = id != null ? this.repository.parseCommit(id) : null;
+				oldTree = headCommit != null ? getTree(headCommit, this.repository) : new EmptyTreeIterator();
 				newTree = new DirCacheIterator(this.repository.readDirCache());
 			} else {
 				oldTree = new DirCacheIterator(this.repository.readDirCache());

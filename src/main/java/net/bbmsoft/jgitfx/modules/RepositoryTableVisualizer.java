@@ -5,6 +5,7 @@ import static net.bbmsoft.jgitfx.utils.RepoHelper.fromHandler;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -157,7 +158,7 @@ public class RepositoryTableVisualizer {
 		}
 	}
 
-	private void doUpdateRepositoryView() throws NoHeadException, GitAPIException, IOException {
+	private void doUpdateRepositoryView() throws GitAPIException, IOException {
 
 		// TODO possibly move to background thread if too slow
 		
@@ -181,11 +182,16 @@ public class RepositoryTableVisualizer {
 			refs.add(ref);
 		});
 
-		Iterable<RevCommit> commitsIterable = git.log().all().call();
-
 		List<HistoryEntry> commits = new ArrayList<>();
-
 		commits.add(new HistoryEntry(null));
+		
+		Iterable<RevCommit> commitsIterable = Collections.emptyList();
+		try {
+			commitsIterable = git.log().all().call();
+		} catch (NoHeadException e) {
+			this.table.getItems().setAll(commits);
+			return;
+		}
 
 		commitsIterable.forEach(rev -> commits.add(new HistoryEntry(rev)));
 		this.table.getItems().setAll(commits);
