@@ -406,7 +406,6 @@ class JGitFXMainFrame extends BorderPane {
 			this.repositoryHandler?.setAutoInvalidate(true)
 			this.breadcrumb.selectedCrumb = repoItem ?: this.rootRepoTreeItem
 			this.prefs.lastOpened = repository?.directory
-			this.historyVisualizer.repository = repository
 			Platform.runLater [
 				if (repository !== null && prefs.switchToRepositoryOverview) {
 					this.repositoryOverview.expanded = true

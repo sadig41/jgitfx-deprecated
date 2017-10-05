@@ -75,6 +75,8 @@ public class RepositoryTableVisualizer {
 				updateRepositoryView();
 			}
 		});
+		
+		eventBroker.subscribe(RepositoryTopic.REPO_OPENED, (topic, repo) -> setRepository(repo.getRepository()));
 	}
 
 	private String getCommitTime(RevCommit commit) {
@@ -136,11 +138,10 @@ public class RepositoryTableVisualizer {
 				.toString();
 	}
 
-	public void setRepository(Repository repository) {
-
+	private void setRepository(Repository repository) {
 		this.repository = repository;
-
 		updateRepositoryView();
+		this.table.getSelectionModel().select(0);
 	}
 
 	private void updateRepositoryView() {

@@ -63,7 +63,11 @@ public class StagingAnimator {
 		this.stagedFileColum
 				.setCellValueFactory(cdf -> new SimpleStringProperty(StagingHelper.getFilePath(cdf.getValue())));
 
-		broker.subscribe(RepositoryTopic.REPO_OPENED, (topic, repo) -> this.repository = fromHandler(repo));
+		broker.subscribe(RepositoryTopic.REPO_OPENED, (topic, repo) -> {
+			this.repository = fromHandler(repo);
+			this.stagedFilesTable.getItems().clear();
+			this.unstagedFilesTable.getItems().clear();
+		});
 
 		broker.subscribe(DiffTopic.STAGED_CHANGES_FOUND, (topic, diffs) -> {
 			if (this.repository != null && isRelevant(diffs.getKey())) {
