@@ -28,6 +28,7 @@ import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtension
 import net.bbmsoft.jgitfx.modules.DialogUsernamePasswordProvider
 import org.eclipse.jgit.transport.CredentialsProvider
 import java.util.ArrayList
+import net.bbmsoft.bbm.utils.concurrent.ThreadUtils
 
 @Singleton
 class PersistingRepositoryRegistry implements RepositoryRegistry {
@@ -114,14 +115,14 @@ class PersistingRepositoryRegistry implements RepositoryRegistry {
 				this.handlers.put(repo.directory.absolutePath, handler)
 				val result = this.registeredRepositories.add(repo)
 				if (result) {
-					Platform.runLater[this.eventBroker.publish(RepositoryTopic.REPO_LOADED, handler)]
+					ThreadUtils.runOnJavaFXThread[this.eventBroker.publish(RepositoryTopic.REPO_LOADED, handler)]
 				}
 				result
 			} catch (RepositoryNotFoundException e) {
-				Platform.runLater[this.eventBroker.publish(RepositoryRegistryTopic.REPO_NOT_FOUND, repositoryFile)]
+				ThreadUtils.runOnJavaFXThread[this.eventBroker.publish(RepositoryRegistryTopic.REPO_NOT_FOUND, repositoryFile)]
 				false
 			} catch (Throwable e) {
-				Platform.runLater[this.eventBroker.publish(MessageType.ERROR,
+				ThreadUtils.runOnJavaFXThread[this.eventBroker.publish(MessageType.ERROR,
 					new Message(
 						'Could not open', '''Repositroy at «repositoryFile» could not be loaded: «IF e.message !== null»«e.message»«ELSE»«e.class.simpleName»«ENDIF»''',
 						e))]
