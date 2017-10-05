@@ -1,0 +1,11 @@
+#repositoryTree .tree-cell:unstaged-changes {
+	-fx-background-color:	diff-added-background;
+}
+
+#repositoryTree .tree-cell:staged-changes {
+	
+}
+
+#repositoryTree .tree-cell:children-out-of-sync {
+	
+}

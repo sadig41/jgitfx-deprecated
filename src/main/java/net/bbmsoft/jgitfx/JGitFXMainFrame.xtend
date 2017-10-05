@@ -20,7 +20,6 @@ import javafx.scene.control.TextField
 import javafx.scene.control.TitledPane
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
-import javafx.scene.control.cell.TextFieldTreeCell
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
@@ -49,8 +48,8 @@ import net.bbmsoft.jgitfx.modules.RepositoryStatusMonitor
 import net.bbmsoft.jgitfx.modules.RepositoryTableVisualizer
 import net.bbmsoft.jgitfx.modules.StagingAnimator
 import net.bbmsoft.jgitfx.registry.RepositoryRegistry
-import net.bbmsoft.jgitfx.utils.RepositoryTreeItemStringConverter
 import net.bbmsoft.jgitfx.wrappers.HistoryEntry
+import net.bbmsoft.jgitfx.wrappers.RepoTreeCellFactory
 import net.bbmsoft.jgitfx.wrappers.RepositoryWrapper
 import net.bbmsoft.jgitfx.wrappers.RepositoryWrapper.DummyWrapper
 import org.controlsfx.control.BreadCrumbBar
@@ -181,12 +180,17 @@ class JGitFXMainFrame extends BorderPane {
 		new DiffTextFormatter(this.diffTextContainer.children) => [
 			new DiffAnimator(this.eventBroker, outputStream)
 		]
-		new RepositoryStatusMonitor(eventBroker)
+
+		new RepositoryStatusMonitor(eventBroker)[getWrapper]
 
 		taskHelper.taskList = this.tasksView.tasks
 
 		updateHistoryColumnsVisibility
 		this.historyTable.columns.forEach[col|col.visibleProperty >> [this.prefs.setColumnVisible(col.id, it)]]
+	}
+
+	private def RepositoryWrapper getWrapper(Repository repo) {
+		this.repositoryTreeItems.get(repo.directory.absolutePath)?.value
 	}
 
 	private def addRepoTreeItem(Repository repository) {
@@ -220,7 +224,7 @@ class JGitFXMainFrame extends BorderPane {
 
 		this.commitMessageTextField.textProperty >> [commitMessageUpdated]
 
-		this.repositoryTree.cellFactory = TextFieldTreeCell.forTreeView(new RepositoryTreeItemStringConverter)
+		this.repositoryTree.cellFactory = new RepoTreeCellFactory
 
 		Platform.runLater[this.repositoriesList.expanded = true]
 	}

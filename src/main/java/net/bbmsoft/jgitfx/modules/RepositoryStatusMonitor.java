@@ -6,6 +6,7 @@ import static net.bbmsoft.jgitfx.utils.StagingHelper.getTree;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
@@ -26,19 +27,22 @@ import net.bbmsoft.jgitfx.event.EventPublisher;
 import net.bbmsoft.jgitfx.event.RepositoryTopic;
 import net.bbmsoft.jgitfx.messaging.Message;
 import net.bbmsoft.jgitfx.messaging.MessageType;
+import net.bbmsoft.jgitfx.wrappers.RepositoryWrapper;
 
 public class RepositoryStatusMonitor {
 
 	private final EventPublisher eventPublisher;
+	private final Function<Repository, RepositoryWrapper> wrapperSupplier;
 
-	public RepositoryStatusMonitor(EventBroker broker) {
+	public RepositoryStatusMonitor(EventBroker broker, Function<Repository, RepositoryWrapper> wrapperSupplier) {
 		this.eventPublisher = broker;
+		this.wrapperSupplier = wrapperSupplier;
 
 		broker.subscribe(Arrays.asList(RepositoryTopic.REPO_UPDATED, RepositoryTopic.REPO_OPENED),
-				(topic, repo) -> updateStagedFiles(fromHandler(repo)));
+				(topic, repo) -> updateRepo(fromHandler(repo)));
 	}
 
-	private void updateStagedFiles(Repository repo) {
+	private void updateRepo(Repository repo) {
 
 		if (repo == null) {
 			return;
@@ -46,8 +50,15 @@ public class RepositoryStatusMonitor {
 
 		try {
 
-			updateUnstagedChanges(repo);
-			updateStagedChanges(repo);
+			int unstagedChanges = updateUnstagedChanges(repo);
+			int stagedChanges = updateStagedChanges(repo);
+			
+			RepositoryWrapper wrapper = this.wrapperSupplier.apply(repo);
+			
+			if(wrapper != null) {
+				wrapper.setStagedChanges(stagedChanges > 0);
+				wrapper.setUnstagedChanges(unstagedChanges > 0);
+			}
 
 		} catch (Throwable th) {
 			this.eventPublisher.publish(MessageType.ERROR, new Message("Diff failed",
@@ -56,7 +67,7 @@ public class RepositoryStatusMonitor {
 
 	}
 
-	private void updateStagedChanges(Repository repo) throws CorruptObjectException, IOException {
+	private int updateStagedChanges(Repository repo) throws CorruptObjectException, IOException {
 
 		try (DiffFormatter diffFmt = new DiffFormatter(DisabledOutputStream.INSTANCE)) {
 			
@@ -70,11 +81,13 @@ public class RepositoryStatusMonitor {
 			List<DiffEntry> diff = diffFmt.scan(oldTree, newTree);
 
 			this.eventPublisher.publish(DiffTopic.STAGED_CHANGES_FOUND, Pair.of(repo, diff));
+			
+			return diff.size();
 		}
 
 	}
 
-	private void updateUnstagedChanges(Repository repo) throws CorruptObjectException, IOException {
+	private int updateUnstagedChanges(Repository repo) throws CorruptObjectException, IOException {
 
 		try (DiffFormatter diffFmt = new DiffFormatter(DisabledOutputStream.INSTANCE)) {
 			
@@ -86,6 +99,8 @@ public class RepositoryStatusMonitor {
 			List<DiffEntry> diff = diffFmt.scan(oldTree, newTree);
 
 			this.eventPublisher.publish(DiffTopic.UNSTAGED_CHANGES_FOUND, Pair.of(repo, diff));
+			
+			return diff.size();
 		}
 	}
 
