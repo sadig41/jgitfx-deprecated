@@ -20,6 +20,7 @@ import javafx.scene.control.TextField
 import javafx.scene.control.TitledPane
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
+import javafx.scene.input.DragEvent
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
@@ -59,6 +60,9 @@ import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.lib.Repository
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
+import javafx.scene.input.TransferMode
+import java.io.File
+import net.bbmsoft.jgitfx.event.TaskTopic
 
 @FXMLRoot
 class JGitFXMainFrame extends BorderPane {
@@ -481,6 +485,48 @@ class JGitFXMainFrame extends BorderPane {
 				commit
 			}
 		}
+	}
+
+	def void dragOver(DragEvent event) {
+		if (event.gestureSource != this.repositoryTree && event.dragboard.hasFiles) {
+			event.acceptTransferModes(TransferMode.COPY)
+		}
+		event.consume
+	}
+
+	def void dragDropped(DragEvent event) {
+		val db = event.dragboard
+		val files = if (db.hasFiles) {
+				db.files
+			}
+		event.setDropCompleted(files !== null)
+		event.consume
+
+		val Task<?> task = new OpenReposTask(files, this.repositoryRegistry)
+		this.eventBroker.publish(TaskTopic.TASK_STARTED, task)
+
+	}
+
+	static class OpenReposTask extends Task<Void> {
+
+		final List<File> repoDirs
+		final RepositoryRegistry registry
+
+		new(List<File> repoDirs, RepositoryRegistry registry) {
+			this.repoDirs = repoDirs
+			this.registry = registry
+			updateTitle('''Adding «IF repoDirs.size > 1»«repoDirs.size» repositories«ELSE»repository«ENDIF»''')
+		}
+
+		override protected call() throws Exception {
+			repoDirs?.forEach [ it, i |
+				updateMessage('''Loading «absolutePath»''')
+				registry.registerRepository(it)
+				updateProgress(i, repoDirs.size)
+			]
+			null
+		}
+
 	}
 
 }

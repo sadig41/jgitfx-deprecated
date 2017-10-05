@@ -6,39 +6,41 @@ import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtension
 import net.bbmsoft.fxtended.annotations.binding.ReadOnly
 
 class RepositoryWrapper {
-	
+
 	final static private String PULL = '↓'
 	final static private String PUSH = '↑'
-	
+
 	final Repository repository
-	
-	@ReadOnly @BindableProperty  String name
+
+	@ReadOnly @BindableProperty String name
 	@ReadOnly @BindableProperty String longName
-	
+
 	@BindableProperty int ahead
 	@BindableProperty int behind
 	@BindableProperty boolean unstagedChanges
 	@BindableProperty boolean stagedChanges
 	@BindableProperty boolean childrenOutOfSync
-
+	@BindableProperty boolean open
 
 	new(Repository repository) {
 		this(repository, null)
 	}
-	
+
 	protected new(Repository repository, String name) {
-		
+
 		this.repository = repository
 		this.name = name ?: this.repository?.workTree?.name
-		
+
 		this.longName = '''«this.name» («this.repository?.workTree?.absolutePath»)'''
-		
+
 		aheadProperty > [updateLongName]
 		behindProperty > [updateLongName]
+		openProperty > [updateLongName]
 	}
-	
+
 	private def updateLongName() {
-		this.longName = '''«this.name» («this.repository?.workTree?.absolutePath»)«IF behind > 0 || ahead > 0» «ENDIF»«IF behind > 0»«PULL»«behind»«ENDIF»«IF ahead > 0»«PUSH»«ahead»«ENDIF»'''
+		val newLongName = '''«this.name» («this.repository?.workTree?.absolutePath»)«IF behind > 0 || ahead > 0» «ENDIF»«IF behind > 0»«PULL»«behind»«ENDIF»«IF ahead > 0»«PUSH»«ahead»«ENDIF»'''
+		this.longName = newLongName
 	}
 
 	override int hashCode() {
@@ -54,9 +56,13 @@ class RepositoryWrapper {
 		if(class !== obj.class) return false
 		var RepositoryWrapper other = obj as RepositoryWrapper
 		if (repository === null) {
-			if(other.repository !== null) return false
-		} else if(repository.directory.absolutePath != other.repository.directory.absolutePath) return false
-		return true
+			if(other.repository !== null) {
+				return false
+			}
+		} else if(repository.directory.absolutePath != other.repository.directory.absolutePath) {
+			return false
+		}
+		true
 	}
 
 	def Repository getRepository() {
@@ -68,7 +74,7 @@ class RepositoryWrapper {
 	}
 
 	static class DummyWrapper extends RepositoryWrapper {
-		
+
 		new(String name) {
 			super(null, name)
 		}

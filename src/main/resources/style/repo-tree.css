@@ -11,3 +11,7 @@
 #repositoryTree .tree-cell:children-out-of-sync {
 	
 }
+
+#repositoryTree .tree-cell:open {
+	-fx-graphic: url("../img/arrow.png");
+}

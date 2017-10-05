@@ -1,9 +1,9 @@
 package net.bbmsoft.jgitfx.event;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import net.bbmsoft.bbm.utils.concurrent.ThreadUtils;
 
@@ -12,7 +12,7 @@ public class SimpleEventBroker implements EventBroker {
 	private final Map<Topic<?>, List<Listener<?>>> listenerMap;
 
 	public SimpleEventBroker() {
-		this.listenerMap = new HashMap<>();
+		this.listenerMap = new ConcurrentHashMap<>();
 	}
 
 	private List<Listener<?>> getListeners(Topic<?> topic) {
@@ -29,13 +29,11 @@ public class SimpleEventBroker implements EventBroker {
 
 	@Override
 	public <T> void subscribe(Topic<T> topic, Listener<T> listener) {
-		ThreadUtils.checkFxThread();
 		getListeners(topic).add(listener);
 	}
 
 	@Override
 	public <T> void unsubscribe(Topic<T> topic, Listener<T> listener) {
-		ThreadUtils.checkFxThread();
 		getListeners(topic).remove(listener);
 	}
 

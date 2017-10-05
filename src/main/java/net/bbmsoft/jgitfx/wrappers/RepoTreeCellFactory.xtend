@@ -1,6 +1,5 @@
 package net.bbmsoft.jgitfx.wrappers
 
-import java.util.function.Consumer
 import javafx.beans.value.ChangeListener
 import javafx.scene.control.TreeCell
 import javafx.scene.control.TreeView
@@ -12,7 +11,7 @@ import net.bbmsoft.jgitfx.utils.RepositoryTreeItemStringConverter
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
 
-@PseudoClasses('unstaged-changes', 'staged-changes', 'children-out-of-sync')
+@PseudoClasses('unstaged-changes', 'staged-changes', 'children-out-of-sync', 'open')
 class RepoTreeCellFactory implements Callback<TreeView<RepositoryWrapper>, TreeCell<RepositoryWrapper>> {
 
 	StringConverter<RepositoryWrapper> converter = new RepositoryTreeItemStringConverter
@@ -26,10 +25,7 @@ class RepoTreeCellFactory implements Callback<TreeView<RepositoryWrapper>, TreeC
 		ChangeListener<Boolean> unstagedChangesListenr
 		ChangeListener<Boolean> stagedChangesListenr
 		ChangeListener<Boolean> childrenOutOfSyncListener
-		
-		Consumer<Boolean> unstagedChangesConsumer = [PSEUDO_CLASS_UNSTAGED_CHANGES.pseudoClassStateChanged = it]
-		Consumer<Boolean> stagedChangesConsumer = [PSEUDO_CLASS_STAGED_CHANGES.pseudoClassStateChanged = it]
-		Consumer<Boolean> childrenOutOfSyncConsumer = [PSEUDO_CLASS_CHILDREN_OUT_OF_SYNC.pseudoClassStateChanged = it]
+		ChangeListener<Boolean> openListener
 
 		new(StringConverter<RepositoryWrapper> converter) {
 			super(converter)
@@ -42,13 +38,19 @@ class RepoTreeCellFactory implements Callback<TreeView<RepositoryWrapper>, TreeC
 				oldWrapper.unstagedChangesProperty - this.unstagedChangesListenr
 				oldWrapper.stagedChangesProperty - this.stagedChangesListenr
 				oldWrapper.childrenOutOfSyncProperty - this.childrenOutOfSyncListener
+				oldWrapper.openProperty - this.openListener
 			}
 
 			if (newWrapper !== null) {
-				unstagedChangesListenr = newWrapper.unstagedChangesProperty >> this.unstagedChangesConsumer
-				stagedChangesListenr = newWrapper.stagedChangesProperty >> this.stagedChangesConsumer
-				childrenOutOfSyncListener = newWrapper.childrenOutOfSyncProperty >> this.childrenOutOfSyncConsumer
-				newWrapper.longNameProperty >> [this.text = it]
+				
+				unstagedChangesListenr = newWrapper.unstagedChangesProperty >> [PSEUDO_CLASS_UNSTAGED_CHANGES.pseudoClassStateChanged = it]
+				stagedChangesListenr = newWrapper.stagedChangesProperty >> [PSEUDO_CLASS_STAGED_CHANGES.pseudoClassStateChanged = it]
+				childrenOutOfSyncListener = newWrapper.childrenOutOfSyncProperty >> [PSEUDO_CLASS_CHILDREN_OUT_OF_SYNC.pseudoClassStateChanged = it]
+				openListener = newWrapper.openProperty >> [PSEUDO_CLASS_OPEN.pseudoClassStateChanged = it]
+				
+				newWrapper.longNameProperty >> [
+					this.text = it
+				]
 			}
 		}
 		

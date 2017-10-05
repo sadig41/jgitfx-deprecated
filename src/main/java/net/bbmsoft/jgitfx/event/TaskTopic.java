@@ -1,7 +1,7 @@
 package net.bbmsoft.jgitfx.event;
 
+import javafx.concurrent.Task;
 import net.bbmsoft.jgitfx.event.EventBroker.Topic;
-import net.bbmsoft.jgitfx.modules.RepositoryActionHandler.Task;
 
 public enum TaskTopic implements Topic<Task<?>> {
 	

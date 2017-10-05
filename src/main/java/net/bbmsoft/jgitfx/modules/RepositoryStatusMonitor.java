@@ -24,6 +24,7 @@ import org.eclipse.xtext.xbase.lib.Pair;
 
 import net.bbmsoft.jgitfx.event.DiffTopic;
 import net.bbmsoft.jgitfx.event.EventBroker;
+import net.bbmsoft.jgitfx.event.EventBroker.Topic;
 import net.bbmsoft.jgitfx.event.EventPublisher;
 import net.bbmsoft.jgitfx.event.RepositoryTopic;
 import net.bbmsoft.jgitfx.messaging.Message;
@@ -34,16 +35,17 @@ public class RepositoryStatusMonitor {
 
 	private final EventPublisher eventPublisher;
 	private final Function<Repository, RepositoryWrapper> wrapperSupplier;
+	private RepositoryWrapper openWrapper;
 
 	public RepositoryStatusMonitor(EventBroker broker, Function<Repository, RepositoryWrapper> wrapperSupplier) {
 		this.eventPublisher = broker;
 		this.wrapperSupplier = wrapperSupplier;
-
+		
 		broker.subscribe(Arrays.asList(RepositoryTopic.REPO_UPDATED, RepositoryTopic.REPO_OPENED),
-				(topic, repo) -> updateRepo(fromHandler(repo)));
+				(topic, repo) -> updateRepo(topic, fromHandler(repo)));
 	}
 
-	private void updateRepo(Repository repo) {
+	private void updateRepo(Topic<RepositoryHandler> topic, Repository repo) {
 
 		if (repo == null) {
 			return;
@@ -59,6 +61,14 @@ public class RepositoryStatusMonitor {
 			if(wrapper != null) {
 				wrapper.setStagedChanges(stagedChanges > 0);
 				wrapper.setUnstagedChanges(unstagedChanges > 0);
+				
+				if(topic == RepositoryTopic.REPO_OPENED) {
+					if(this.openWrapper != null) {
+						this.openWrapper.setOpen(false);
+					}
+					this.openWrapper = wrapper;
+					this.openWrapper.setOpen(true);
+				}
 			}
 
 		} catch (Throwable th) {

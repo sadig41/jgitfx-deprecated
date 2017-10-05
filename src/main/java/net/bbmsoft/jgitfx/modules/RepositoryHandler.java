@@ -38,7 +38,7 @@ public class RepositoryHandler {
 
 	private EventPublisher eventPublisher;
 
-	public RepositoryHandler(Repository repository, EventBroker eventBroker) {
+	public RepositoryHandler(Repository repository, EventBroker eventBroker, CredentialsProvider credentialsProvider) {
 		this.eventPublisher = eventBroker;
 		this.repository = repository;
 		this.git = Git.wrap(repository);
@@ -47,7 +47,7 @@ public class RepositoryHandler {
 		this.commitHandler = new CommitHandler(eventBroker);
 		this.stageHandler = new StageHandler(eventBroker);
 		// TODO provide proper credentials provider
-		this.credentialsProvider = new DialogUsernamePasswordProvider();
+		this.credentialsProvider = credentialsProvider;
 		eventBroker.subscribe(RepositoryOperations.values(), (topic, repo) -> evaluateRepositoryOperation(topic, repo));
 		this.repository.getListenerList().addRefsChangedListener(e -> Platform.runLater(() -> this.refsChanged(e)));
 		this.repository.getListenerList().addIndexChangedListener(e -> Platform.runLater(() -> this.indexChanged(e)));

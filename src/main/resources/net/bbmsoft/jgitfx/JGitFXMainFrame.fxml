@@ -146,7 +146,7 @@
               <panes>
                 <TitledPane fx:id="repositoriesList" animated="false" expanded="true" text="Repositories">
                      <content>
-                        <TreeView fx:id="repositoryTree" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+                        <TreeView fx:id="repositoryTree" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onDragDropped="#dragDropped" onDragOver="#dragOver">
                            <contextMenu>
                               <ContextMenu>
                                 <items>
