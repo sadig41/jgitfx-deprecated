@@ -161,10 +161,10 @@ class JGitFXMainFrame extends BorderPane {
 		this.eventBroker.subscribe(RepositoryTopic.REPO_OPENED) [
 			this.repositoryTreeItems.get($1?.repository?.directory?.absolutePath).open
 		]
-		this.eventBroker.subscribe(RepositoryTopic.REPO_REMOVED)[
+		this.eventBroker.subscribe(RepositoryTopic.REPO_REMOVED) [
 			val treeItem = this.repositoryTreeItems.remove($1.repository.directory.absolutePath)
 			this.rootRepoTreeItem.children.remove(treeItem)
-			if($1 == this.repositoryHandler) {
+			if ($1 == this.repositoryHandler) {
 				Platform.runLater[this.eventBroker.publish(RepositoryTopic.REPO_OPENED, null)]
 			}
 		]
@@ -407,10 +407,13 @@ class JGitFXMainFrame extends BorderPane {
 			this.breadcrumb.selectedCrumb = repoItem ?: this.rootRepoTreeItem
 			this.prefs.lastOpened = repository?.directory
 			this.historyVisualizer.repository = repository
-			if (repository !== null && prefs.switchToRepositoryOverview) {
-				// delay so it also works on startup
-				Platform.runLater[this.repositoryOverview.expanded = true]
-			}
+			Platform.runLater [
+				if (repository !== null && prefs.switchToRepositoryOverview) {
+					this.repositoryOverview.expanded = true
+				} else {
+					this.repositoriesList.expanded = true
+				}
+			]
 		} catch (Throwable th) {
 			val title = 'Failed to open repository'
 			val body = '''An error occurded while opening the repository:  «IF th.message !== null»«th.message»«ELSE»«th.class.simpleName»«ENDIF»'''
@@ -510,17 +513,17 @@ class JGitFXMainFrame extends BorderPane {
 		this.eventBroker.publish(TaskTopic.TASK_STARTED, task)
 
 	}
-	
+
 	def keyPressed(KeyEvent e) {
-		if(e.source == this.repositoryTree && e.code == KeyCode.DELETE) {
+		if (e.source == this.repositoryTree && e.code == KeyCode.DELETE) {
 			removeSelectedRepos
 		}
 	}
-	
+
 	private def removeSelectedRepos() {
-		new ArrayList(this.repositoryTree.selectionModel.selectedItems).forEach[removeRepo] 
+		new ArrayList(this.repositoryTree.selectionModel.selectedItems).forEach[removeRepo]
 	}
-	
+
 	private def removeRepo(TreeItem<RepositoryWrapper> item) {
 		val repository = item.value.repository
 		this.repositoryRegistry.removeRepository(repository)
