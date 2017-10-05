@@ -1,5 +1,8 @@
 package net.bbmsoft.jgitfx.modules;
 
+import static net.bbmsoft.jgitfx.utils.RepoHelper.equal;
+import static net.bbmsoft.jgitfx.utils.RepoHelper.fromHandler;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -23,8 +26,7 @@ import javafx.scene.control.TableView;
 import net.bbmsoft.jgitfx.event.CommitMessageTopic;
 import net.bbmsoft.jgitfx.event.EventBroker;
 import net.bbmsoft.jgitfx.event.RepositoryTopic;
-import net.bbmsoft.jgitfx.wrappers.HistoryEntry;
-
+import net.bbmsoft.jgitfx.wrappers.HistoryEntry;;
 public class RepositoryTableVisualizer {
 
 	private final TableView<HistoryEntry> table;
@@ -68,15 +70,10 @@ public class RepositoryTableVisualizer {
 		});
 		
 		eventBroker.subscribe(RepositoryTopic.REPO_UPDATED, (topic, repo) -> {
-			if (this.repository != null && isRelevant(repo)) {
+			if (this.repository != null && equal(fromHandler(repo),  this.repository)) {
 				updateRepositoryView();
 			}
 		});
-	}
-
-	private boolean isRelevant(RepositoryHandler repo) {
-		return repo == null || repo.getRepository().getDirectory().getAbsolutePath()
-				.equals(this.repository.getDirectory().getAbsolutePath());
 	}
 
 	private String getCommitTime(RevCommit commit) {

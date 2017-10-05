@@ -11,14 +11,15 @@ import org.eclipse.jgit.errors.CorruptObjectException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.AbbreviatedObjectId;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.xtext.xbase.lib.Pair;
 
 import javafx.application.Platform;
 import net.bbmsoft.jgitfx.event.DiffTopic;
 import net.bbmsoft.jgitfx.event.EventBroker;
 import net.bbmsoft.jgitfx.event.EventPublisher;
-import net.bbmsoft.jgitfx.event.RepositoryTopic;
 import net.bbmsoft.jgitfx.messaging.Message;
 import net.bbmsoft.jgitfx.messaging.MessageType;
+import net.bbmsoft.jgitfx.utils.RepoHelper;
 import net.bbmsoft.jgitfx.utils.StagingHelper;
 
 public class DiffAnimator {
@@ -36,11 +37,25 @@ public class DiffAnimator {
 		this.blacklist = new ArrayList<>();
 		this.diffOutputStream = diffOutputStream;
 
-		eventBroker.subscribe(RepositoryTopic.REPO_OPENED, (topic, repo) -> setRepository(repo));
-		eventBroker.subscribe(DiffTopic.DIFF_ENTRY_SELECTED, (topic, diff) -> setDiff(diff));
+		eventBroker.subscribe(DiffTopic.DIFF_ENTRY_SELECTED, (topic, diff) -> updateDiff(diff));
 	}
 
-	private void setRepository(RepositoryHandler repo) {
+	private void updateDiff(Pair<Repository, List<DiffEntry>> diff) {
+		
+		Repository repo = diff.getKey();
+		if(!RepoHelper.equal(repo, this.repository)) {
+			this.setRepository(repo);
+		}
+		
+		List<DiffEntry> diffs = diff.getValue();
+
+		// can show only one diff, so choose the one that has been selected last
+		DiffEntry actualDiff = diffs.isEmpty() ? null : diffs.get(diffs.size() - 1);
+		
+		setDiff(actualDiff);
+	}
+
+	private void setRepository(Repository repo) {
 
 		if (this.diffFormatter != null) {
 			this.diffFormatter.close();
@@ -50,7 +65,7 @@ public class DiffAnimator {
 			this.repository = null;
 			this.diffFormatter = null;
 		} else {
-			this.repository = repo.getRepository();
+			this.repository = repo;
 			this.diffFormatter = new DiffFormatter(this.diffOutputStream);
 			this.diffFormatter.setRepository(this.repository);
 		}

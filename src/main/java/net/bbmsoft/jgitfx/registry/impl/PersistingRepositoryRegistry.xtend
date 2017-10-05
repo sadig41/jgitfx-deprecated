@@ -23,6 +23,7 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import org.eclipse.xtend.lib.annotations.Accessors
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
+import net.bbmsoft.jgitfx.event.AppStatus
 
 @Singleton
 class PersistingRepositoryRegistry implements RepositoryRegistry {
@@ -46,6 +47,8 @@ class PersistingRepositoryRegistry implements RepositoryRegistry {
 		]
 		this.persistor.load[forEach[registerRepository]]
 		this.registeredRepositories > [this.persistor.persist(this.registeredRepositories.map[directory])]
+		
+		eventBroker.subscribe(AppStatus.FOCUSED)[this.registeredRepositories.forEach[eventBroker.publish(RepositoryTopic.REPO_UPDATED, repositoryHandler)]]
 		
 //		Executors.newSingleThreadScheduledExecutor[new Thread(it, 'Refresh Scheduler') => [daemon = true]] => [
 //			scheduleAtFixedRate([Platform.runLater[refreshAll]], 3, 3, TimeUnit.SECONDS)

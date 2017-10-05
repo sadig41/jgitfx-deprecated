@@ -1,27 +1,16 @@
 package net.bbmsoft.jgitfx.modules;
 
-import java.io.IOException;
+import static net.bbmsoft.jgitfx.utils.RepoHelper.fromHandler;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
-import org.eclipse.jgit.dircache.DirCacheIterator;
-import org.eclipse.jgit.errors.CorruptObjectException;
-import org.eclipse.jgit.errors.IncorrectObjectTypeException;
-import org.eclipse.jgit.errors.NoWorkTreeException;
-import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.treewalk.AbstractTreeIterator;
-import org.eclipse.jgit.treewalk.CanonicalTreeParser;
+import org.eclipse.xtext.xbase.lib.Pair;
 
+import javafx.beans.Observable;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import net.bbmsoft.bbm.utils.concurrent.ThreadUtils;
@@ -31,7 +20,7 @@ import net.bbmsoft.jgitfx.event.EventPublisher;
 import net.bbmsoft.jgitfx.event.RepositoryTopic;
 import net.bbmsoft.jgitfx.utils.StagingHelper;
 
-public class StagingAnimator implements ChangeListener<RepositoryHandler> {
+public class StagingAnimator {
 
 	private final TableView<DiffEntry> unstagedFilesTable;
 	private final TableColumn<DiffEntry, String> unstagedTypeColum;
@@ -43,6 +32,7 @@ public class StagingAnimator implements ChangeListener<RepositoryHandler> {
 	private Repository repository;
 	private EventPublisher eventPublisher;
 
+	@SuppressWarnings("unchecked")
 	public StagingAnimator(TableView<DiffEntry> unstagedFilesTable, TableColumn<DiffEntry, String> unstagedTypeColum,
 			TableColumn<DiffEntry, String> unstagedFileColum, TableView<DiffEntry> stagedFilesTable,
 			TableColumn<DiffEntry, String> stagedTypeColum, TableColumn<DiffEntry, String> stagedFileColum,
@@ -65,37 +55,37 @@ public class StagingAnimator implements ChangeListener<RepositoryHandler> {
 		this.stagedFileColum
 				.setCellValueFactory(cdf -> new SimpleStringProperty(StagingHelper.getFilePath(cdf.getValue())));
 
-		broker.subscribe(RepositoryTopic.REPO_UPDATED, (topic, repo) -> {
-			if (this.repository != null && isRelevant(repo)) {
-				updateStagedFiles();
+		broker.subscribe(RepositoryTopic.REPO_OPENED, (topic, repo) -> this.repository = fromHandler(repo));
+
+		broker.subscribe(DiffTopic.STAGED_CHANGES_FOUND, (topic, diffs) -> {
+			if (this.repository != null && isRelevant(diffs.getKey())) {
+				updateStagedFiles(diffs);
 			}
 		});
-		
-		this.unstagedFilesTable.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> publishSelectedEntry(nv));
-		this.stagedFilesTable.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> publishSelectedEntry(nv));
+
+		broker.subscribe(DiffTopic.UNSTAGED_CHANGES_FOUND, (topic, diffs) -> {
+			if (this.repository != null && isRelevant(diffs.getKey())) {
+				updateUnstagedFiles(diffs);
+			}
+		});
+
+		this.unstagedFilesTable.getSelectionModel().getSelectedItems()
+				.addListener((Observable o) -> publishSelectedEntries((List<DiffEntry>) o));
+		this.stagedFilesTable.getSelectionModel().getSelectedItems()
+				.addListener((Observable o) -> publishSelectedEntries((List<DiffEntry>) o));
 	}
 
-	private void publishSelectedEntry(DiffEntry diff) {
-		this.eventPublisher.publish(DiffTopic.DIFF_ENTRY_SELECTED, diff);
+	private void publishSelectedEntries(List<DiffEntry> diffs) {
+		this.eventPublisher.publish(DiffTopic.DIFF_ENTRY_SELECTED,
+				Pair.of(this.repository, diffs));
 	}
 
-	private boolean isRelevant(RepositoryHandler repo) {
-		return repo == null || repo.getRepository().getDirectory().getAbsolutePath()
-				.equals(this.repository.getDirectory().getAbsolutePath());
+	private boolean isRelevant(Repository repo) {
+		return repo == null
+				|| repo.getDirectory().getAbsolutePath().equals(this.repository.getDirectory().getAbsolutePath());
 	}
 
-	private void setRepository(Repository repository) throws CorruptObjectException, IOException {
-		this.repository = repository;
-		updateStagedFiles();
-		// make sure index gets updated when it changes
-	}
-
-	private void updateStagedFiles() {
-
-		ThreadUtils.checkFxThread();
-
-		List<DiffEntry> selectedStaged = new ArrayList<>(this.stagedFilesTable.getSelectionModel().getSelectedItems());
-		List<DiffEntry> selectedUnstaged = new ArrayList<>(this.unstagedFilesTable.getSelectionModel().getSelectedItems());
+	private void updateUnstagedFiles(Pair<Repository, List<DiffEntry>> diffs) {
 
 		if (this.repository == null) {
 			this.unstagedFilesTable.getItems().clear();
@@ -103,53 +93,33 @@ public class StagingAnimator implements ChangeListener<RepositoryHandler> {
 			return;
 		}
 
-		try (Git git = Git.wrap(this.repository)) {
+		List<DiffEntry> selectedStaged = new ArrayList<>(this.stagedFilesTable.getSelectionModel().getSelectedItems());
+		
+		List<DiffEntry> indexDiff = new ArrayList<>(diffs.getValue());
+		indexDiff.sort((a, b) -> a.getChangeType().compareTo(b.getChangeType()));
 
-			List<DiffEntry> diff = git.diff().call();
-			diff.sort((a, b) -> a.getChangeType().compareTo(b.getChangeType()));
-
-			this.unstagedFilesTable.getItems().setAll(diff);
-			StagingHelper.applyToMatching(diff, selectedUnstaged, d -> this.unstagedFilesTable.getSelectionModel().select(d));
-
-			AbstractTreeIterator newTree = new DirCacheIterator(git.getRepository().readDirCache());
-
-			ObjectId id = git.getRepository().resolve(Constants.HEAD);
-			RevCommit headCommit = this.repository.parseCommit(id);
-			AbstractTreeIterator oldTree = getTree(headCommit, this.repository);
-			List<DiffEntry> indexDiff = git.diff().setNewTree(newTree).setOldTree(oldTree).call();
-
-			this.stagedFilesTable.getItems().setAll(indexDiff);
-			StagingHelper.applyToMatching(indexDiff, selectedStaged, d -> this.stagedFilesTable.getSelectionModel().select(d));
-
-		} catch (GitAPIException e) {
-			e.printStackTrace();
-		} catch (NoWorkTreeException e) {
-			e.printStackTrace();
-		} catch (CorruptObjectException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		this.stagedFilesTable.getItems().setAll(indexDiff);
+		StagingHelper.applyToMatching(indexDiff, selectedStaged,
+				d -> this.stagedFilesTable.getSelectionModel().select(d));
 	}
 
-	private AbstractTreeIterator getTree(RevCommit commit, Repository repo)
-			throws IncorrectObjectTypeException, IOException {
-		ObjectId treeId = commit.getTree().getId();
-		try (ObjectReader reader = repo.newObjectReader()) {
-			return new CanonicalTreeParser(null, reader, treeId);
-		}
-	}
+	private void updateStagedFiles(Pair<Repository, List<DiffEntry>> diffs) {
 
-	@Override
-	public void changed(ObservableValue<? extends RepositoryHandler> observable, RepositoryHandler oldValue,
-			RepositoryHandler newValue) {
-		try {
-			setRepository(newValue.getRepository());
-		} catch (CorruptObjectException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+		if (this.repository == null) {
+			this.unstagedFilesTable.getItems().clear();
+			this.stagedFilesTable.getItems().clear();
+			return;
 		}
+
+		List<DiffEntry> selectedUnstaged = new ArrayList<>(
+				this.unstagedFilesTable.getSelectionModel().getSelectedItems());
+
+		List<DiffEntry> diff = new ArrayList<>(diffs.getValue());
+		diff.sort((a, b) -> a.getChangeType().compareTo(b.getChangeType()));
+
+		this.unstagedFilesTable.getItems().setAll(diff);
+		StagingHelper.applyToMatching(diff, selectedUnstaged,
+				d -> this.unstagedFilesTable.getSelectionModel().select(d));
 	}
 
 	public boolean hasStagedChanges() {

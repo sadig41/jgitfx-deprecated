@@ -136,8 +136,6 @@ class JGitFXMainFrame extends BorderPane {
 		this.historyVisualizer = new RepositoryTableVisualizer(this.historyTable, this.refsColumn,
 			this.commitMessageColumn, this.authorColumn, this.timeColumn, this.eventBroker)
 
-		this.repositoryHandlerProperty >> stagingAnimator
-
 		this.eventBroker.subscribe(AppStatus.STARTED) [
 			this.repositoryRegistry.registeredRepositories.forEach[addRepoTreeItem]
 			val lastOpened = prefs.lastOpened

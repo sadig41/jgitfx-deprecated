@@ -11,7 +11,6 @@ import net.bbmsoft.jgitfx.event.AppStatus
 import net.bbmsoft.jgitfx.event.EventBroker
 import net.bbmsoft.jgitfx.event.EventPublisher
 import net.bbmsoft.jgitfx.event.RepositoryRegistryTopic
-import net.bbmsoft.jgitfx.event.RepositoryTopic
 import net.bbmsoft.jgitfx.event.TaskTopic
 import net.bbmsoft.jgitfx.event.UserInteraction
 import net.bbmsoft.jgitfx.inject.impl.JGitFXModule
@@ -23,6 +22,7 @@ import net.bbmsoft.jgitfx.modules.RepositoryOpener
 import net.bbmsoft.jgitfx.registry.RepositoryRegistry
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
+import net.bbmsoft.jgitfx.modules.RepositoryStatusMonitor
 
 class JGitFX extends Subapplication {
 
@@ -49,6 +49,8 @@ class JGitFX extends Subapplication {
 		this.jGitFXMainFrame = jGitFXMainFrame
 		this.eventBroker = eventBroker
 		this.prefs = prefs
+		
+		new RepositoryStatusMonitor(eventBroker)
 
 		eventBroker.subscribe(MessageType.values(), messageListener)
 		eventBroker.subscribe(RepositoryRegistryTopic.REPO_NOT_FOUND)[repoNotFound($1, eventBroker)]
@@ -72,7 +74,7 @@ class JGitFX extends Subapplication {
 		this.stage = stage
 
 		stage.scene = new Scene(this.jGitFXMainFrame) => [stylesheets.add = 'style/default.css']
-		stage.focusedProperty >> [this.eventBroker.publish(RepositoryTopic.REPO_UPDATED, null)]
+		stage.focusedProperty >> [if(it) this.eventBroker.publish(AppStatus.FOCUSED, System.currentTimeMillis)]
 
 		stage.maximized = this.prefs.maximized
 		stage.maximizedProperty > [

@@ -1,12 +1,20 @@
 package net.bbmsoft.jgitfx.utils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffEntry.ChangeType;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.lib.AbbreviatedObjectId;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectReader;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.treewalk.AbstractTreeIterator;
+import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.xtext.xbase.lib.IterableExtensions;
 
 public class StagingHelper {
@@ -62,7 +70,7 @@ public class StagingHelper {
 	
 	public static DiffEntry findMatching(List<DiffEntry> source, DiffEntry test) {
 		for (DiffEntry diff : source) {
-			if (equals(test, diff)) {
+			if (equal(test, diff)) {
 				return test;
 			}
 		}
@@ -70,12 +78,12 @@ public class StagingHelper {
 	}
 
 	private static boolean hasMatch(List<DiffEntry> diffs, DiffEntry diff) {
-		return IterableExtensions.exists(diffs, d -> equals(diff, d));
+		return IterableExtensions.exists(diffs, d -> equal(diff, d));
 	}
 
-	public static boolean equals(DiffEntry a, DiffEntry b) {
+	public static boolean equal(DiffEntry a, DiffEntry b) {
 
-		if ((a == null) && (b == null)) {
+		if (a == b) {
 			return true;
 		}
 
@@ -87,5 +95,14 @@ public class StagingHelper {
 		String pathB = StagingHelper.getFilePath(b);
 
 		return pathA.equals(pathB);
+	}
+	
+
+	public static AbstractTreeIterator getTree(RevCommit commit, Repository repo)
+			throws IncorrectObjectTypeException, IOException {
+		ObjectId treeId = commit.getTree().getId();
+		try (ObjectReader reader = repo.newObjectReader()) {
+			return new CanonicalTreeParser(null, reader, treeId);
+		}
 	}
 }
