@@ -13,5 +13,5 @@
 }
 
 #repositoryTree .tree-cell:open {
-	-fx-graphic: url("../img/arrow.png");
+	-fx-font-weight: bold;
 }
