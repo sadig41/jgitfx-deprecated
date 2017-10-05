@@ -106,7 +106,7 @@ class PersistingRepositoryRegistry implements RepositoryRegistry {
 
 	override synchronized registerRepository(File repositoryFile) {
 
-		if (!this.registeredRepositories.exists[directory.absolutePath == repositoryFile.absolutePath]) {
+		if (!alreadyRegistered(repositoryFile)) {
 			try {
 				val repo = loadRepo(repositoryFile)
 				val handler = new RepositoryHandler(repo, this.eventBroker, this.credentialsProvider)
@@ -131,6 +131,10 @@ class PersistingRepositoryRegistry implements RepositoryRegistry {
 				false
 			}
 		}
+	
+	private def alreadyRegistered(File file) {
+		this.registeredRepositories.exists[directory.absolutePath == file.absolutePath || workTree.absolutePath == file.absolutePath]
+	}
 
 		override removeRepository(File repositoryFile) {
 			throw new UnsupportedOperationException("TODO: auto-generated method stub")
