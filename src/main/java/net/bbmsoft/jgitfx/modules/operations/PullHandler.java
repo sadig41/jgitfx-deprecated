@@ -16,8 +16,12 @@ import net.bbmsoft.jgitfx.modules.RepositoryActionHandler;
 
 public class PullHandler extends RepositoryActionHandler<PullResult> {
 
+	private EventPublisher eventPublisher;
+
 	public PullHandler(EventPublisher eventPublisher) {
 		super(eventPublisher);
+		this.eventPublisher = eventPublisher;
+		
 	}
 
 	public void pull(Git git, String remote, CredentialsProvider credetialsProvider) {
@@ -33,18 +37,20 @@ public class PullHandler extends RepositoryActionHandler<PullResult> {
 	private PullResult doPull(Git git, String remote, CredentialsProvider credetialsProvider,
 			ProgressMonitor progressMonitor) {
 				
-		try {
-			return git.pull().setCredentialsProvider(credetialsProvider).setProgressMonitor(progressMonitor)
-					.setRemote(remote).call();
-		} catch (TransportException e) {
-			if (credetialsProvider instanceof InteractiveCredentialsProvider
-					&& ((InteractiveCredentialsProvider) credetialsProvider).retry()) {
-				return doPull(git, remote, credetialsProvider, progressMonitor);
-			} else {
-				publishError(remote, e);
+		synchronized (this.eventPublisher) {
+			try {
+				return git.pull().setCredentialsProvider(credetialsProvider).setProgressMonitor(progressMonitor)
+						.setRemote(remote).call();
+			} catch (TransportException e) {
+				if (credetialsProvider instanceof InteractiveCredentialsProvider
+						&& ((InteractiveCredentialsProvider) credetialsProvider).retry()) {
+					return doPull(git, remote, credetialsProvider, progressMonitor);
+				} else {
+					publishError(remote, e);
+				}
+			} catch (Throwable th) {
+				publishError(remote, th);
 			}
-		} catch (Throwable th) {
-			publishError(remote, th);
 		}
 		
 		return null;
