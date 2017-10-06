@@ -20,4 +20,4 @@ Right now JGitFX is in early alpha stage. Many features that are important for d
 
 ## How to build?
 
-The maven build is broken right now. I'm hoping to fix that soon. Best way right now is to import the project in eclipse and run it from there. The eclipse Xtend plugin is required to compile.
+Unfortunately not at all right now, since there are some more dependencies on other projects that I have not properly published yet. If you are interested in trying JGitFX feel free to contact me so I can send you a compiled snapshot.
