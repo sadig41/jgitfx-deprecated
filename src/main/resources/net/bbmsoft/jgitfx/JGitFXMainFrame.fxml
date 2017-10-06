@@ -130,17 +130,12 @@
             </MenuBar>
             <StackPane alignment="CENTER_LEFT">
                <children>
-                  <HBox>
+                  <HBox alignment="CENTER">
                      <children>
                         <BreadCrumbBar fx:id="breadcrumb" autoNavigationEnabled="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onCrumbAction="#breadCrumbAction" pickOnBounds="false" HBox.hgrow="ALWAYS" />
-                        <ImageView fitHeight="46.0" fitWidth="46.0" pickOnBounds="true" preserveRatio="true">
+                        <ImageView pickOnBounds="true" preserveRatio="true">
                            <image>
-                              <Image url="@../../../logo/jgitfx-64.png" />
-                           </image>
-                        </ImageView>
-                        <ImageView fitHeight="46.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../../../logo/jgitfx-text-256.png" />
+                              <Image url="@../../../logo/jgitfx-full-128.png" />
                            </image>
                         </ImageView>
                      </children>
