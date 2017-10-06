@@ -1,24 +1,28 @@
-.change-list .list-cell:filled:added {
-	-fx-background:		diff-added-background;
-	-fx-accent:			diff-added-highlight;
+.change-list .list-cell .glyph-icon {
+    -glyph-size: 24px;
 }
 
-.change-list .list-cell:filled:modified {
-	-fx-background:		unstaged-changes-background;
-	-fx-accent:			unstaged-changes-highlight;
+.change-list .list-cell:filled:added .glyph-icon {
+	-glyph-name:		"DIFF_ADDED";
+	-fx-fill:			diff-added-highlight;
 }
 
-.change-list .list-cell:filled:deleted {
-	-fx-background:		diff-removed-background;
-	-fx-accent:			diff-removed-highlight;
+.change-list .list-cell:filled:modified .glyph-icon {
+	-glyph-name:		"DIFF_MODIFIED";
+	-fx-fill:			unstaged-changes-highlight;
 }
 
-.change-list .list-cell:filled:renamed {
-	-fx-background:		diff-moved-background;
-	-fx-accent:			diff-moved-highlight;
+.change-list .list-cell:filled:deleted .glyph-icon {
+	-glyph-name:		"DIFF_REMOVED";
+	-fx-fill:			diff-removed-highlight;
 }
 
-.change-list .list-cell:filled:copied {
-	-fx-background:		diff-moved-background;
-	-fx-accent:			diff-moved-highlight;
+.change-list .list-cell:filled:renamed .glyph-icon {
+	-glyph-name:		"DIFF_RENAMED";
+	-fx-fill:			diff-moved-highlight;
+}
+
+.change-list .list-cell:filled:copied .glyph-icon {
+	-glyph-name:		"DIFF_ADDED";
+	-fx-fill:			diff-added-highlight;
 }

@@ -12,7 +12,7 @@
     
 	diff-removed-foreground:		-fx-text-base-color;
 	diff-removed-background:		#f886;
-	diff-removed-highlight:			#e66;
+	diff-removed-highlight:			#f44;
     
 	diff-moved-foreground:			-fx-text-base-color;
 	diff-moved-background:			#88f8;
@@ -20,7 +20,7 @@
     
     unstaged-changes-foreground:	-fx-text-background-color;
     unstaged-changes-background:	#fd98;
-    unstaged-changes-highlight:		#f80;
+    unstaged-changes-highlight:		#fa0;
     
     staged-changes-foreground:		-fx-text-background-color;
     staged-changes-background:		#ff9a;
