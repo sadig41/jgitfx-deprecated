@@ -21,3 +21,7 @@ Right now JGitFX is in early alpha stage. Many features that are important for d
 ## How to build?
 
 Unfortunately not at all right now, since there are some more dependencies on other projects that I have not properly published yet. If you are interested in trying JGitFX feel free to contact me so I can send you a compiled snapshot.
+
+## Logo
+The JGitFX Logo is based on the original git logo by Jason Long.
+For more info please refer to https://git-scm.com/downloads/logos
