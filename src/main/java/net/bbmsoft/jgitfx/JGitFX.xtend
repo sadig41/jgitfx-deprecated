@@ -75,7 +75,7 @@ class JGitFX extends Subapplication {
 		stage.focusedProperty >> [if(it) this.eventBroker.publish(AppStatus.FOCUSED, System.currentTimeMillis)]
 
 		stage.title = 'JGitFX v0.0.1'
-		stage.icons.addAll = #[256, 128, 64, 32,16].map[new Image(class.getResource('''/logo/jgitfx-«it».png''').toExternalForm)]
+		stage.icons.addAll = #[256, 128, 64, 32,16].map[new Image(JGitFX.getResource('''/logo/jgitfx-«it».png''').toExternalForm)]
 		
 		stage.maximized = this.prefs.maximized
 		stage.maximizedProperty > [

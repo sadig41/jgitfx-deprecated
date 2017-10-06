@@ -1,4 +1,9 @@
 .root {
+	
+	-fx-accent:						#4096c9;
+    -fx-default-button:				#79acc9;
+    -fx-focus-color:				#4096c9;
+    -fx-faint-focus-color:			#4096c922;
 
 	diff-header-foreground:			-fx-text-base-color;
 	diff-header-background:			transparent;
@@ -19,10 +24,10 @@
 	diff-moved-highlight:			#8af;
     
     unstaged-changes-foreground:	-fx-text-background-color;
-    unstaged-changes-background:	#fd98;
-    unstaged-changes-highlight:		#fa0;
+    unstaged-changes-background:	#ffba7d77;
+    unstaged-changes-highlight:		#ff864b;
     
     staged-changes-foreground:		-fx-text-background-color;
-    staged-changes-background:		#ff9a;
-    staged-changes-highlight:		#f80;
+    staged-changes-background:		#ffe899aa;
+    staged-changes-highlight:		#ff864b;
 }

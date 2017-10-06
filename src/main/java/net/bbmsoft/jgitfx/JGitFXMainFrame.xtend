@@ -68,6 +68,7 @@ import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.lib.Repository
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
+import javafx.scene.image.ImageView
 
 @FXMLRoot
 class JGitFXMainFrame extends BorderPane {
@@ -393,6 +394,8 @@ class JGitFXMainFrame extends BorderPane {
 			title = 'About'
 			headerText = 'JGitFX v0.0.1 (alpha)'
 			contentText = 'A JGit based graphical git client built with JavaFX'
+			graphic = new ImageView(JGitFXMainFrame.getResource('/logo/jgitfx-full-128.png').toExternalForm)
+			initOwner(scene.window)
 			showAndWait
 		]
 	}
