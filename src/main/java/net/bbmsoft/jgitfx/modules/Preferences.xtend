@@ -34,7 +34,7 @@ class Preferences {
 
 	transient File persistenceFile
 
-	@BindableProperty boolean switchToRepositoryOverview = true
+	@BindableProperty boolean switchToRepositoryOverview = false
 	@BindableProperty boolean maximized = false
 	@BindableProperty File lastOpened = null
 
