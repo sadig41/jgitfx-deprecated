@@ -1,0 +1,24 @@
+.change-list .list-cell:filled:added {
+	-fx-background:		diff-added-background;
+	-fx-accent:			diff-added-highlight;
+}
+
+.change-list .list-cell:filled:modified {
+	-fx-background:		unstaged-changes-background;
+	-fx-accent:			unstaged-changes-highlight;
+}
+
+.change-list .list-cell:filled:deleted {
+	-fx-background:		diff-removed-background;
+	-fx-accent:			diff-removed-highlight;
+}
+
+.change-list .list-cell:filled:renamed {
+	-fx-background:		diff-moved-background;
+	-fx-accent:			diff-moved-highlight;
+}
+
+.change-list .list-cell:filled:copied {
+	-fx-background:		diff-moved-background;
+	-fx-accent:			diff-moved-highlight;
+}

@@ -6,7 +6,6 @@ import java.util.function.Supplier;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.diff.DiffEntry;
-import org.eclipse.jgit.diff.DiffEntry.ChangeType;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectReader;
@@ -17,62 +16,53 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.EmptyTreeIterator;
 
 import javafx.application.Platform;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Parent;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.ListView;
 import net.bbmsoft.jgitfx.event.DetailedDiffTopic;
 import net.bbmsoft.jgitfx.event.EventBroker;
 import net.bbmsoft.jgitfx.event.EventPublisher;
 import net.bbmsoft.jgitfx.event.RepositoryTopic;
 import net.bbmsoft.jgitfx.utils.DiffDetails;
 import net.bbmsoft.jgitfx.utils.StagingHelper;
+import net.bbmsoft.jgitfx.wrappers.DiffListCellFactory;
 import net.bbmsoft.jgitfx.wrappers.HistoryEntry;
 
 public class ChangedFilesAnimator implements ChangeListener<HistoryEntry> {
 
-	private final TableView<DiffEntry> changedFilesOverview;
+	private final ListView<DiffEntry> changedFilesOverview;
 	private final Parent wipOverview;
 
 	private final Supplier<Repository> repoSupplier;
-	private final TableColumn<DiffEntry, ChangeType> typeColumn;
-	private final TableColumn<DiffEntry, String> fileColumn;
 	private final EventPublisher eventPublisher;
-	
+
 	private RevCommit currentCommit;
 
-	public ChangedFilesAnimator(Parent wipOverview, TableView<DiffEntry> changedFilesOverview,
-			TableColumn<DiffEntry, ChangeType> typeColumn, TableColumn<DiffEntry, String> fileColumn,
+	public ChangedFilesAnimator(Parent wipOverview, ListView<DiffEntry> changedFilesOverview,
 			Supplier<Repository> repoSupplier, EventBroker eventBroker) {
 
 		this.wipOverview = wipOverview;
 		this.changedFilesOverview = changedFilesOverview;
-		this.typeColumn = typeColumn;
-		this.fileColumn = fileColumn;
 		this.repoSupplier = repoSupplier;
 		this.eventPublisher = eventBroker;
-			
-		this.typeColumn
-				.setCellValueFactory(cdf -> new SimpleObjectProperty<ChangeType>(cdf.getValue().getChangeType()));
-		this.fileColumn.setCellValueFactory(cdf -> new SimpleStringProperty(StagingHelper.getFilePath(cdf.getValue())));
-
+		
+		this.changedFilesOverview.setCellFactory(new DiffListCellFactory());
 		this.changedFilesOverview.getSelectionModel().selectedItemProperty()
 				.addListener((o, ov, nv) -> publishSelectedEntry(nv));
-		
-		eventBroker.subscribe(RepositoryTopic.REPO_OPENED, (topic, repository) -> this.changedFilesOverview.getItems().clear());
+
+		eventBroker.subscribe(RepositoryTopic.REPO_OPENED,
+				(topic, repository) -> this.changedFilesOverview.getItems().clear());
 	}
 
 	private void publishSelectedEntry(DiffEntry diff) {
-		
-		if(diff == null) {
+
+		if (diff == null) {
 			this.eventPublisher.publish(DetailedDiffTopic.DIFF_ENTRY_SELECTED, null);
 			return;
 		}
-		
-		if(this.currentCommit == null) {
+
+		if (this.currentCommit == null) {
 			return;
 		}
 

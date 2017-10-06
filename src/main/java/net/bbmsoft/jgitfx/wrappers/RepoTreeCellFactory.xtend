@@ -29,19 +29,22 @@ class RepoTreeCellFactory implements Callback<TreeView<RepositoryWrapper>, TreeC
 
 		new(StringConverter<RepositoryWrapper> converter) {
 			super(converter)
-			itemProperty >> [observable, oldWrapper, newWrapper|updateItemListeners(oldWrapper, newWrapper)]
 		}
-
-		private def updateItemListeners(RepositoryWrapper oldWrapper, RepositoryWrapper newWrapper) {
-
+		
+		override updateItem(RepositoryWrapper newWrapper, boolean empty) {
+			
+			val oldWrapper =  getItem
+			
 			if (oldWrapper !== null) {
 				oldWrapper.unstagedChangesProperty - this.unstagedChangesListenr
 				oldWrapper.stagedChangesProperty - this.stagedChangesListenr
 				oldWrapper.childrenOutOfSyncProperty - this.childrenOutOfSyncListener
 				oldWrapper.openProperty - this.openListener
 			}
-
-			if (newWrapper !== null) {
+			
+			super.updateItem(item, empty)
+			
+			if (newWrapper !== null && !empty) {
 				
 				unstagedChangesListenr = newWrapper.unstagedChangesProperty >> [PSEUDO_CLASS_UNSTAGED_CHANGES.pseudoClassStateChanged = it]
 				stagedChangesListenr = newWrapper.stagedChangesProperty >> [PSEUDO_CLASS_STAGED_CHANGES.pseudoClassStateChanged = it]
@@ -53,7 +56,6 @@ class RepoTreeCellFactory implements Callback<TreeView<RepositoryWrapper>, TreeC
 				]
 			}
 		}
-		
 	}
 
 }

@@ -13,6 +13,7 @@ import javafx.fxml.FXML
 import javafx.scene.Parent
 import javafx.scene.control.Button
 import javafx.scene.control.Label
+import javafx.scene.control.ListView
 import javafx.scene.control.MenuItem
 import javafx.scene.control.SelectionMode
 import javafx.scene.control.TableColumn
@@ -60,7 +61,6 @@ import net.bbmsoft.jgitfx.wrappers.RepositoryWrapper.DummyWrapper
 import org.controlsfx.control.BreadCrumbBar
 import org.controlsfx.control.TaskProgressView
 import org.eclipse.jgit.diff.DiffEntry
-import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.lib.Repository
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
@@ -78,16 +78,9 @@ class JGitFXMainFrame extends BorderPane {
 	@FXML TableColumn<HistoryEntry, String> timeColumn
 
 	@FXML Parent wipOverview
-	@FXML TableView<DiffEntry> unstagedFilesTable
-	@FXML TableColumn<DiffEntry, String> unstagedTypeColum
-	@FXML TableColumn<DiffEntry, String> unstagedFileColum
-	@FXML TableView<DiffEntry> stagedFilesTable
-	@FXML TableColumn<DiffEntry, String> stagedTypeColum
-	@FXML TableColumn<DiffEntry, String> stagedFileColum
-
-	@FXML TableView<DiffEntry> changedFilesOverview
-	@FXML TableColumn<DiffEntry, ChangeType> commitTypeColumn
-	@FXML TableColumn<DiffEntry, String> commitFileColumn
+	@FXML ListView<DiffEntry> unstagedFilesTable
+	@FXML ListView<DiffEntry> stagedFilesTable
+	@FXML ListView<DiffEntry> changedFilesOverview
 
 	@FXML TreeView<RepositoryWrapper> repositoryTree
 
@@ -137,8 +130,7 @@ class JGitFXMainFrame extends BorderPane {
 		this.prefs = prefs
 		this.eventBroker = eventBroker
 		this.repositoryRegistry = repoRegistry
-		this.stagingAnimator = new StagingAnimator(this.unstagedFilesTable, this.unstagedTypeColum,
-			this.unstagedFileColum, this.stagedFilesTable, this.stagedTypeColum, this.stagedFileColum, this.eventBroker)
+		this.stagingAnimator = new StagingAnimator(this.unstagedFilesTable, this.stagedFilesTable, this.eventBroker)
 		this.historyVisualizer = new RepositoryTableVisualizer(this.historyTable, this.refsColumn,
 			this.commitMessageColumn, this.authorColumn, this.timeColumn, this.eventBroker)
 
@@ -179,8 +171,7 @@ class JGitFXMainFrame extends BorderPane {
 			new CommitInfoAnimator(this.commitMessageLabel, this.authorLabel, this.emailLabel, this.timeLabel,
 				this.hashLabel, this.parentHashLabel))
 		this.historyTable.selectionModel.selectedItemProperty.addListener(
-			new ChangedFilesAnimator(this.wipOverview, this.changedFilesOverview, this.commitTypeColumn,
-				this.commitFileColumn, [
+			new ChangedFilesAnimator(this.wipOverview, this.changedFilesOverview, [
 					this.repositoryHandler?.repository
 				], this.eventBroker))
 

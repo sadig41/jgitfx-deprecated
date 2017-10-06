@@ -7,10 +7,16 @@
 	diff-body-background:			#00000008;
     
 	diff-added-foreground:			-fx-text-base-color;
-	diff-added-background:			#8faa;
+	diff-added-background:			#8fa8;
+	diff-added-highlight:			#0c8;
     
 	diff-removed-foreground:		-fx-text-base-color;
-	diff-removed-background:		#f888;
+	diff-removed-background:		#f886;
+	diff-removed-highlight:			#e66;
+    
+	diff-moved-foreground:			-fx-text-base-color;
+	diff-moved-background:			#88f8;
+	diff-moved-highlight:			#8af;
     
     unstaged-changes-foreground:	-fx-text-background-color;
     unstaged-changes-background:	#fd98;

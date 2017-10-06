@@ -17,9 +17,7 @@ import org.eclipse.jgit.treewalk.EmptyTreeIterator;
 import org.eclipse.jgit.treewalk.FileTreeIterator;
 import org.eclipse.xtext.xbase.lib.Pair;
 
-import javafx.beans.property.SimpleStringProperty;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.ListView;
 import net.bbmsoft.bbm.utils.concurrent.ThreadUtils;
 import net.bbmsoft.jgitfx.event.DetailedDiffTopic;
 import net.bbmsoft.jgitfx.event.DiffTopic;
@@ -28,40 +26,25 @@ import net.bbmsoft.jgitfx.event.EventPublisher;
 import net.bbmsoft.jgitfx.event.RepositoryTopic;
 import net.bbmsoft.jgitfx.utils.DiffDetails;
 import net.bbmsoft.jgitfx.utils.StagingHelper;
+import net.bbmsoft.jgitfx.wrappers.DiffListCellFactory;
 
 public class StagingAnimator {
 
-	private final TableView<DiffEntry> unstagedFilesTable;
-	private final TableColumn<DiffEntry, String> unstagedTypeColum;
-	private final TableColumn<DiffEntry, String> unstagedFileColum;
-	private final TableView<DiffEntry> stagedFilesTable;
-	private final TableColumn<DiffEntry, String> stagedTypeColum;
-	private final TableColumn<DiffEntry, String> stagedFileColum;
+	private final ListView<DiffEntry> unstagedFilesTable;
+	private final ListView<DiffEntry> stagedFilesTable;
 	private final EventPublisher eventPublisher;
 
 	private Repository repository;
 
-	public StagingAnimator(TableView<DiffEntry> unstagedFilesTable, TableColumn<DiffEntry, String> unstagedTypeColum,
-			TableColumn<DiffEntry, String> unstagedFileColum, TableView<DiffEntry> stagedFilesTable,
-			TableColumn<DiffEntry, String> stagedTypeColum, TableColumn<DiffEntry, String> stagedFileColum,
+	public StagingAnimator(ListView<DiffEntry> unstagedFilesTable, ListView<DiffEntry> stagedFilesTable,
 			EventBroker broker) {
 
 		this.unstagedFilesTable = unstagedFilesTable;
-		this.unstagedTypeColum = unstagedTypeColum;
-		this.unstagedFileColum = unstagedFileColum;
 		this.stagedFilesTable = stagedFilesTable;
-		this.stagedTypeColum = stagedTypeColum;
-		this.stagedFileColum = stagedFileColum;
 		this.eventPublisher = broker;
-
-		this.unstagedTypeColum
-				.setCellValueFactory(cdf -> new SimpleStringProperty(cdf.getValue().getChangeType().toString()));
-		this.unstagedFileColum
-				.setCellValueFactory(cdf -> new SimpleStringProperty(StagingHelper.getFilePath(cdf.getValue())));
-		this.stagedTypeColum
-				.setCellValueFactory(cdf -> new SimpleStringProperty(cdf.getValue().getChangeType().toString()));
-		this.stagedFileColum
-				.setCellValueFactory(cdf -> new SimpleStringProperty(StagingHelper.getFilePath(cdf.getValue())));
+		
+		this.unstagedFilesTable.setCellFactory(new DiffListCellFactory());
+		this.stagedFilesTable.setCellFactory(new DiffListCellFactory());
 
 		broker.subscribe(RepositoryTopic.REPO_OPENED, (topic, repo) -> {
 			this.repository = fromHandler(repo);
@@ -88,8 +71,8 @@ public class StagingAnimator {
 	}
 
 	private void publishSelectedEntry(DiffEntry diff, boolean staged) {
-		
-		if(diff == null) {
+
+		if (diff == null) {
 			this.eventPublisher.publish(DetailedDiffTopic.DIFF_ENTRY_SELECTED, null);
 			return;
 		}

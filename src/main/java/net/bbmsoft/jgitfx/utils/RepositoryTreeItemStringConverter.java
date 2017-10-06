@@ -4,9 +4,9 @@ import net.bbmsoft.jgitfx.wrappers.RepositoryWrapper;
 import javafx.util.StringConverter;
 
 public class RepositoryTreeItemStringConverter extends StringConverter<RepositoryWrapper> {
-	
+
 	private final boolean useShortName;
-	
+
 	public RepositoryTreeItemStringConverter() {
 		this(false);
 	}
@@ -17,6 +17,9 @@ public class RepositoryTreeItemStringConverter extends StringConverter<Repositor
 
 	@Override
 	public String toString(RepositoryWrapper object) {
+		if (object == null) {
+			return "";
+		}
 		return this.useShortName ? object.getName() : object.getLongName();
 	}
 
