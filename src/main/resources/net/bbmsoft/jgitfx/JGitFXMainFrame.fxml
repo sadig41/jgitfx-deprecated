@@ -429,8 +429,8 @@
                                  </contextMenu>
                               </ListView>
                               <Label styleClass="header-label" text="Commit message:" />
-                              <TextField fx:id="commitMessageTextField" onAction="#commitMessageEntered" onKeyPressed="#keyTyped" promptText="Summary" />
-                              <TextArea fx:id="commitMessageTextArea" maxHeight="1.7976931348623157E308" onKeyPressed="#keyTyped" promptText="Description" VBox.vgrow="ALWAYS" />
+                              <TextField fx:id="commitMessageTextField" onAction="#commitMessageEntered" onKeyPressed="#keyPressed" promptText="Summary" />
+                              <TextArea fx:id="commitMessageTextArea" maxHeight="1.7976931348623157E308" onKeyPressed="#keyPressed" promptText="Description" VBox.vgrow="ALWAYS" />
                               <Button fx:id="commitButton" defaultButton="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="46.0" mnemonicParsing="false" onAction="#commit" text="Commit" />
                            </children>
                         </VBox>

@@ -76,6 +76,8 @@ class JGitFXMainFrame extends BorderPane {
 	private static final KeyCombination CONTROL_ENTER = new KeyCodeCombination(KeyCode.ENTER,
 		KeyCombination.CONTROL_DOWN)
 
+	private static final KeyCombination CONTROL_UP = new KeyCodeCombination(KeyCode.UP, KeyCombination.CONTROL_DOWN)
+
 	@FXML TableView<HistoryEntry> historyTable
 	@FXML TableColumn<HistoryEntry, String> refsColumn
 	@FXML TableColumn<HistoryEntry, String> commitMessageColumn
@@ -487,14 +489,6 @@ class JGitFXMainFrame extends BorderPane {
 		this.commitMessageTextArea.requestFocus
 	}
 
-	def keyTyped(KeyEvent event) {
-		if (event.source == this.commitMessageTextField || event.source == this.commitMessageTextArea) {
-			if (CONTROL_ENTER.match(event)) {
-				commit
-			}
-		}
-	}
-
 	def void dragOver(DragEvent event) {
 		if (event.gestureSource != this.repositoryTree && event.dragboard.hasFiles) {
 			event.acceptTransferModes(TransferMode.COPY)
@@ -516,8 +510,20 @@ class JGitFXMainFrame extends BorderPane {
 	}
 
 	def keyPressed(KeyEvent e) {
+
+		if (e.source == this.commitMessageTextField || e.source == this.commitMessageTextArea) {
+			if (CONTROL_ENTER.match(e)) {
+				commit
+				e.consume
+			}
+			if (CONTROL_UP.match(e)) {
+				this.eventBroker.publish(RepositoryOperations.PUSH, this.repositoryHandler)
+			}
+		}
+
 		if (e.source == this.repositoryTree && e.code == KeyCode.DELETE) {
 			removeSelectedRepos
+			e.consume
 		}
 	}
 
