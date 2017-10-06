@@ -20,6 +20,8 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.control.TreeView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.input.KeyCodeCombination?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -128,7 +130,21 @@
             </MenuBar>
             <StackPane alignment="CENTER_LEFT">
                <children>
-                  <BreadCrumbBar fx:id="breadcrumb" autoNavigationEnabled="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onCrumbAction="#breadCrumbAction" pickOnBounds="false" />
+                  <HBox>
+                     <children>
+                        <BreadCrumbBar fx:id="breadcrumb" autoNavigationEnabled="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onCrumbAction="#breadCrumbAction" pickOnBounds="false" HBox.hgrow="ALWAYS" />
+                        <ImageView fitHeight="46.0" fitWidth="46.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../../../logo/jgitfx-64.png" />
+                           </image>
+                        </ImageView>
+                        <ImageView fitHeight="46.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../../../logo/jgitfx-text-256.png" />
+                           </image>
+                        </ImageView>
+                     </children>
+                  </HBox>
                   <HBox alignment="CENTER" pickOnBounds="false" spacing="12.0" StackPane.alignment="CENTER">
                      <children>
                       <Button alignment="CENTER" contentDisplay="TOP" disable="true" graphicTextGap="0.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#undo" prefHeight="45.0" prefWidth="45.0" styleClass="repo-action-button" text="Undo" textAlignment="CENTER" wrapText="true">

@@ -23,6 +23,7 @@ import net.bbmsoft.jgitfx.modules.RepositoryOpener
 import net.bbmsoft.jgitfx.registry.RepositoryRegistry
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
+import javafx.scene.image.Image
 
 class JGitFX extends Subapplication {
 
@@ -74,6 +75,7 @@ class JGitFX extends Subapplication {
 		stage.focusedProperty >> [if(it) this.eventBroker.publish(AppStatus.FOCUSED, System.currentTimeMillis)]
 
 		stage.title = 'JGitFX v0.0.1'
+		stage.icons.addAll = #[256, 128, 64, 32,16].map[new Image(class.getResource('''/logo/jgitfx-«it».png''').toExternalForm)]
 		
 		stage.maximized = this.prefs.maximized
 		stage.maximizedProperty > [
