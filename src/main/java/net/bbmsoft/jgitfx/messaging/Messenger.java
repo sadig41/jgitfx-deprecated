@@ -1,6 +1,6 @@
 package net.bbmsoft.jgitfx.messaging;
 
-import net.bbmsoft.jgitfx.event.EventBroker.Topic;
+import net.bbmsoft.jgitfx.event.Topic;
 
 public interface Messenger {
 

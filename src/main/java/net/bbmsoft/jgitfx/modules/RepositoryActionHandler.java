@@ -7,9 +7,9 @@ import org.eclipse.jgit.lib.Repository;
 
 import javafx.application.Platform;
 import javafx.scene.control.ProgressIndicator;
-import net.bbmsoft.jgitfx.event.EventBroker.Topic;
 import net.bbmsoft.jgitfx.event.EventPublisher;
 import net.bbmsoft.jgitfx.event.TaskTopic;
+import net.bbmsoft.jgitfx.event.Topic;
 
 public abstract class RepositoryActionHandler<R> {
 	

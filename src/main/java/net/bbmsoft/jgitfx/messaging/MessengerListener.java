@@ -1,9 +1,9 @@
 package net.bbmsoft.jgitfx.messaging;
 
-import net.bbmsoft.jgitfx.event.EventBroker;
-import net.bbmsoft.jgitfx.event.EventBroker.Topic;
+import net.bbmsoft.jgitfx.event.Listener;
+import net.bbmsoft.jgitfx.event.Topic;
 
-public class MessengerListener implements EventBroker.Listener<Message> {
+public class MessengerListener implements Listener<Message> {
 
 	private Messenger messenger;
 

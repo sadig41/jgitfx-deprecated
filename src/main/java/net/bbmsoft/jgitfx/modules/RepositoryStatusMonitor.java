@@ -24,9 +24,9 @@ import org.eclipse.xtext.xbase.lib.Pair;
 
 import net.bbmsoft.jgitfx.event.DiffTopic;
 import net.bbmsoft.jgitfx.event.EventBroker;
-import net.bbmsoft.jgitfx.event.EventBroker.Topic;
 import net.bbmsoft.jgitfx.event.EventPublisher;
 import net.bbmsoft.jgitfx.event.RepositoryTopic;
+import net.bbmsoft.jgitfx.event.Topic;
 import net.bbmsoft.jgitfx.messaging.Message;
 import net.bbmsoft.jgitfx.messaging.MessageType;
 import net.bbmsoft.jgitfx.wrappers.RepositoryWrapper;

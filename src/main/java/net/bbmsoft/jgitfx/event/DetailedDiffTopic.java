@@ -1,6 +1,5 @@
 package net.bbmsoft.jgitfx.event;
 
-import net.bbmsoft.jgitfx.event.EventBroker.Topic;
 import net.bbmsoft.jgitfx.utils.DiffDetails;
 
 public enum DetailedDiffTopic implements Topic<DiffDetails> {

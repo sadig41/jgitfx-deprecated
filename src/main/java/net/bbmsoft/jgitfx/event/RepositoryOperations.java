@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.eclipse.jgit.diff.DiffEntry;
 
-import net.bbmsoft.jgitfx.event.EventBroker.Topic;
 import net.bbmsoft.jgitfx.modules.RepositoryHandler;
 
 public enum RepositoryOperations implements Topic<RepositoryHandler> {

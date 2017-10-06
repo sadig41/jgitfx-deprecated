@@ -9,7 +9,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import net.bbmsoft.bbm.utils.concurrent.ThreadUtils;
-import net.bbmsoft.jgitfx.event.EventBroker.Topic;
+import net.bbmsoft.jgitfx.event.Topic;
 
 public class DialogMessenger implements Messenger {
 

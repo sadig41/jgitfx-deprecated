@@ -13,10 +13,10 @@ import org.eclipse.jgit.transport.CredentialsProvider;
 
 import javafx.application.Platform;
 import net.bbmsoft.jgitfx.event.EventBroker;
-import net.bbmsoft.jgitfx.event.EventBroker.Topic;
 import net.bbmsoft.jgitfx.event.EventPublisher;
 import net.bbmsoft.jgitfx.event.RepositoryOperations;
 import net.bbmsoft.jgitfx.event.RepositoryTopic;
+import net.bbmsoft.jgitfx.event.Topic;
 import net.bbmsoft.jgitfx.modules.operations.CommitHandler;
 import net.bbmsoft.jgitfx.modules.operations.PullHandler;
 import net.bbmsoft.jgitfx.modules.operations.PushHandler;
