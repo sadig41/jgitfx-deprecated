@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import de.jensd.fx.glyphs.octicons.OctIconView?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Accordion?>
 <?import javafx.scene.control.Button?>
@@ -122,16 +123,58 @@
             </MenuBar>
             <StackPane alignment="CENTER_LEFT">
                <children>
-                  <BreadCrumbBar fx:id="breadcrumb" minHeight="-Infinity" minWidth="-Infinity" pickOnBounds="false" />
-                  <HBox alignment="CENTER" pickOnBounds="false" spacing="12.0" StackPane.alignment="CENTER">
+                  <BreadCrumbBar fx:id="breadcrumb" autoNavigationEnabled="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onCrumbAction="#breadCrumbAction" pickOnBounds="false" />
+                  <HBox alignment="CENTER" fillHeight="false" pickOnBounds="false" spacing="12.0" StackPane.alignment="CENTER">
                      <children>
-                      <Button alignment="CENTER" mnemonicParsing="false" onAction="#undo" text="Undo" textAlignment="CENTER" wrapText="true" />
-                        <Button alignment="CENTER" mnemonicParsing="false" onAction="#redo" text="Redo" wrapText="true" />
-                        <Button alignment="CENTER" mnemonicParsing="false" onAction="#pull" text="Pull" wrapText="true" />
-                        <Button alignment="CENTER" mnemonicParsing="false" onAction="#push" text="Push" wrapText="true" />
-                        <Button alignment="CENTER" mnemonicParsing="false" onAction="#branch" text="Branch" wrapText="true" />
-                        <Button alignment="CENTER" mnemonicParsing="false" onAction="#stash" text="Stash" wrapText="true" />
-                        <Button alignment="CENTER" mnemonicParsing="false" onAction="#pop" text="Pop" wrapText="true" />
+                      <Button alignment="CENTER" contentDisplay="TOP" graphicTextGap="0.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#undo" prefHeight="45.0" prefWidth="45.0" styleClass="repo-action-button" text="Undo" textAlignment="CENTER" wrapText="true">
+                           <graphic>
+                              <OctIconView glyphName="CHEVRON_LEFT" size="24" />
+                           </graphic>
+                           <padding>
+                              <Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
+                           </padding></Button>
+                        <Button alignment="CENTER" contentDisplay="TOP" graphicTextGap="0.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#redo" prefHeight="45.0" prefWidth="45.0" styleClass="repo-action-button" text="Redo" wrapText="true">
+                           <graphic>
+                              <OctIconView glyphName="CHEVRON_RIGHT" size="24" />
+                           </graphic>
+                           <padding>
+                              <Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
+                           </padding></Button>
+                        <Button alignment="CENTER" contentDisplay="TOP" graphicTextGap="0.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#pull" prefHeight="45.0" prefWidth="45.0" styleClass="repo-action-button" text="Pull" wrapText="true">
+                           <graphic>
+                              <OctIconView glyphName="ARROW_DOWN" size="24" />
+                           </graphic>
+                           <padding>
+                              <Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
+                           </padding></Button>
+                        <Button alignment="CENTER" contentDisplay="TOP" graphicTextGap="0.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#push" prefHeight="45.0" prefWidth="45.0" styleClass="repo-action-button" text="Push" wrapText="true">
+                           <graphic>
+                              <OctIconView glyphName="ARROW_UP" size="24" />
+                           </graphic>
+                           <padding>
+                              <Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
+                           </padding></Button>
+                        <Button alignment="CENTER" contentDisplay="TOP" graphicTextGap="0.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#branch" prefHeight="45.0" prefWidth="45.0" styleClass="repo-action-button" text="Branch" wrapText="true">
+                           <graphic>
+                              <OctIconView glyphName="GIT_BRANCH" size="24" />
+                           </graphic>
+                           <padding>
+                              <Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
+                           </padding></Button>
+                        <Button alignment="CENTER" contentDisplay="TOP" graphicTextGap="0.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#stash" prefHeight="45.0" prefWidth="45.0" styleClass="repo-action-button" text="Stash" wrapText="true">
+                           <graphic>
+                              <OctIconView glyphName="ARROW_RIGHT" size="24" />
+                           </graphic>
+                           <padding>
+                              <Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
+                           </padding></Button>
+                        <Button alignment="CENTER" contentDisplay="TOP" graphicTextGap="0.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#pop" prefHeight="45.0" prefWidth="45.0" styleClass="repo-action-button" text="Pop" wrapText="true">
+                           <graphic>
+                              <OctIconView glyphName="ARROW_LEFT" size="24" />
+                           </graphic>
+                           <padding>
+                              <Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
+                           </padding></Button>
                      </children>
                   </HBox>
                </children>
@@ -329,7 +372,7 @@
                            <children>
                               <HBox alignment="CENTER_LEFT">
                                  <children>
-                                    <Label text="Unstaged Files:" />
+                                    <Label styleClass="header-label" text="Unstaged Files:" />
                                     <Pane HBox.hgrow="ALWAYS" />
                                     <Button fx:id="stageAllButton" mnemonicParsing="false" onAction="#stageAll" text="Stage all" />
                                  </children>
@@ -347,7 +390,7 @@
                               </ListView>
                               <HBox alignment="CENTER_LEFT">
                                  <children>
-                                    <Label text="Staged Files:" />
+                                    <Label styleClass="header-label" text="Staged Files:" />
                                     <Pane HBox.hgrow="ALWAYS" />
                                     <Button fx:id="unstageAllButton" mnemonicParsing="false" onAction="#unstageAll" text="Unstage all" />
                                  </children>
@@ -363,7 +406,7 @@
                                     </ContextMenu>
                                  </contextMenu>
                               </ListView>
-                              <Label text="Commit message:" />
+                              <Label styleClass="header-label" text="Commit message:" />
                               <TextField fx:id="commitMessageTextField" onAction="#commitMessageEntered" onKeyPressed="#keyTyped" promptText="Summary" />
                               <TextArea fx:id="commitMessageTextArea" maxHeight="1.7976931348623157E308" onKeyPressed="#keyTyped" promptText="Description" VBox.vgrow="ALWAYS" />
                               <Button fx:id="commitButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="46.0" mnemonicParsing="false" onAction="#commit" text="Commit" />

@@ -76,7 +76,7 @@ public class RepositoryTableVisualizer {
 			}
 		});
 		
-		eventBroker.subscribe(RepositoryTopic.REPO_OPENED, (topic, repo) -> setRepository(repo.getRepository()));
+		eventBroker.subscribe(RepositoryTopic.REPO_OPENED, (topic, repo) -> setRepository(repo != null ? repo.getRepository() : null));
 	}
 
 	private String getCommitTime(RevCommit commit) {

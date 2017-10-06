@@ -54,11 +54,13 @@ import net.bbmsoft.jgitfx.modules.RepositoryStatusMonitor
 import net.bbmsoft.jgitfx.modules.RepositoryTableVisualizer
 import net.bbmsoft.jgitfx.modules.StagingAnimator
 import net.bbmsoft.jgitfx.registry.RepositoryRegistry
+import net.bbmsoft.jgitfx.utils.RepoHelper
 import net.bbmsoft.jgitfx.wrappers.HistoryEntry
 import net.bbmsoft.jgitfx.wrappers.RepoTreeCellFactory
 import net.bbmsoft.jgitfx.wrappers.RepositoryWrapper
 import net.bbmsoft.jgitfx.wrappers.RepositoryWrapper.DummyWrapper
 import org.controlsfx.control.BreadCrumbBar
+import org.controlsfx.control.BreadCrumbBar.BreadCrumbActionEvent
 import org.controlsfx.control.TaskProgressView
 import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.lib.Repository
@@ -517,6 +519,15 @@ class JGitFXMainFrame extends BorderPane {
 	private def removeRepo(TreeItem<RepositoryWrapper> item) {
 		val repository = item.value.repository
 		this.repositoryRegistry.removeRepository(repository)
+	}
+	
+	def breadCrumbAction(BreadCrumbActionEvent<RepositoryWrapper> event) {
+		
+		val repo = event.selectedCrumb.value.repository
+		
+		if(!RepoHelper.equal(repo, this.repositoryHandler?.repository)) {
+			this.eventBroker.publish(RepositoryTopic.REPO_OPENED, repo?.handler)
+		}
 	}
 
 	static class OpenReposTask extends Task<Void> {

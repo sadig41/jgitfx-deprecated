@@ -46,6 +46,12 @@ public class RepositoryStatusMonitor {
 	}
 
 	private void updateRepo(Topic<RepositoryHandler> topic, Repository repo) {
+		
+		if(topic == RepositoryTopic.REPO_OPENED) {
+			if(this.openWrapper != null) {
+				this.openWrapper.setOpen(false);
+			}
+		}
 
 		if (repo == null) {
 			return;
@@ -63,9 +69,6 @@ public class RepositoryStatusMonitor {
 				wrapper.setUnstagedChanges(unstagedChanges > 0);
 				
 				if(topic == RepositoryTopic.REPO_OPENED) {
-					if(this.openWrapper != null) {
-						this.openWrapper.setOpen(false);
-					}
 					this.openWrapper = wrapper;
 					this.openWrapper.setOpen(true);
 				}
