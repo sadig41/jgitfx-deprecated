@@ -73,6 +73,8 @@ class JGitFX extends Subapplication {
 		stage.scene = new Scene(this.jGitFXMainFrame) => [stylesheets.add = 'style/default.css']
 		stage.focusedProperty >> [if(it) this.eventBroker.publish(AppStatus.FOCUSED, System.currentTimeMillis)]
 
+		stage.title = 'JGitFX v0.0.1'
+		
 		stage.maximized = this.prefs.maximized
 		stage.maximizedProperty > [
 			this.prefs.maximized = stage.maximized

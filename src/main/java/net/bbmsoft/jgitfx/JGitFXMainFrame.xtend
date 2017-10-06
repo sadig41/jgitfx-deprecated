@@ -11,6 +11,8 @@ import javafx.application.Platform
 import javafx.concurrent.Task
 import javafx.fxml.FXML
 import javafx.scene.Parent
+import javafx.scene.control.Alert
+import javafx.scene.control.Alert.AlertType
 import javafx.scene.control.Button
 import javafx.scene.control.Label
 import javafx.scene.control.ListView
@@ -102,11 +104,10 @@ class JGitFXMainFrame extends BorderPane {
 	@FXML Label hashLabel
 	@FXML Label parentHashLabel
 
-	@FXML MenuItem undoContextMenuItem
-	@FXML MenuItem redoContextMenuItem
 	@FXML MenuItem pullContextMenuItem
 	@FXML MenuItem pushContextMenuItem
 	@FXML MenuItem branchContextMenuItem
+	@FXML MenuItem mergeContextMenuItem
 	@FXML MenuItem stashContextMenuItem
 	@FXML MenuItem popContextMenuItem
 
@@ -174,8 +175,8 @@ class JGitFXMainFrame extends BorderPane {
 				this.hashLabel, this.parentHashLabel))
 		this.historyTable.selectionModel.selectedItemProperty.addListener(
 			new ChangedFilesAnimator(this.wipOverview, this.changedFilesOverview, [
-					this.repositoryHandler?.repository
-				], this.eventBroker))
+				this.repositoryHandler?.repository
+			], this.eventBroker))
 
 		new DiffTextFormatter(this.diffTextContainer.children) => [
 			new DiffAnimator(this.eventBroker, outputStream)
@@ -246,14 +247,12 @@ class JGitFXMainFrame extends BorderPane {
 
 		val size = this.repositoryTree.selectionModel.selectedItems.size
 
-		this.undoContextMenuItem.disable = size <= 0 || size > 1
-		this.redoContextMenuItem.disable = size <= 0 || size > 1
 		this.pullContextMenuItem.disable = size <= 0
 		this.pushContextMenuItem.disable = size <= 0
-		this.branchContextMenuItem.disable = size <= 0 || size > 1
-		this.stashContextMenuItem.disable = size <= 0 || size > 1
-		this.popContextMenuItem.disable = size <= 0 || size > 1
-
+//		this.branchContextMenuItem.disable = size <= 0
+//		this.mergeContextMenuItem.disable = size <= 0
+//		this.stashContextMenuItem.disable = size <= 0
+//		this.popContextMenuItem.disable = size <= 0
 	}
 
 	def undo() {
@@ -389,6 +388,13 @@ class JGitFXMainFrame extends BorderPane {
 	def about() {
 		this.eventBroker.publish(UserInteraction.SHOW_ABOUT, null)
 		this.scene.stylesheets.all = #['style/default.css']
+
+		new Alert(AlertType.INFORMATION) => [
+			title = 'About'
+			headerText = 'JGitFX v0.0.1 (alpha)'
+			contentText = 'A JGit based graphical git client built with JavaFX'
+			showAndWait
+		]
 	}
 
 	private def void open(TreeItem<RepositoryWrapper> repoItem) {
@@ -520,12 +526,12 @@ class JGitFXMainFrame extends BorderPane {
 		val repository = item.value.repository
 		this.repositoryRegistry.removeRepository(repository)
 	}
-	
+
 	def breadCrumbAction(BreadCrumbActionEvent<RepositoryWrapper> event) {
-		
+
 		val repo = event.selectedCrumb.value.repository
-		
-		if(!RepoHelper.equal(repo, this.repositoryHandler?.repository)) {
+
+		if (!RepoHelper.equal(repo, this.repositoryHandler?.repository)) {
 			this.eventBroker.publish(RepositoryTopic.REPO_OPENED, repo?.handler)
 		}
 	}

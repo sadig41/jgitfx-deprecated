@@ -42,7 +42,7 @@
               <menus>
                 <Menu mnemonicParsing="false" text="File">
                   <items>
-                        <MenuItem mnemonicParsing="false" onAction="#initRepo" text="Init repo...">
+                        <MenuItem disable="true" mnemonicParsing="false" onAction="#initRepo" text="Init repo...">
                            <accelerator>
                               <KeyCodeCombination alt="UP" code="N" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                            </accelerator>
@@ -52,11 +52,11 @@
                               <KeyCodeCombination alt="UP" code="O" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                            </accelerator>
                         </MenuItem>
-                    <MenuItem mnemonicParsing="false" onAction="#cloneRepo" text="Clone repo...">
+                    <MenuItem disable="true" mnemonicParsing="false" onAction="#cloneRepo" text="Clone repo...">
                            <accelerator>
                               <KeyCodeCombination alt="UP" code="C" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                            </accelerator></MenuItem>
-                        <MenuItem mnemonicParsing="false" onAction="#batchCloneRepo" text="Batch clone repos...">
+                        <MenuItem disable="true" mnemonicParsing="false" onAction="#batchCloneRepo" text="Batch clone repos...">
                            <accelerator>
                               <KeyCodeCombination alt="UP" code="C" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
                            </accelerator>
@@ -71,11 +71,11 @@
                 </Menu>
                 <Menu mnemonicParsing="false" text="Edit">
                   <items>
-                    <MenuItem mnemonicParsing="false" onAction="#undo" text="Undo">
+                    <MenuItem disable="true" mnemonicParsing="false" onAction="#undo" text="Undo">
                            <accelerator>
                               <KeyCodeCombination alt="UP" code="Z" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                            </accelerator></MenuItem>
-                        <MenuItem mnemonicParsing="false" onAction="#redo" text="Redo">
+                        <MenuItem disable="true" mnemonicParsing="false" onAction="#redo" text="Redo">
                            <accelerator>
                               <KeyCodeCombination alt="UP" code="Z" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
                            </accelerator>
@@ -92,18 +92,23 @@
                            </accelerator>
                         </MenuItem>
                         <SeparatorMenuItem mnemonicParsing="false" />
-                        <MenuItem mnemonicParsing="false" onAction="#branch" text="Branch">
+                        <MenuItem disable="true" mnemonicParsing="false" onAction="#branch" text="Branch">
                            <accelerator>
                               <KeyCodeCombination alt="UP" code="B" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                            </accelerator>
                         </MenuItem>
+                        <MenuItem disable="true" mnemonicParsing="false" onAction="#branch" text="Merge">
+                           <accelerator>
+                              <KeyCodeCombination alt="UP" code="M" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                           </accelerator>
+                        </MenuItem>
                         <SeparatorMenuItem mnemonicParsing="false" />
-                        <MenuItem mnemonicParsing="false" onAction="#stash" text="Stash">
+                        <MenuItem disable="true" mnemonicParsing="false" onAction="#stash" text="Stash">
                            <accelerator>
                               <KeyCodeCombination alt="UP" code="S" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                            </accelerator>
                         </MenuItem>
-                        <MenuItem mnemonicParsing="false" onAction="#pop" text="Pop">
+                        <MenuItem disable="true" mnemonicParsing="false" onAction="#pop" text="Pop">
                            <accelerator>
                               <KeyCodeCombination alt="UP" code="P" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                            </accelerator>
@@ -124,22 +129,23 @@
             <StackPane alignment="CENTER_LEFT">
                <children>
                   <BreadCrumbBar fx:id="breadcrumb" autoNavigationEnabled="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onCrumbAction="#breadCrumbAction" pickOnBounds="false" />
-                  <HBox alignment="CENTER" fillHeight="false" pickOnBounds="false" spacing="12.0" StackPane.alignment="CENTER">
+                  <HBox alignment="CENTER" pickOnBounds="false" spacing="12.0" StackPane.alignment="CENTER">
                      <children>
-                      <Button alignment="CENTER" contentDisplay="TOP" graphicTextGap="0.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#undo" prefHeight="45.0" prefWidth="45.0" styleClass="repo-action-button" text="Undo" textAlignment="CENTER" wrapText="true">
+                      <Button alignment="CENTER" contentDisplay="TOP" disable="true" graphicTextGap="0.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#undo" prefHeight="45.0" prefWidth="45.0" styleClass="repo-action-button" text="Undo" textAlignment="CENTER" wrapText="true">
                            <graphic>
                               <OctIconView glyphName="CHEVRON_LEFT" size="24" />
                            </graphic>
                            <padding>
                               <Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
                            </padding></Button>
-                        <Button alignment="CENTER" contentDisplay="TOP" graphicTextGap="0.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#redo" prefHeight="45.0" prefWidth="45.0" styleClass="repo-action-button" text="Redo" wrapText="true">
+                        <Button alignment="CENTER" contentDisplay="TOP" disable="true" graphicTextGap="0.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#redo" prefHeight="45.0" prefWidth="45.0" styleClass="repo-action-button" text="Redo" wrapText="true">
                            <graphic>
                               <OctIconView glyphName="CHEVRON_RIGHT" size="24" />
                            </graphic>
                            <padding>
                               <Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
                            </padding></Button>
+                        <Pane prefWidth="10.0" />
                         <Button alignment="CENTER" contentDisplay="TOP" graphicTextGap="0.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#pull" prefHeight="45.0" prefWidth="45.0" styleClass="repo-action-button" text="Pull" wrapText="true">
                            <graphic>
                               <OctIconView glyphName="ARROW_DOWN" size="24" />
@@ -154,21 +160,31 @@
                            <padding>
                               <Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
                            </padding></Button>
-                        <Button alignment="CENTER" contentDisplay="TOP" graphicTextGap="0.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#branch" prefHeight="45.0" prefWidth="45.0" styleClass="repo-action-button" text="Branch" wrapText="true">
+                        <Pane layoutX="395.0" layoutY="10.0" prefWidth="10.0" />
+                        <Button alignment="CENTER" contentDisplay="TOP" disable="true" graphicTextGap="0.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#branch" prefHeight="45.0" prefWidth="45.0" styleClass="repo-action-button" text="Branch" wrapText="true">
                            <graphic>
                               <OctIconView glyphName="GIT_BRANCH" size="24" />
                            </graphic>
                            <padding>
                               <Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
                            </padding></Button>
-                        <Button alignment="CENTER" contentDisplay="TOP" graphicTextGap="0.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#stash" prefHeight="45.0" prefWidth="45.0" styleClass="repo-action-button" text="Stash" wrapText="true">
+                        <Button alignment="CENTER" contentDisplay="TOP" disable="true" graphicTextGap="0.0" layoutX="549.0" layoutY="10.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#branch" prefHeight="45.0" prefWidth="45.0" styleClass="repo-action-button" text="Merge" wrapText="true">
+                           <graphic>
+                              <OctIconView glyphName="GIT_MERGE" size="24" />
+                           </graphic>
+                           <padding>
+                              <Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
+                           </padding>
+                        </Button>
+                        <Pane layoutX="748.0" layoutY="10.0" prefWidth="10.0" />
+                        <Button alignment="CENTER" contentDisplay="TOP" disable="true" graphicTextGap="0.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#stash" prefHeight="45.0" prefWidth="45.0" styleClass="repo-action-button" text="Stash" wrapText="true">
                            <graphic>
                               <OctIconView glyphName="ARROW_RIGHT" size="24" />
                            </graphic>
                            <padding>
                               <Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
                            </padding></Button>
-                        <Button alignment="CENTER" contentDisplay="TOP" graphicTextGap="0.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#pop" prefHeight="45.0" prefWidth="45.0" styleClass="repo-action-button" text="Pop" wrapText="true">
+                        <Button alignment="CENTER" contentDisplay="TOP" disable="true" graphicTextGap="0.0" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#pop" prefHeight="45.0" prefWidth="45.0" styleClass="repo-action-button" text="Pop" wrapText="true">
                            <graphic>
                               <OctIconView glyphName="ARROW_LEFT" size="24" />
                            </graphic>
@@ -201,37 +217,32 @@
                                        <accelerator>
                                           <KeyCodeCombination alt="UP" code="O" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                                        </accelerator></MenuItem>
-                                    <MenuItem mnemonicParsing="false" onAction="#cloneRepo" text="Clone repo...">
+                                    <MenuItem disable="true" mnemonicParsing="false" onAction="#cloneRepo" text="Clone repo...">
                                        <accelerator>
                                           <KeyCodeCombination alt="UP" code="C" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                                        </accelerator></MenuItem>
-                                    <MenuItem mnemonicParsing="false" onAction="#batchCloneRepo" text="Batch clone repos...">
+                                    <MenuItem disable="true" mnemonicParsing="false" onAction="#batchCloneRepo" text="Batch clone repos...">
                                        <accelerator>
                                           <KeyCodeCombination alt="UP" code="C" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
                                        </accelerator></MenuItem>
                                     <SeparatorMenuItem mnemonicParsing="false" />
-                                    <MenuItem fx:id="undoContextMenuItem" disable="true" mnemonicParsing="false" onAction="#undoSelected" text="Undo">
-                                       <accelerator>
-                                          <KeyCodeCombination alt="UP" code="Z" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
-                                       </accelerator>
-                                    </MenuItem>
-                                    <MenuItem fx:id="redoContextMenuItem" disable="true" mnemonicParsing="false" onAction="#redoSelected" text="Redo">
-                                       <accelerator>
-                                          <KeyCodeCombination alt="UP" code="Z" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
-                                       </accelerator>
-                                    </MenuItem>
-                                    <SeparatorMenuItem disable="true" mnemonicParsing="false" />
-                                  <MenuItem fx:id="pullContextMenuItem" disable="true" mnemonicParsing="false" onAction="#pullSelected" text="Pull">
+                                  <MenuItem fx:id="pullContextMenuItem" mnemonicParsing="false" onAction="#pullSelected" text="Pull">
                                        <accelerator>
                                           <KeyCodeCombination alt="UP" code="DOWN" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                                        </accelerator>
                                     </MenuItem>
-                                    <MenuItem fx:id="pushContextMenuItem" disable="true" mnemonicParsing="false" onAction="#pushSelected" text="Push">
+                                    <MenuItem fx:id="pushContextMenuItem" mnemonicParsing="false" onAction="#pushSelected" text="Push">
                                        <accelerator>
                                           <KeyCodeCombination alt="UP" code="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                                        </accelerator>
                                     </MenuItem>
+                                    <SeparatorMenuItem disable="true" mnemonicParsing="false" />
                                     <MenuItem fx:id="branchContextMenuItem" disable="true" mnemonicParsing="false" onAction="#branchSelected" text="Branch">
+                                       <accelerator>
+                                          <KeyCodeCombination alt="UP" code="B" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                                       </accelerator>
+                                    </MenuItem>
+                                    <MenuItem fx:id="mergeContextMenuItem" disable="true" mnemonicParsing="false" onAction="#branchSelected" text="Merge">
                                        <accelerator>
                                           <KeyCodeCombination alt="UP" code="B" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                                        </accelerator>
@@ -252,7 +263,7 @@
                            </contextMenu></TreeView>
                      </content>
                 </TitledPane>
-                <TitledPane fx:id="repositoryOverview" animated="false" text="Repository Overview">
+                <TitledPane fx:id="repositoryOverview" animated="false" disable="true" text="Repository Overview">
                      <content>
                         <VBox spacing="8.0">
                            <children>
@@ -383,7 +394,7 @@
                                     <ContextMenu>
                                       <items>
                                         <MenuItem fx:id="stageMenuItem" mnemonicParsing="false" onAction="#stageSelected" text="Stage" />
-                                          <MenuItem fx:id="discardUnstagedMenuItem" mnemonicParsing="false" onAction="#discardSelectedUnstaged" text="Discard" />
+                                          <MenuItem fx:id="discardUnstagedMenuItem" disable="true" mnemonicParsing="false" onAction="#discardSelectedUnstaged" text="Discard" />
                                       </items>
                                     </ContextMenu>
                                  </contextMenu>
@@ -401,7 +412,7 @@
                                     <ContextMenu>
                                       <items>
                                         <MenuItem fx:id="unstageMenuItem" mnemonicParsing="false" onAction="#unstageSelected" text="Unstage" />
-                                          <MenuItem fx:id="discardStagedMenuItem" mnemonicParsing="false" onAction="#discardSelectedStaged" text="Discard" />
+                                          <MenuItem fx:id="discardStagedMenuItem" disable="true" mnemonicParsing="false" onAction="#discardSelectedStaged" text="Discard" />
                                       </items>
                                     </ContextMenu>
                                  </contextMenu>
