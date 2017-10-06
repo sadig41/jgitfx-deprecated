@@ -77,6 +77,8 @@ class JGitFXMainFrame extends BorderPane {
 		KeyCombination.CONTROL_DOWN)
 
 	private static final KeyCombination CONTROL_UP = new KeyCodeCombination(KeyCode.UP, KeyCombination.CONTROL_DOWN)
+	
+	private static final KeyCombination CONTROL_DOWN = new KeyCodeCombination(KeyCode.DOWN, KeyCombination.CONTROL_DOWN)
 
 	@FXML TableView<HistoryEntry> historyTable
 	@FXML TableColumn<HistoryEntry, String> refsColumn
@@ -518,6 +520,9 @@ class JGitFXMainFrame extends BorderPane {
 			}
 			if (CONTROL_UP.match(e)) {
 				this.eventBroker.publish(RepositoryOperations.PUSH, this.repositoryHandler)
+			}
+			if (CONTROL_DOWN.match(e)) {
+				this.eventBroker.publish(RepositoryOperations.PULL, this.repositoryHandler)
 			}
 		}
 
