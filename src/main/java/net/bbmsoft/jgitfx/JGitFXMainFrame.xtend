@@ -13,11 +13,11 @@ import javafx.fxml.FXML
 import javafx.scene.Parent
 import javafx.scene.control.Alert
 import javafx.scene.control.Alert.AlertType
-import javafx.scene.control.Button
 import javafx.scene.control.Label
 import javafx.scene.control.ListView
 import javafx.scene.control.MenuItem
 import javafx.scene.control.SelectionMode
+import javafx.scene.control.SplitMenuButton
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView
 import javafx.scene.control.TextArea
@@ -25,6 +25,7 @@ import javafx.scene.control.TextField
 import javafx.scene.control.TitledPane
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
+import javafx.scene.image.ImageView
 import javafx.scene.input.DragEvent
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
@@ -68,7 +69,6 @@ import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.lib.Repository
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
-import javafx.scene.image.ImageView
 
 @FXMLRoot
 class JGitFXMainFrame extends BorderPane {
@@ -91,7 +91,9 @@ class JGitFXMainFrame extends BorderPane {
 
 	@FXML TextField commitMessageTextField
 	@FXML TextArea commitMessageTextArea
-	@FXML Button commitButton
+	@FXML SplitMenuButton commitButton
+	@FXML MenuItem commitMenuItem
+	@FXML MenuItem commitAndPushMenuItem
 
 	@FXML TitledPane repositoryOverview
 	@FXML TitledPane repositoriesList
@@ -189,6 +191,13 @@ class JGitFXMainFrame extends BorderPane {
 
 		updateHistoryColumnsVisibility
 		this.historyTable.columns.forEach[col|col.visibleProperty >> [this.prefs.setColumnVisible(col.id, it)]]
+		
+		this.prefs.commitAndPushProperty >> [this.updateCommitButton(it)]
+	}
+	
+	private def updateCommitButton(boolean commitAndPush) {
+		this.commitButton.items.all = #[if(commitAndPush) this.commitMenuItem else this.commitAndPushMenuItem]
+		this.commitButton.text = '''Commit«IF commitAndPush» + Push«ENDIF»'''
 	}
 
 	private def RepositoryWrapper getWrapper(Repository repo) {
@@ -423,7 +432,17 @@ class JGitFXMainFrame extends BorderPane {
 	}
 
 	def void commit() {
-
+		this.doCommit(false)
+	}
+	
+	def commitAndPush() {
+		this.doCommit(true)
+	}
+	
+	private def doCommit(boolean andPush) {
+		
+		this.prefs.commitAndPush = andPush
+		
 		val commitMessage = commitMessage
 		if (commitMessage === null || commitMessage.trim.empty || this.stagedFilesTable.items.empty) {
 			return
@@ -435,6 +454,10 @@ class JGitFXMainFrame extends BorderPane {
 			this.commitMessageTextField.text = null
 			this.commitMessageTextArea.text = null
 			this.eventBroker.publish(RepositoryOperations.COMMIT, this.repositoryHandler)
+		}
+		
+		if(andPush) {
+			this.eventBroker.publish(RepositoryOperations.PUSH, this.repositoryHandler)
 		}
 	}
 
@@ -509,13 +532,13 @@ class JGitFXMainFrame extends BorderPane {
 
 	def keyPressed(KeyEvent e) {
 
-		if (e.source == this.commitMessageTextField || e.source == this.commitMessageTextArea) {
-			if (CONTROL_ENTER.match(e)) {
-				commit
-				e.consume
-				Platform.runLater[this.commitMessageTextField.requestFocus]
-			}
-		}
+//		if (e.source == this.commitMessageTextField || e.source == this.commitMessageTextArea) {
+//			if (CONTROL_ENTER.match(e)) {
+//				commit
+//				e.consume
+//				Platform.runLater[this.commitMessageTextField.requestFocus]
+//			}
+//		}
 
 		if (e.source == this.repositoryTree && e.code == KeyCode.DELETE) {
 			removeSelectedRepos

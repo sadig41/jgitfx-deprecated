@@ -36,6 +36,7 @@ class Preferences {
 
 	@BindableProperty boolean switchToRepositoryOverview = false
 	@BindableProperty boolean maximized = false
+	@BindableProperty boolean commitAndPush = false
 	@BindableProperty File lastOpened = null
 
 	@Accessors(PUBLIC_GETTER) Set<String> visibleColumns
@@ -73,6 +74,7 @@ class Preferences {
 	private def registerListeners() {
 		this.switchToRepositoryOverviewProperty > [persist]
 		this.maximizedProperty > [persist]
+		this.commitAndPushProperty > [persist]
 		this.lastOpenedProperty > [persist]
 	}
 
