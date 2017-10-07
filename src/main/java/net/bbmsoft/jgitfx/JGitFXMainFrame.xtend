@@ -513,6 +513,7 @@ class JGitFXMainFrame extends BorderPane {
 			if (CONTROL_ENTER.match(e)) {
 				commit
 				e.consume
+				Platform.runLater[this.commitMessageTextField.requestFocus]
 			}
 		}
 
