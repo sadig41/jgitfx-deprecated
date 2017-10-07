@@ -20,13 +20,12 @@ public class CommitHandler {
 			throw new IllegalArgumentException("Invalid commit message!");
 		}
 
-		synchronized (this.eventPublisher) {
-			try {
-				git.commit().setMessage(message).call();
-			} catch (Throwable th) {
-				this.eventPublisher.publish(MessageType.ERROR, new Message("Commit failed", "Commit command terminated abnormally.", th));
-			}
+		try {
+			git.commit().setMessage(message).call();
+		} catch (Throwable th) {
+			this.eventPublisher.publish(MessageType.ERROR,
+					new Message("Commit failed", "Commit command terminated abnormally.", th));
 		}
-		
+
 	}
 }

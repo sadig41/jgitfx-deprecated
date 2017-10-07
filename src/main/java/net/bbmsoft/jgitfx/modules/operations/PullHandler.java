@@ -16,12 +16,8 @@ import net.bbmsoft.jgitfx.modules.RepositoryActionHandler;
 
 public class PullHandler extends RepositoryActionHandler<PullResult> {
 
-	private EventPublisher eventPublisher;
-
 	public PullHandler(EventPublisher eventPublisher) {
 		super(eventPublisher);
-		this.eventPublisher = eventPublisher;
-		
 	}
 
 	public void pull(Git git, String remote, CredentialsProvider credetialsProvider) {
@@ -30,35 +26,33 @@ public class PullHandler extends RepositoryActionHandler<PullResult> {
 
 		PullTask pullTask = new PullTask(this, repository, remote);
 		pullTask.setResultSupplier(() -> doPull(git, remote, credetialsProvider, pullTask));
-		
+
 		publish(TaskTopic.TASK_STARTED, pullTask);
 	}
 
 	private PullResult doPull(Git git, String remote, CredentialsProvider credetialsProvider,
 			ProgressMonitor progressMonitor) {
-				
-		synchronized (this.eventPublisher) {
-			try {
-				return git.pull().setCredentialsProvider(credetialsProvider).setProgressMonitor(progressMonitor)
-						.setRemote(remote).call();
-			} catch (TransportException e) {
-				if (credetialsProvider instanceof InteractiveCredentialsProvider
-						&& ((InteractiveCredentialsProvider) credetialsProvider).retry()) {
-					return doPull(git, remote, credetialsProvider, progressMonitor);
-				} else {
-					publishError(remote, e);
-				}
-			} catch (Throwable th) {
-				publishError(remote, th);
+
+		try {
+			return git.pull().setCredentialsProvider(credetialsProvider).setProgressMonitor(progressMonitor)
+					.setRemote(remote).call();
+		} catch (TransportException e) {
+			if (credetialsProvider instanceof InteractiveCredentialsProvider
+					&& ((InteractiveCredentialsProvider) credetialsProvider).retry()) {
+				return doPull(git, remote, credetialsProvider, progressMonitor);
+			} else {
+				publishError(remote, e);
 			}
+		} catch (Throwable th) {
+			publishError(remote, th);
 		}
-		
+
 		return null;
 	}
 
 	private void publishError(String remote, Throwable th) {
-		StringBuilder sb = new StringBuilder("An unexpected error occurred while trying to pull from remote repository ")
-				.append(remote).append(":");
+		StringBuilder sb = new StringBuilder(
+				"An unexpected error occurred while trying to pull from remote repository ").append(remote).append(":");
 		publish(MessageType.ERROR, new Message(String.format("Pull from %s failed", remote), sb.toString(), th));
 	}
 

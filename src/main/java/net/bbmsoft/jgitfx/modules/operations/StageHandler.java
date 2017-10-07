@@ -31,29 +31,26 @@ public class StageHandler {
 
 	public void stage(Git git, List<DiffEntry> diffs) {
 
-		synchronized (diffs) {
-			if (Iterables.any(diffs, diff -> added(diff))) {
-				addFiles(git, diffs);
-			}
+		if (Iterables.any(diffs, diff -> added(diff))) {
+			addFiles(git, diffs);
+		}
 
-			if (Iterables.any(diffs, diff -> removed(diff))) {
-				removeFiles(git, diffs);
-			}
+		if (Iterables.any(diffs, diff -> removed(diff))) {
+			removeFiles(git, diffs);
 		}
 	}
 
 	public void unstage(Git git, List<DiffEntry> diffs) {
 		ResetCommand resetCommand = git.reset();
 		diffs.forEach(diff -> resetCommand.addPath(StagingHelper.getFilePath(diff)));
-		
-		synchronized (this.eventPublisher) {
-			try {
-				resetCommand.call();
-			} catch (Throwable th) {
-				StringBuilder sb = new StringBuilder("Changes in the following files could not be removed from the index:\n");
-				diffs.forEach(diff -> sb.append("\n").append(StagingHelper.getFilePath(diff)));
-				this.eventPublisher.publish(MessageType.ERROR, new Message("Failed to reset changes", sb.toString(), th));
-			}
+
+		try {
+			resetCommand.call();
+		} catch (Throwable th) {
+			StringBuilder sb = new StringBuilder(
+					"Changes in the following files could not be removed from the index:\n");
+			diffs.forEach(diff -> sb.append("\n").append(StagingHelper.getFilePath(diff)));
+			this.eventPublisher.publish(MessageType.ERROR, new Message("Failed to reset changes", sb.toString(), th));
 		}
 	}
 

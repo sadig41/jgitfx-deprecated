@@ -16,11 +16,8 @@ import net.bbmsoft.jgitfx.modules.RepositoryActionHandler;
 
 public class PushHandler extends RepositoryActionHandler<Iterable<PushResult>> {
 
-	private EventPublisher eventPublisher;
-
 	public PushHandler(EventPublisher eventPublisher) {
 		super(eventPublisher);
-		this.eventPublisher = eventPublisher;
 	}
 
 	public void push(Git git, String remote, CredentialsProvider credetialsProvider) {
@@ -35,23 +32,21 @@ public class PushHandler extends RepositoryActionHandler<Iterable<PushResult>> {
 
 	private Iterable<PushResult> doPush(Git git, String remote, CredentialsProvider credetialsProvider,
 			ProgressMonitor progressMonitor) {
-		
-		synchronized (this.eventPublisher) {
-			try {
-				return git.push().setCredentialsProvider(credetialsProvider).setProgressMonitor(progressMonitor)
-						.setRemote(remote).call();
-			} catch (TransportException e) {
-				if (credetialsProvider instanceof InteractiveCredentialsProvider
-						&& ((InteractiveCredentialsProvider) credetialsProvider).retry()) {
-					return doPush(git, remote, credetialsProvider, progressMonitor);
-				} else {
-					publishError(remote, e);
-				}
-			} catch (Throwable th) {
-				publishError(remote, th);
+
+		try {
+			return git.push().setCredentialsProvider(credetialsProvider).setProgressMonitor(progressMonitor)
+					.setRemote(remote).call();
+		} catch (TransportException e) {
+			if (credetialsProvider instanceof InteractiveCredentialsProvider
+					&& ((InteractiveCredentialsProvider) credetialsProvider).retry()) {
+				return doPush(git, remote, credetialsProvider, progressMonitor);
+			} else {
+				publishError(remote, e);
 			}
+		} catch (Throwable th) {
+			publishError(remote, th);
 		}
-		
+
 		return null;
 	}
 
@@ -65,8 +60,7 @@ public class PushHandler extends RepositoryActionHandler<Iterable<PushResult>> {
 
 		private String remote;
 
-		public PushTask(PushHandler handler, Repository repository,
-				String remote) {
+		public PushTask(PushHandler handler, Repository repository, String remote) {
 			super(handler, repository);
 			this.remote = remote;
 			updateTitle("Push " + repository.getWorkTree().getName());
