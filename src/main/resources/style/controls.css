@@ -22,4 +22,5 @@
 
 #commitButton {
 	-fx-font-weight:		bold;
+	-fx-base:				-fx-default-button;
 }
