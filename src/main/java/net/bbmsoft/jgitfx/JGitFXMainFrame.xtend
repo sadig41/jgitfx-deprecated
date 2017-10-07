@@ -26,11 +26,13 @@ import javafx.scene.control.TitledPane
 import javafx.scene.control.TreeItem
 import javafx.scene.control.TreeView
 import javafx.scene.image.ImageView
+import javafx.scene.input.ClipboardContent
 import javafx.scene.input.DragEvent
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
 import javafx.scene.input.KeyEvent
+import javafx.scene.input.MouseEvent
 import javafx.scene.input.TransferMode
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.Pane
@@ -58,6 +60,7 @@ import net.bbmsoft.jgitfx.modules.RepositoryTableVisualizer
 import net.bbmsoft.jgitfx.modules.StagingAnimator
 import net.bbmsoft.jgitfx.registry.RepositoryRegistry
 import net.bbmsoft.jgitfx.utils.RepoHelper
+import net.bbmsoft.jgitfx.utils.StagingHelper
 import net.bbmsoft.jgitfx.wrappers.HistoryEntry
 import net.bbmsoft.jgitfx.wrappers.RepoTreeCellFactory
 import net.bbmsoft.jgitfx.wrappers.RepositoryWrapper
@@ -131,6 +134,8 @@ class JGitFXMainFrame extends BorderPane {
 	EventBroker eventBroker
 
 	StagingAnimator stagingAnimator
+
+	List<DiffEntry> dragDropBuffer
 
 	@Inject
 	private new(Preferences prefs, EventBroker eventBroker, RepositoryRegistry repoRegistry, TaskHelper taskHelper) {
@@ -511,14 +516,127 @@ class JGitFXMainFrame extends BorderPane {
 		this.commitMessageTextArea.requestFocus
 	}
 
-	def void dragOver(DragEvent event) {
-		if (event.gestureSource != this.repositoryTree && event.dragboard.hasFiles) {
-			event.acceptTransferModes(TransferMode.COPY)
+	def void dragDetected(MouseEvent event) {
+
+		if (event.source == this.unstagedFilesTable) {
+			dragOnUnstagedFilesDeteced(event)
+			return
 		}
+
+		if (event.source == this.stagedFilesTable) {
+			dragOnStagedFilesDeteced(event)
+			return
+		}
+	}
+
+	private def dragOnUnstagedFilesDeteced(MouseEvent event) {
+
 		event.consume
+
+		if (this.unstagedFilesTable.selectionModel.selectedItems.empty) {
+			return
+		}
+
+		this.unstagedFilesTable.startDragAndDrop(TransferMode.MOVE).content = new ClipboardContent => [
+			this.dragDropBuffer = new ArrayList(this.unstagedFilesTable.selectionModel.selectedItems)
+			putString(this.dragDropBuffer?.map[StagingHelper.getFilePath(it)].reduce['''«$0»,«$1»'''])
+		]
+	}
+
+	private def dragOnStagedFilesDeteced(MouseEvent event) {
+
+		event.consume
+
+		if (this.stagedFilesTable.selectionModel.selectedItems.empty) {
+			return
+		}
+
+		this.stagedFilesTable.startDragAndDrop(TransferMode.MOVE).content = new ClipboardContent => [
+			this.dragDropBuffer = new ArrayList(this.stagedFilesTable.selectionModel.selectedItems)
+			putString(this.dragDropBuffer?.map[StagingHelper.getFilePath(it)].reduce['''«$0»,«$1»'''])
+		]
+	}
+
+	def void dragOver(DragEvent event) {
+
+		if (event.source == this.repositoryTree) {
+			dragOverRepoTree(event)
+			return
+		}
+
+		if (event.source == this.stagedFilesTable || event.source == this.unstagedFilesTable) {
+			dragOverStagedOrdUnstagedFiles(event)
+			return
+		}
+	}
+
+	private def dragOverRepoTree(DragEvent e) {
+		if (e.gestureSource != this.repositoryTree && e.dragboard.hasFiles) {
+			e.acceptTransferModes(TransferMode.COPY)
+			e.consume
+		}
+	}
+
+	private def dragOverStagedOrdUnstagedFiles(DragEvent e) {
+		if (e.gestureSource != e.source &&
+			e.dragboard.string == this.dragDropBuffer?.map[StagingHelper.getFilePath(it)].reduce['''«$0»,«$1»''']) {
+			e.acceptTransferModes(TransferMode.MOVE)
+			e.consume
+		}
 	}
 
 	def void dragDropped(DragEvent event) {
+
+		if (event.source == this.repositoryTree) {
+			dragDroppedOnRepoTree(event)
+		}
+
+		if (event.source == this.stagedFilesTable) {
+			dragDroppedOnStagedFiles(event)
+		}
+
+		if (event.source == this.unstagedFilesTable) {
+			dragDroppedOnUnstagedFiles(event)
+		}
+
+	}
+
+	private def dragDroppedOnUnstagedFiles(DragEvent event) {
+
+		event.consume
+
+		val db = event.dragboard
+		if (db.string != this.dragDropBuffer?.map[StagingHelper.getFilePath(it)].reduce['''«$0»,«$1»''']) {
+			return
+		}
+
+		val diffs = new ArrayList(this.dragDropBuffer)
+		this.dragDropBuffer = null
+		event.setDropCompleted(diffs !== null && !diffs.empty)
+
+		diffs.unstage
+
+	}
+
+	private def dragDroppedOnStagedFiles(DragEvent event) {
+
+		event.consume
+
+		val db = event.dragboard
+		if (db.string != this.dragDropBuffer?.map[StagingHelper.getFilePath(it)].reduce['''«$0»,«$1»''']) {
+			return
+		}
+
+		val diffs = new ArrayList(this.dragDropBuffer)
+		this.dragDropBuffer = null
+		event.setDropCompleted(diffs !== null && !diffs.empty)
+
+		diffs.stage
+
+	}
+
+	private def void dragDroppedOnRepoTree(DragEvent event) {
+
 		val db = event.dragboard
 		val files = if (db.hasFiles) {
 				db.files
@@ -528,7 +646,6 @@ class JGitFXMainFrame extends BorderPane {
 
 		val Task<?> task = new OpenReposTask(files, this.repositoryRegistry)
 		this.eventBroker.publish(TaskTopic.TASK_STARTED, task)
-
 	}
 
 	def keyPressed(KeyEvent e) {
