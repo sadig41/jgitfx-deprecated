@@ -76,6 +76,9 @@ class JGitFXMainFrame extends BorderPane {
 	private static final KeyCombination CONTROL_ENTER = new KeyCodeCombination(KeyCode.ENTER,
 		KeyCombination.CONTROL_DOWN)
 
+	private static final KeyCombination CONTROL_SHIFT_ENTER = new KeyCodeCombination(KeyCode.ENTER,
+		KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN)
+
 	@FXML TableView<HistoryEntry> historyTable
 	@FXML TableColumn<HistoryEntry, String> refsColumn
 	@FXML TableColumn<HistoryEntry, String> commitMessageColumn
@@ -191,10 +194,10 @@ class JGitFXMainFrame extends BorderPane {
 
 		updateHistoryColumnsVisibility
 		this.historyTable.columns.forEach[col|col.visibleProperty >> [this.prefs.setColumnVisible(col.id, it)]]
-		
+
 		this.prefs.commitAndPushProperty >> [this.updateCommitButton(it)]
 	}
-	
+
 	private def updateCommitButton(boolean commitAndPush) {
 		this.commitButton.items.all = #[if(commitAndPush) this.commitMenuItem else this.commitAndPushMenuItem]
 		this.commitButton.text = '''Commit«IF commitAndPush» + Push«ENDIF»'''
@@ -434,15 +437,13 @@ class JGitFXMainFrame extends BorderPane {
 	def void commit() {
 		this.doCommit(false)
 	}
-	
+
 	def commitAndPush() {
 		this.doCommit(true)
 	}
-	
+
 	private def doCommit(boolean andPush) {
-		
-		this.prefs.commitAndPush = andPush
-		
+
 		val commitMessage = commitMessage
 		if (commitMessage === null || commitMessage.trim.empty || this.stagedFilesTable.items.empty) {
 			return
@@ -455,8 +456,8 @@ class JGitFXMainFrame extends BorderPane {
 			this.commitMessageTextArea.text = null
 			this.eventBroker.publish(RepositoryOperations.COMMIT, this.repositoryHandler)
 		}
-		
-		if(andPush) {
+
+		if (andPush) {
 			this.eventBroker.publish(RepositoryOperations.PUSH, this.repositoryHandler)
 		}
 	}
@@ -532,13 +533,17 @@ class JGitFXMainFrame extends BorderPane {
 
 	def keyPressed(KeyEvent e) {
 
-//		if (e.source == this.commitMessageTextField || e.source == this.commitMessageTextArea) {
-//			if (CONTROL_ENTER.match(e)) {
-//				commit
-//				e.consume
-//				Platform.runLater[this.commitMessageTextField.requestFocus]
-//			}
-//		}
+		if (e.source == this.commitMessageTextField || e.source == this.commitMessageTextArea) {
+			if (CONTROL_SHIFT_ENTER.match(e)) {
+				commitAndPush
+				e.consume
+				if(e.source == this.commitMessageTextArea) this.commitMessageTextField.requestFocus
+			} else if (CONTROL_ENTER.match(e)) {
+				commit
+				e.consume
+				if(e.source == this.commitMessageTextArea) this.commitMessageTextField.requestFocus
+			}
+		}
 
 		if (e.source == this.repositoryTree && e.code == KeyCode.DELETE) {
 			removeSelectedRepos

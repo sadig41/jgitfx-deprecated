@@ -434,16 +434,8 @@
                               <TextArea fx:id="commitMessageTextArea" maxHeight="1.7976931348623157E308" onKeyPressed="#keyPressed" promptText="Description" VBox.vgrow="ALWAYS" />
                               <SplitMenuButton fx:id="commitButton" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="46.0" mnemonicParsing="false" onAction="#commit" text="Commit">
                                 <items>
-                                  <MenuItem fx:id="commitMenuItem" mnemonicParsing="false" onAction="#commit" text="Commit">
-                                       <accelerator>
-                                          <KeyCodeCombination alt="UP" code="ENTER" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
-                                       </accelerator>
-                                    </MenuItem>
-                                    <MenuItem fx:id="commitAndPushMenuItem" mnemonicParsing="false" onAction="#commitAndPush" text="Commit + Push">
-                                       <accelerator>
-                                          <KeyCodeCombination alt="UP" code="ENTER" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
-                                       </accelerator>
-                                    </MenuItem>
+                                  <MenuItem fx:id="commitMenuItem" mnemonicParsing="false" onAction="#commit" text="Commit" />
+                                    <MenuItem fx:id="commitAndPushMenuItem" mnemonicParsing="false" onAction="#commitAndPush" text="Commit + Push" />
                                 </items>
                               </SplitMenuButton>
                            </children>
