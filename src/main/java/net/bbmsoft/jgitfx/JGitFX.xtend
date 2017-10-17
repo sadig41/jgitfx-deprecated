@@ -3,7 +3,9 @@ package net.bbmsoft.jgitfx
 import com.google.inject.Guice
 import java.io.File
 import javafx.application.Platform
+import javafx.concurrent.Task
 import javafx.scene.Scene
+import javafx.scene.image.Image
 import javafx.stage.Stage
 import javax.inject.Inject
 import net.bbmsoft.bbm.utils.concurrent.TaskHelper
@@ -13,6 +15,7 @@ import net.bbmsoft.jgitfx.event.EventBroker
 import net.bbmsoft.jgitfx.event.EventPublisher
 import net.bbmsoft.jgitfx.event.RepositoryRegistryTopic
 import net.bbmsoft.jgitfx.event.TaskTopic
+import net.bbmsoft.jgitfx.event.Topic
 import net.bbmsoft.jgitfx.event.UserInteraction
 import net.bbmsoft.jgitfx.inject.impl.JGitFXModule
 import net.bbmsoft.jgitfx.messaging.Message
@@ -23,10 +26,6 @@ import net.bbmsoft.jgitfx.modules.RepositoryOpener
 import net.bbmsoft.jgitfx.registry.RepositoryRegistry
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
-import javafx.scene.image.Image
-import net.bbmsoft.jgitfx.event.Topic
-import javafx.concurrent.Task
-import net.bbmsoft.jgitfx.event.Topic
 
 class JGitFX extends Subapplication {
 
@@ -57,7 +56,7 @@ class JGitFX extends Subapplication {
 		eventBroker.subscribe(MessageType.values(), messageListener)
 		eventBroker.subscribe(RepositoryRegistryTopic.REPO_NOT_FOUND)[repoNotFound($1, eventBroker)]
 
-		eventBroker.subscribe(TaskTopic.TASK_STARTED) [Topic<Task<?>> topic, Task<?> task|
+		eventBroker.subscribe(TaskTopic.TASK_STARTED) [ Topic<Task<?>> topic, Task<?> task |
 			gitTaskHelper.submitTask(task, null)
 		]
 
@@ -78,8 +77,10 @@ class JGitFX extends Subapplication {
 		stage.focusedProperty >> [if(it) this.eventBroker.publish(AppStatus.FOCUSED, System.currentTimeMillis)]
 
 		stage.title = 'JGitFX v0.0.1'
-		stage.icons.addAll = #[256, 128, 64, 32,16].map[new Image(JGitFX.getResource('''/logo/jgitfx-«it».png''').toExternalForm)]
-		
+		stage.icons.addAll = #[256, 128, 64, 32, 16].map [
+			new Image(JGitFX.getResource('''/logo/jgitfx-«it».png''').toExternalForm)
+		]
+
 		stage.maximized = this.prefs.maximized
 		stage.maximizedProperty > [
 			this.prefs.maximized = stage.maximized
