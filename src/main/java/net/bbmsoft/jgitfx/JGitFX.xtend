@@ -24,6 +24,9 @@ import net.bbmsoft.jgitfx.registry.RepositoryRegistry
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
 import javafx.scene.image.Image
+import net.bbmsoft.jgitfx.event.Topic
+import javafx.concurrent.Task
+import net.bbmsoft.jgitfx.event.Topic
 
 class JGitFX extends Subapplication {
 
@@ -54,8 +57,8 @@ class JGitFX extends Subapplication {
 		eventBroker.subscribe(MessageType.values(), messageListener)
 		eventBroker.subscribe(RepositoryRegistryTopic.REPO_NOT_FOUND)[repoNotFound($1, eventBroker)]
 
-		eventBroker.subscribe(TaskTopic.TASK_STARTED) [
-			gitTaskHelper.submitTask($1, null)
+		eventBroker.subscribe(TaskTopic.TASK_STARTED) [Topic<Task<?>> topic, Task<?> task|
+			gitTaskHelper.submitTask(task, null)
 		]
 
 		eventBroker.subscribe(UserInteraction.CLONE)[println('clone')]

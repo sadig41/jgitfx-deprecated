@@ -29,6 +29,7 @@ import net.bbmsoft.jgitfx.modules.DialogUsernamePasswordProvider
 import org.eclipse.jgit.transport.CredentialsProvider
 import java.util.ArrayList
 import net.bbmsoft.bbm.utils.concurrent.ThreadUtils
+import net.bbmsoft.jgitfx.event.Topic
 
 @Singleton
 class PersistingRepositoryRegistry implements RepositoryRegistry {
@@ -65,15 +66,15 @@ class PersistingRepositoryRegistry implements RepositoryRegistry {
 			]
 		]
 
-		eventBroker.subscribe(AppStatus.FOCUSED) [
+		eventBroker.subscribe(AppStatus.FOCUSED) [ Topic<Long> topic, Long value |
 			synchronized (this) {
 				this.registeredRepositories.forEach [
 					eventBroker.publish(RepositoryTopic.REPO_UPDATED, repositoryHandler)
 				]
 			}
 		]
-		
-		eventBroker.subscribe(AppStatus.EXITING) [shutdown]
+
+		eventBroker.subscribe(AppStatus.EXITING)[Topic<Long> topic, Long value|shutdown]
 
 	}
 
@@ -144,26 +145,28 @@ class PersistingRepositoryRegistry implements RepositoryRegistry {
 		}
 
 		override synchronized removeRepository(Repository repository) {
-			
-			val handler1  = this.handlers.remove(repository.workTree.absolutePath)
+
+			val handler1 = this.handlers.remove(repository.workTree.absolutePath)
 			val handler2 = this.handlers.remove(repository.directory.absolutePath)
 			val removed = this.registeredRepositories.remove(repository)
-			
+
 			this.persistor.persist(this.registeredRepositories.map[directory])
-			
+
 			val consistent = (handler1 === handler2) && removed
-			
-			if(!consistent) {
-				this.eventBroker.publish(MessageType.ERROR, new Message('Inconsistent remove result', 'The repository registry might have been in an invalid state!'))
+
+			if (!consistent) {
+				this.eventBroker.publish(MessageType.ERROR,
+					new Message('Inconsistent remove result',
+						'The repository registry might have been in an invalid state!'))
 			}
-			
+
 			this.eventBroker.publish(RepositoryTopic.REPO_REMOVED, handler1 ?: handler2)
-			
+
 			repository.close
-			
+
 			consistent
 		}
-		
+
 		private synchronized def shutdown() {
 			this.registeredRepositories.forEach[close]
 		}

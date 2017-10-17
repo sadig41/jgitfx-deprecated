@@ -46,6 +46,7 @@ import net.bbmsoft.jgitfx.event.EventBroker
 import net.bbmsoft.jgitfx.event.RepositoryOperations
 import net.bbmsoft.jgitfx.event.RepositoryTopic
 import net.bbmsoft.jgitfx.event.TaskTopic
+import net.bbmsoft.jgitfx.event.Topic
 import net.bbmsoft.jgitfx.event.UserInteraction
 import net.bbmsoft.jgitfx.messaging.Message
 import net.bbmsoft.jgitfx.messaging.MessageType
@@ -72,6 +73,9 @@ import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.lib.Repository
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
+import net.bbmsoft.jgitfx.event.Topic
+import net.bbmsoft.jgitfx.modules.RepositoryHandler
+import net.bbmsoft.jgitfx.event.Topic
 
 @FXMLRoot
 class JGitFXMainFrame extends BorderPane {
@@ -148,7 +152,7 @@ class JGitFXMainFrame extends BorderPane {
 		this.historyVisualizer = new RepositoryTableVisualizer(this.historyTable, this.refsColumn,
 			this.commitMessageColumn, this.authorColumn, this.timeColumn, this.eventBroker)
 
-		this.eventBroker.subscribe(AppStatus.STARTED) [
+		this.eventBroker.subscribe(AppStatus.STARTED) [Topic<Long> topic, Long value|
 			this.repositoryRegistry.registeredRepositories.forEach[addRepoTreeItem]
 			val lastOpened = prefs.lastOpened
 			if (lastOpened !== null) {
@@ -158,19 +162,19 @@ class JGitFXMainFrame extends BorderPane {
 				}
 			}
 		]
-		this.eventBroker.subscribe(#[RepositoryOperations.STAGE, RepositoryOperations.UNSTAGE]) [
-			if($1 == repositoryHandler) commitMessageUpdated(this.commitMessageTextField.text)
+		this.eventBroker.subscribe(#[RepositoryOperations.STAGE, RepositoryOperations.UNSTAGE]) [Topic<RepositoryHandler> topic, RepositoryHandler handler|
+			if(handler == repositoryHandler) commitMessageUpdated(this.commitMessageTextField.text)
 		]
-		this.eventBroker.subscribe(RepositoryTopic.REPO_LOADED) [
-			addRepoTreeItem($1.repository)
+		this.eventBroker.subscribe(RepositoryTopic.REPO_LOADED) [Topic<RepositoryHandler> topic,RepositoryHandler handler|
+			addRepoTreeItem(handler.repository)
 		]
-		this.eventBroker.subscribe(RepositoryTopic.REPO_OPENED) [
-			this.repositoryTreeItems.get($1?.repository?.directory?.absolutePath).open
+		this.eventBroker.subscribe(RepositoryTopic.REPO_OPENED) [Topic<RepositoryHandler>  topic,RepositoryHandler handler|
+			this.repositoryTreeItems.get(handler?.repository?.directory?.absolutePath).open
 		]
-		this.eventBroker.subscribe(RepositoryTopic.REPO_REMOVED) [
-			val treeItem = this.repositoryTreeItems.remove($1.repository.directory.absolutePath)
+		this.eventBroker.subscribe(RepositoryTopic.REPO_REMOVED) [Topic<RepositoryHandler>  topic,RepositoryHandler handler|
+			val treeItem = this.repositoryTreeItems.remove(handler.repository.directory.absolutePath)
 			this.rootRepoTreeItem.children.remove(treeItem)
-			if ($1 == this.repositoryHandler) {
+			if (handler == this.repositoryHandler) {
 				Platform.runLater[this.eventBroker.publish(RepositoryTopic.REPO_OPENED, null)]
 			}
 		]
