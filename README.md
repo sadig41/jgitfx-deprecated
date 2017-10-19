@@ -20,7 +20,7 @@ Right now JGitFX is in early alpha stage. Many features that are important for d
 
 ## How to build?
 
-Unfortunately not at all right now, since there are some more dependencies on other projects that I have not properly published yet. If you are interested in trying JGitFX feel free to contact me so I can send you a compiled snapshot.
+Run ```mvn package``` to create an executable jar file named jgitfx-&lt;version&gt;-jar-with-dependencies.jar in the target folder or ```mvn compile exec:java``` run run the application directly.
 
 ## Logo
 The JGitFX Logo is based on the original git logo by Jason Long.
