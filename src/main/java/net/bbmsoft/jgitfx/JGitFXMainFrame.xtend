@@ -230,12 +230,6 @@ class JGitFXMainFrame extends BorderPane {
 		this.breadcrumb.selectedCrumb = this.rootRepoTreeItem
 		this.repositoryTree.root = rootRepoTreeItem
 		this.repositoryTree.showRoot = false
-		this.repositoryTree.onMouseClicked = [
-			val selected = this.repositoryTree.selectionModel.selectedItem
-			if (clickCount == 2 && selected !== null) {
-				this.eventBroker.publish(RepositoryTopic.REPO_OPENED, getHandler(selected.value.repository))
-			}
-		]
 
 		this.repositoryTree.selectionModel.selectionMode = SelectionMode.MULTIPLE
 		this.repositoryTree.selectionModel.selectedItems > [updateRepositoryTreeContextMenu]
@@ -248,6 +242,21 @@ class JGitFXMainFrame extends BorderPane {
 		this.repositoryTree.cellFactory = new RepoTreeCellFactory
 
 		Platform.runLater[this.repositoriesList.expanded = true]
+	}
+	
+	def clicked(MouseEvent e) {
+		if(e.source == this.unstagedFilesTable && e.clickCount == 2) {
+			this.unstagedFilesTable.selectionModel.selectedItems.stage
+		}
+		if(e.source == this.stagedFilesTable && e.clickCount == 2) {
+			this.stagedFilesTable.selectionModel.selectedItems.unstage
+		}
+		if(e.source == this.repositoryTree) {
+			val selected = this.repositoryTree.selectionModel.selectedItem
+			if (e.clickCount == 2 && selected !== null) {
+				this.eventBroker.publish(RepositoryTopic.REPO_OPENED, getHandler(selected.value.repository))
+			}
+		}
 	}
 
 	private def void commitMessageUpdated(String commitMessage) {
