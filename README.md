@@ -18,6 +18,20 @@ Primary design goals are:
 
 Right now JGitFX is in early alpha stage. Many features that are important for daily work are not available yet, let alone everything that is required to fulfill the aforementioned design goals. So if you want to try it, feel free, but don't expect to be using it as your main SCM tool at work any time soon.
 
+## Which Java versions will it run with?
+
+### Java 7 and older
+ * Short answer: No.
+ * Long answer: Noooooooo.
+
+### Java 8
+ * Short answer: Yes.
+ * Long answer: So far development happened mostly on Oracle JDK 8u144 so if you are using a recent JDK 8 release you can be pretty sure it will work. Note that if you are using OpenJDK you might have to install OpenJFX separately.
+
+### Java 9
+ * Short answer: Probably not.
+ * Long answer: I haven't really looked into Java 9 so far, so I'm not quite sure what to watch out for when taking an existing JavaFX project to Java 9. Feel free to try out, though.
+
 ## How to build?
 
 Run ```mvn package``` to create an executable jar file named jgitfx-&lt;version&gt;-jar-with-dependencies.jar in the target folder or ```mvn compile exec:java``` run run the application directly.
