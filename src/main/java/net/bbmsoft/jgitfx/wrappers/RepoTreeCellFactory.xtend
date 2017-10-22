@@ -26,32 +26,41 @@ class RepoTreeCellFactory implements Callback<TreeView<RepositoryWrapper>, TreeC
 		ChangeListener<Boolean> stagedChangesListenr
 		ChangeListener<Boolean> childrenOutOfSyncListener
 		ChangeListener<Boolean> openListener
+		ChangeListener<String> longNameListener
+
+		RepositoryWrapper wrapper
 
 		new(StringConverter<RepositoryWrapper> converter) {
 			super(converter)
 		}
-		
+
 		override updateItem(RepositoryWrapper newWrapper, boolean empty) {
-			
-			val oldWrapper =  getItem
-			
-			if (oldWrapper !== null) {
-				oldWrapper.unstagedChangesProperty - this.unstagedChangesListenr
-				oldWrapper.stagedChangesProperty - this.stagedChangesListenr
-				oldWrapper.childrenOutOfSyncProperty - this.childrenOutOfSyncListener
-				oldWrapper.openProperty - this.openListener
-			}
-			
+
+			this.wrapper?.unstagedChangesProperty?.removeListener(this.unstagedChangesListenr)
+			this.wrapper?.stagedChangesProperty?.removeListener(this.stagedChangesListenr)
+			this.wrapper?.childrenOutOfSyncProperty?.removeListener(this.childrenOutOfSyncListener)
+			this.wrapper?.openProperty?.removeListener(this.openListener)
+			this.wrapper?.longNameProperty?.removeListener(this.longNameListener)
+
 			super.updateItem(item, empty)
 			
-			if (newWrapper !== null && !empty) {
-				
-				unstagedChangesListenr = newWrapper.unstagedChangesProperty >> [PSEUDO_CLASS_UNSTAGED_CHANGES.pseudoClassStateChanged = it]
-				stagedChangesListenr = newWrapper.stagedChangesProperty >> [PSEUDO_CLASS_STAGED_CHANGES.pseudoClassStateChanged = it]
-				childrenOutOfSyncListener = newWrapper.childrenOutOfSyncProperty >> [PSEUDO_CLASS_CHILDREN_OUT_OF_SYNC.pseudoClassStateChanged = it]
-				openListener = newWrapper.openProperty >> [PSEUDO_CLASS_OPEN.pseudoClassStateChanged = it]
-				
-				newWrapper.longNameProperty >> [
+			this.wrapper = newWrapper
+			
+			if (this.wrapper !== null && !empty) {
+
+				this.unstagedChangesListenr = this.wrapper.unstagedChangesProperty >> [
+					PSEUDO_CLASS_UNSTAGED_CHANGES.pseudoClassStateChanged = it
+				]
+				this.stagedChangesListenr = this.wrapper.stagedChangesProperty >> [
+					PSEUDO_CLASS_STAGED_CHANGES.pseudoClassStateChanged = it
+				]
+				this.childrenOutOfSyncListener = this.wrapper.childrenOutOfSyncProperty >> [
+					PSEUDO_CLASS_CHILDREN_OUT_OF_SYNC.pseudoClassStateChanged = it
+				]
+				this.openListener = this.wrapper.openProperty >> [
+					PSEUDO_CLASS_OPEN.pseudoClassStateChanged = it
+				]
+				this.longNameListener = this.wrapper.longNameProperty >> [
 					this.text = it
 				]
 			}

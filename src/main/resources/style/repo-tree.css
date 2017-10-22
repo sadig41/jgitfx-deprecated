@@ -1,10 +1,10 @@
 #repositoryTree .tree-cell:filled:staged-changes {
-	-fx-background:		staged-changes-background;
+	-fx-control-inner-background:		staged-changes-background;
 	-fx-accent:			staged-changes-highlight;
 }
 
 #repositoryTree .tree-cell:filled:unstaged-changes {
-	-fx-background:		unstaged-changes-background;
+	-fx-control-inner-background:		unstaged-changes-background;
 	-fx-accent:			unstaged-changes-highlight;
 }
 
