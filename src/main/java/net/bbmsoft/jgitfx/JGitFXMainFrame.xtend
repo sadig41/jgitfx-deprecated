@@ -676,6 +676,14 @@ class JGitFXMainFrame extends BorderPane {
 			removeSelectedRepos
 			e.consume
 		}
+		
+		if(e.source == this.unstagedFilesTable && e.code == KeyCode.ENTER) {
+			this.unstagedFilesTable.selectionModel.selectedItems.stage
+		}
+		
+		if(e.source == this.stagedFilesTable && e.code == KeyCode.ENTER) {
+			this.stagedFilesTable.selectionModel.selectedItems.unstage
+		}
 	}
 
 	private def removeSelectedRepos() {

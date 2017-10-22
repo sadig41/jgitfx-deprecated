@@ -35,7 +35,7 @@
 <?import org.controlsfx.control.BreadCrumbBar?>
 <?import org.controlsfx.control.TaskProgressView?>
 
-<fx:root fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="768.0" prefWidth="1024.0" type="BorderPane" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="768.0" prefWidth="1024.0" type="BorderPane" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1">
    
    
    <top>
@@ -400,7 +400,7 @@
                                     <Button fx:id="stageAllButton" mnemonicParsing="false" onAction="#stageAll" text="Stage all" />
                                  </children>
                               </HBox>
-                              <ListView fx:id="unstagedFilesTable" maxHeight="1.7976931348623157E308" onDragDetected="#dragDetected" onDragDropped="#dragDropped" onDragOver="#dragOver" onMouseClicked="#clicked" prefHeight="300.0" styleClass="change-list" VBox.vgrow="ALWAYS">
+                              <ListView fx:id="unstagedFilesTable" maxHeight="1.7976931348623157E308" onDragDetected="#dragDetected" onDragDropped="#dragDropped" onDragOver="#dragOver" onKeyPressed="#keyPressed" onMouseClicked="#clicked" prefHeight="300.0" styleClass="change-list" VBox.vgrow="ALWAYS">
                         
                                  <contextMenu>
                                     <ContextMenu>
@@ -418,7 +418,7 @@
                                     <Button fx:id="unstageAllButton" mnemonicParsing="false" onAction="#unstageAll" text="Unstage all" />
                                  </children>
                               </HBox>
-                              <ListView fx:id="stagedFilesTable" maxHeight="1.7976931348623157E308" onDragDetected="#dragDetected" onDragDropped="#dragDropped" onDragOver="#dragOver" onMouseClicked="#clicked" prefHeight="300.0" styleClass="change-list" VBox.vgrow="ALWAYS">
+                              <ListView fx:id="stagedFilesTable" maxHeight="1.7976931348623157E308" onDragDetected="#dragDetected" onDragDropped="#dragDropped" onDragOver="#dragOver" onKeyPressed="#keyPressed" onMouseClicked="#clicked" prefHeight="300.0" styleClass="change-list" VBox.vgrow="ALWAYS">
                                
                                  <contextMenu>
                                     <ContextMenu>
