@@ -21,6 +21,7 @@ import net.bbmsoft.jgitfx.event.EventPublisher;
 import net.bbmsoft.jgitfx.event.RepositoryOperations;
 import net.bbmsoft.jgitfx.event.RepositoryTopic;
 import net.bbmsoft.jgitfx.event.Topic;
+import net.bbmsoft.jgitfx.event.UserInputTopic;
 import net.bbmsoft.jgitfx.messaging.Message;
 import net.bbmsoft.jgitfx.messaging.MessageType;
 import net.bbmsoft.jgitfx.modules.operations.CommitHandler;
@@ -169,6 +170,20 @@ public class RepositoryHandler {
 	private void discard(List<DiffEntry> diffs, boolean staged) {
 
 		if (diffs.isEmpty()) {
+			return;
+		}
+		
+		StringBuilder header = new StringBuilder("This will delete all local changes in the folowing file");
+		if(diffs.size() > 1) {
+			header.append("s");
+		}
+		header.append(":\n");
+		for (DiffEntry diff : diffs) {
+			String filePath = StagingHelper.getFilePath(diff);
+			header.append("\n").append(filePath);
+		}
+		this.eventPublisher.publish(UserInputTopic.ConfirmationTopic.CONFIRM, new Message("Reset", header, "Do you want to continue?"));
+		if(!UserInputTopic.ConfirmationTopic.CONFIRM.get()) {
 			return;
 		}
 

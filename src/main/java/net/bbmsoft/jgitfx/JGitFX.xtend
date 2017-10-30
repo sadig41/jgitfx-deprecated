@@ -26,6 +26,7 @@ import net.bbmsoft.jgitfx.modules.RepositoryOpener
 import net.bbmsoft.jgitfx.registry.RepositoryRegistry
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
+import net.bbmsoft.jgitfx.event.UserInputTopic
 
 class JGitFX extends Subapplication {
 
@@ -54,6 +55,7 @@ class JGitFX extends Subapplication {
 		this.prefs = prefs
 
 		eventBroker.subscribe(MessageType.values(), messageListener)
+		eventBroker.subscribe(UserInputTopic.ConfirmationTopic.values, messageListener)
 		eventBroker.subscribe(RepositoryRegistryTopic.REPO_NOT_FOUND)[repoNotFound($1, eventBroker)]
 
 		eventBroker.subscribe(TaskTopic.TASK_STARTED) [ Topic<Task<?>> topic, Task<?> task |

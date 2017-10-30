@@ -13,18 +13,18 @@ public class Message {
 		this(title, body, null, null);
 	}
 	
-	public Message(String title, String header, String body) {
+	public Message(CharSequence title, CharSequence header, CharSequence body) {
 		this(title, header, body, null);
 	}
 	
-	public Message(String title, String body, Throwable throwable) {
+	public Message(CharSequence title, CharSequence body, Throwable throwable) {
 		this(title, ErrorHelper.getRoot(throwable, th -> th.getCause()).getMessage(), body, throwable);
 	}
 	
-	public Message(String title, String header, String body, Throwable throwable) {
-		this.title = title;
-		this.header = header;
-		this.body = body;
+	public Message(CharSequence title, CharSequence header, CharSequence body, Throwable throwable) {
+		this.title = title.toString();
+		this.header = header.toString();
+		this.body = body.toString();
 		this.throwable = throwable;
 	}
 
