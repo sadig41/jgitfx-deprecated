@@ -8,6 +8,6 @@ import org.eclipse.xtext.xbase.lib.Pair;
 
 public enum DiffTopic implements Topic<Pair<Repository, List<DiffEntry>>> {
 
-	UNSTAGED_CHANGES_FOUND, STAGED_CHANGES_FOUND;
+	UNSTAGED_CHANGES_FOUND, STAGED_CHANGES_FOUND, DISCARD_STAGED, DISCARD_UNSTAGED;
 	
 }

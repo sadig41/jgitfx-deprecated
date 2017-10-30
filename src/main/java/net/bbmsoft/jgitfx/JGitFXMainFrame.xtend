@@ -73,6 +73,8 @@ import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.lib.Repository
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
+import net.bbmsoft.jgitfx.event.DiffTopic
+import java.util.Arrays
 
 @FXMLRoot
 class JGitFXMainFrame extends BorderPane {
@@ -497,7 +499,7 @@ class JGitFXMainFrame extends BorderPane {
 	}
 
 	def void discardSelectedUnstaged() {
-		this.unstagedFilesTable.selectionModel.selectedItems.discard
+		this.unstagedFilesTable.selectionModel.selectedItems.discard(false)
 	}
 
 	def void unstageSelected() {
@@ -505,7 +507,7 @@ class JGitFXMainFrame extends BorderPane {
 	}
 
 	def void discardSelectedStaged() {
-		this.stagedFilesTable.selectionModel.selectedItems.discard
+		this.stagedFilesTable.selectionModel.selectedItems.discard(true)
 	}
 
 	private def stage(DiffEntry ... files) {
@@ -518,8 +520,8 @@ class JGitFXMainFrame extends BorderPane {
 		this.eventBroker.publish(RepositoryOperations.UNSTAGE, this.repositoryHandler)
 	}
 
-	private def discard(DiffEntry ... files) {
-		println("discard " + files)
+	private def discard(DiffEntry[] files, boolean staged) {
+		this.eventBroker.publish(if(staged) DiffTopic.DISCARD_STAGED else DiffTopic.DISCARD_UNSTAGED, Pair.of(this.repositoryHandler?.repository, Arrays.asList(files)))
 	}
 
 	def commitMessageEntered() {

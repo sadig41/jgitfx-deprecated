@@ -406,7 +406,7 @@
                                     <ContextMenu>
                                       <items>
                                         <MenuItem fx:id="stageMenuItem" mnemonicParsing="false" onAction="#stageSelected" text="Stage" />
-                                          <MenuItem fx:id="discardUnstagedMenuItem" disable="true" mnemonicParsing="false" onAction="#discardSelectedUnstaged" text="Discard" />
+                                          <MenuItem fx:id="discardUnstagedMenuItem" mnemonicParsing="false" onAction="#discardSelectedUnstaged" text="Discard" />
                                       </items>
                                     </ContextMenu>
                                  </contextMenu>
@@ -424,7 +424,7 @@
                                     <ContextMenu>
                                       <items>
                                         <MenuItem fx:id="unstageMenuItem" mnemonicParsing="false" onAction="#unstageSelected" text="Unstage" />
-                                          <MenuItem fx:id="discardStagedMenuItem" disable="true" mnemonicParsing="false" onAction="#discardSelectedStaged" text="Discard" />
+                                          <MenuItem fx:id="discardStagedMenuItem" mnemonicParsing="false" onAction="#discardSelectedStaged" text="Discard" />
                                       </items>
                                     </ContextMenu>
                                  </contextMenu>
