@@ -20,6 +20,8 @@ import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 
+import com.google.common.collect.Lists;
+
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.scene.control.TableColumn;
@@ -32,11 +34,11 @@ public class RepositoryTableVisualizer {
 
 	private final TableView<HistoryEntry> table;
 	private final Map<String, List<Ref>> refMap;
+	private final StringProperty wipCommitMessage;
+	private final HistoryHelper graphPainter;
 
 	private Repository repository;
 	
-	private final StringProperty wipCommitMessage;
-
 	public RepositoryTableVisualizer(TableView<HistoryEntry> table, TableColumn<HistoryEntry, String> branchColumn,
 			TableColumn<HistoryEntry, String> commitMessageColumn, TableColumn<HistoryEntry, String> authorColumn,
 			TableColumn<HistoryEntry, String> timeColumn, EventBroker eventBroker) {
@@ -44,6 +46,7 @@ public class RepositoryTableVisualizer {
 		this.table = table;
 		this.refMap = new HashMap<>();
 		this.wipCommitMessage = new SimpleStringProperty("// WIP");
+		this.graphPainter = new HistoryHelper();
 		
 		eventBroker.subscribe(CommitMessageTopic.COMMIT_MESSAGE_UPDATED, (topic, message) -> {
 			this.wipCommitMessage.set(message != null && !message.trim().isEmpty() ? "// WIP: " + message : "// WIP");
@@ -189,9 +192,9 @@ public class RepositoryTableVisualizer {
 		List<HistoryEntry> commits = new ArrayList<>();
 		commits.add(new HistoryEntry(null));
 		
-		Iterable<RevCommit> commitsIterable = Collections.emptyList();
+		List<RevCommit> commitsIterable = Collections.emptyList();
 		try {
-			commitsIterable = git.log().all().call();
+			commitsIterable = Lists.newArrayList(git.log().all().call());
 		} catch (NoHeadException e) {
 			this.table.getItems().setAll(commits);
 			return;
@@ -200,5 +203,7 @@ public class RepositoryTableVisualizer {
 		commitsIterable.forEach(rev -> commits.add(new HistoryEntry(rev)));
 		this.table.getItems().setAll(commits);
 		this.table.getSelectionModel().select(selected);
+		
+		this.graphPainter.visualize(this.repository, commitsIterable);
 	}
 }
