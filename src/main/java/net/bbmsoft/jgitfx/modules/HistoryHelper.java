@@ -54,12 +54,12 @@ public class HistoryHelper extends Subapplication {
 
 	private void doVisualize(List<RevCommit> commits, Repository repo)
 			throws MissingObjectException, IncorrectObjectTypeException, IOException {
-		
-		if(this.root == null) {
+
+		if (this.root == null) {
 			return;
 		}
-		
-		this.canvas = new Canvas[commits.size()];
+
+		this.canvas = new Canvas[commits.size() + 1];
 		for (int i = 0; i < canvas.length; i++) {
 			canvas[i] = new Canvas(600, 24);
 		}
@@ -91,8 +91,6 @@ public class HistoryHelper extends Subapplication {
 			heads.sort(new HeadComparator());
 		}
 
-		int index = 0;
-
 		for (RevCommit next : commits) {
 			HeadInfo head = branchedCommits.get(next.getId());
 			detectParentBranches(next, branchedCommits, head, pendingConnections);
@@ -104,54 +102,84 @@ public class HistoryHelper extends Subapplication {
 			}
 		}
 
+		Color[] colors = { Color.RED, Color.AQUA, Color.GREEN, Color.YELLOW, Color.PURPLE, Color.DARKCYAN };
+
+		int index = 0;
+
+		Canvas canvas = this.canvas[index++];
+		renderLines(commits, canvas.getGraphicsContext2D(), heads, branchedCommits, pendingConnections,
+				canvas.getHeight(), null, colors[0], 0, 1, 0, true);
+
 		for (RevCommit next : commits) {
 
 			HeadInfo head = branchedCommits.get(next.getId());
 
 			int branchIndex = heads.indexOf(head);
 
-			Color[] colors = { Color.RED, Color.AQUA, Color.GREEN, Color.YELLOW, Color.PURPLE, Color.DARKCYAN };
 			Color color = colors[branchIndex % colors.length];
 
-			Canvas canvas = this.canvas[index++];
-			renderLines(commits, canvas.getGraphicsContext2D(), heads, branchedCommits, pendingConnections, canvas.getHeight(), next, color, heads.indexOf(head), next.getParentCount(), 1);
+			canvas = this.canvas[index++];
+			renderLines(commits, canvas.getGraphicsContext2D(), heads, branchedCommits, pendingConnections,
+					canvas.getHeight(), next, color, heads.indexOf(head), next.getParentCount(), 1, false);
 		}
 
 		index = 0;
 
+		canvas = this.canvas[index++];
+		randerCommit(canvas.getGraphicsContext2D(), canvas.getHeight(), null, colors[0], 0, true);
+
 		for (RevCommit next : commits) {
 
 			HeadInfo head = branchedCommits.get(next.getId());
 
 			int branchIndex = heads.indexOf(head);
 
-			Color[] colors = { Color.RED, Color.AQUA, Color.GREEN, Color.YELLOW, Color.PURPLE, Color.DARKCYAN };
 			Color color = colors[branchIndex % colors.length];
 
-			Canvas canvas = this.canvas[index++];
-			randerCommit(canvas.getGraphicsContext2D(), canvas.getHeight(), next, color, heads.indexOf(head));
+			canvas = this.canvas[index++];
+			randerCommit(canvas.getGraphicsContext2D(), canvas.getHeight(), next, color, heads.indexOf(head), false);
 		}
 	}
 
 	private void renderLines(List<RevCommit> commits, GraphicsContext g, List<HeadInfo> heads,
 			Map<ObjectId, HeadInfo> branchedCommits, Map<RevCommit, List<RevCommit>> pendingConnections,
-			double lineHeight, RevCommit next, Color color, int branchIndex, int parentCount, int childCount) {
+			double lineHeight, RevCommit next, Color color, int branchIndex, int parentCount, int childCount,
+			boolean wip) {
 
-		double x = branchIndex * lineHeight/2;
-		
-		g.setStroke(color);
-		g.strokeLine(x + lineHeight / 4, 0, x + lineHeight / 4, lineHeight);
+		double x = branchIndex * lineHeight / 2;
+
+		g.setLineWidth(2);
+		g.setStroke(color.darker());
+
+		if (parentCount > 0) {
+			g.strokeLine(g.getLineWidth() / 2 + x + lineHeight / 4, lineHeight * 0.75 + g.getLineWidth() / 2,
+					g.getLineWidth() / 2 + x + lineHeight / 4, lineHeight);
+		}
+
+		if (childCount > 0) {
+			g.strokeLine(g.getLineWidth() / 2 + x + lineHeight / 4, 0, g.getLineWidth() / 2 + x + lineHeight / 4,
+					lineHeight / 4);
+		}
+
 	}
 
-	private void randerCommit(GraphicsContext g, double lineHeight, RevCommit next, Color color, int branchIndex) {
-		
-		double x = branchIndex * lineHeight/2;
+	private void randerCommit(GraphicsContext g, double lineHeight, RevCommit next, Color color, int branchIndex,
+			boolean wip) {
 
+		double x = branchIndex * lineHeight / 2;
+
+		g.setStroke(color.darker());
 		g.setFill(color);
-		g.fillOval(x, lineHeight/4, lineHeight/2, lineHeight/2);
+		g.strokeOval(g.getLineWidth() / 2 + x, lineHeight / 4 + g.getLineWidth() / 2, lineHeight / 2, lineHeight / 2);
+		if (!wip) {
+			g.setFill(color);
+			g.fillOval(g.getLineWidth() / 2 + x, lineHeight / 4 + g.getLineWidth() / 2, lineHeight / 2, lineHeight / 2);
+		}
 
 		g.setFill(Color.BLACK);
-		g.fillText(next.getShortMessage(), x + lineHeight, lineHeight * 0.75);
+		if (next != null) {
+			g.fillText(next.getShortMessage(), x + lineHeight, lineHeight * 0.75);
+		}
 	}
 
 	private void registerHead(List<HeadInfo> heads, Map<ObjectId, HeadInfo> branchedCommits, RevWalk walk,
