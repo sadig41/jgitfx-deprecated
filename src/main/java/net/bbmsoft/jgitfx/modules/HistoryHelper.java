@@ -22,6 +22,7 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import net.bbmsoft.fxtended.annotations.app.launcher.Subapplication;
@@ -30,22 +31,17 @@ import net.bbmsoft.jgitfx.utils.HeadInfo;
 
 public class HistoryHelper extends Subapplication {
 
-	private final Canvas canvas;
+	private VBox root;
+	private Canvas[] canvas;
 
 	public HistoryHelper() {
-		this.canvas = new Canvas(600, 800);
 		Subapplication.launch(this);
-
 	}
 
 	public void visualize(Repository repository, List<RevCommit> commits) {
 
-		GraphicsContext g = this.canvas.getGraphicsContext2D();
-
-		g.clearRect(0, 0, this.canvas.getWidth(), this.canvas.getHeight());
-
 		try {
-			doVisualize(commits, repository, g);
+			doVisualize(commits, repository);
 		} catch (MissingObjectException e) {
 			e.printStackTrace();
 		} catch (IncorrectObjectTypeException e) {
@@ -56,8 +52,18 @@ public class HistoryHelper extends Subapplication {
 
 	}
 
-	private void doVisualize(List<RevCommit> commits, Repository repo, GraphicsContext g)
+	private void doVisualize(List<RevCommit> commits, Repository repo)
 			throws MissingObjectException, IncorrectObjectTypeException, IOException {
+		
+		if(this.root == null) {
+			return;
+		}
+		
+		this.canvas = new Canvas[commits.size()];
+		for (int i = 0; i < canvas.length; i++) {
+			canvas[i] = new Canvas(600, 32);
+		}
+		this.root.getChildren().setAll(canvas);
 
 		Pattern branchNamePattern = Pattern.compile("refs\\/((heads)\\/|remotes\\/(.+)\\/)(.+)");
 
@@ -78,7 +84,8 @@ public class HistoryHelper extends Subapplication {
 					boolean local = "heads".equals(matcher.group(2));
 
 					Ref ref = entry.getValue();
-					registerHead(heads, branchedCommits, walk, entry.getKey(), ref, branchName, local, ref.getObjectId().equals(head.getObjectId()));
+					registerHead(heads, branchedCommits, walk, entry.getKey(), ref, branchName, local,
+							ref.getObjectId().equals(head.getObjectId()));
 				}
 			}
 			heads.sort(new HeadComparator());
@@ -86,74 +93,82 @@ public class HistoryHelper extends Subapplication {
 
 		double lineHeight = 32;
 
-		this.canvas.setHeight(lineHeight * commits.size());
-
-		int index = 1;
+		int index = 0;
 
 		for (RevCommit next : commits) {
 			HeadInfo head = branchedCommits.get(next.getId());
 			detectParentBranches(next, branchedCommits, head, pendingConnections);
 		}
-		
-		for(HeadInfo head : new ArrayList<>(heads)) {
-			if(head.isEmpty()) {
+
+		for (HeadInfo head : new ArrayList<>(heads)) {
+			if (head.isEmpty()) {
 				heads.remove(head);
 			}
 		}
 
 		for (RevCommit next : commits) {
+
 			HeadInfo head = branchedCommits.get(next.getId());
-			renderCommit(next, g, heads, head, branchedCommits, index++, lineHeight, pendingConnections, commits);
+
+			int branchIndex = heads.indexOf(head);
+
+			Color[] colors = { Color.RED, Color.AQUA, Color.GREEN, Color.YELLOW, Color.PURPLE, Color.DARKCYAN };
+			Color color = colors[branchIndex % colors.length];
+
+			renderLines(commits, this.canvas[index++].getGraphicsContext2D(), heads, branchedCommits, pendingConnections, lineHeight, next, color, heads.indexOf(head), next.getParentCount(), 1);
 		}
+
+		index = 0;
+
+		for (RevCommit next : commits) {
+
+			HeadInfo head = branchedCommits.get(next.getId());
+
+			int branchIndex = heads.indexOf(head);
+
+			Color[] colors = { Color.RED, Color.AQUA, Color.GREEN, Color.YELLOW, Color.PURPLE, Color.DARKCYAN };
+			Color color = colors[branchIndex % colors.length];
+
+			randerCommit(this.canvas[index++].getGraphicsContext2D(), lineHeight, next, color, heads.indexOf(head));
+		}
+	}
+
+	private void renderLines(List<RevCommit> commits, GraphicsContext g, List<HeadInfo> heads,
+			Map<ObjectId, HeadInfo> branchedCommits, Map<RevCommit, List<RevCommit>> pendingConnections,
+			double lineHeight, RevCommit next, Color color, int branchIndex, int parentCount, int childCount) {
+
+		double x = branchIndex * lineHeight;
+		
+		g.setStroke(color);
+		g.strokeLine(x + lineHeight / 4, 0, x + lineHeight / 4, lineHeight);
+	}
+
+	private void randerCommit(GraphicsContext g, double lineHeight, RevCommit next, Color color, int branchIndex) {
+		
+		double x = branchIndex * lineHeight;
+
+		g.setFill(color);
+		g.fillOval(x, lineHeight/4, lineHeight/2, lineHeight/2);
+
+		g.setFill(Color.BLACK);
+		g.fillText(next.getShortMessage(), x + lineHeight, lineHeight * 0.75);
 	}
 
 	private void registerHead(List<HeadInfo> heads, Map<ObjectId, HeadInfo> branchedCommits, RevWalk walk,
 			String refName, Ref ref, String branchName, boolean local, boolean head)
 			throws MissingObjectException, IncorrectObjectTypeException, IOException {
-		
+
 		RevCommit commit = walk.parseCommit(ref.getObjectId());
 		HeadInfo headInfo = new HeadInfo(head, branchName, local);
 		heads.add(headInfo);
-		
+
 		HeadInfo existingHead = branchedCommits.putIfAbsent(commit.getId(), headInfo);
-		if(existingHead == null) {
+		if (existingHead == null) {
 			headInfo.setEmpty(false);
 		}
-		
+
 		ArrayList<RevCommit> branch = new ArrayList<>();
 		branch.add(commit);
-	}
-
-	private void renderCommit(RevCommit next, GraphicsContext g, List<HeadInfo> heads, HeadInfo head,
-			Map<ObjectId, HeadInfo> branchedCommits, int index, double lineHeight,
-			Map<RevCommit, List<RevCommit>> pendingConnections, List<RevCommit> commits) {
-
-		int branchIndex = heads.indexOf(head);
-
-		double x = branchIndex * lineHeight;
-		double y = index * lineHeight;
-
-		Color[] colors = { Color.RED, Color.AQUA, Color.GREEN, Color.YELLOW, Color.PURPLE, Color.DARKCYAN };
-		Color color = colors[branchIndex % colors.length];
-
-		g.setFill(color);
-		g.fillOval(x, y - lineHeight / 2, lineHeight / 2, lineHeight / 2);
-
-		g.setFill(Color.BLACK);
-		g.fillText(next.getShortMessage(), x + lineHeight + lineHeight / 4, y);
-
-		List<RevCommit> children = pendingConnections.remove(next);
-		if (children != null) {
-			for (RevCommit child : children) {
-				HeadInfo childHead = branchedCommits.get(child.getId());
-				int childHeadBranchIndex = heads.indexOf(childHead);
-				int childIndex = commits.indexOf(child);
-				double childX = childHeadBranchIndex * lineHeight;
-				double childY = childIndex * lineHeight;
-				g.strokeLine(x + lineHeight / 4, y - lineHeight / 4, childX + lineHeight / 4,
-						childY + lineHeight * 0.75);
-			}
-		}
 	}
 
 	private void detectParentBranches(RevCommit commit, Map<ObjectId, HeadInfo> branchedCommits, HeadInfo head,
@@ -176,7 +191,8 @@ public class HistoryHelper extends Subapplication {
 
 	@Override
 	public void start(Stage stage) throws Exception {
-		stage.setScene(new Scene(new ScrollPane(this.canvas)));
+		this.root = new VBox();
+		stage.setScene(new Scene(new ScrollPane(this.root)));
 		stage.show();
 	}
 }
