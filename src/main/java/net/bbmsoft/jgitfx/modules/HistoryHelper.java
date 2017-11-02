@@ -2,6 +2,7 @@ package net.bbmsoft.jgitfx.modules;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -107,8 +108,13 @@ public class HistoryHelper extends Subapplication {
 		int index = 0;
 
 		Canvas canvas = this.canvas[index++];
+		int[] children = new int[heads.size()];
+		Arrays.fill(children, -1);
+		int[] parents = new int[heads.size()];
+		Arrays.fill(parents, -1);
+		parents[0] = 0;
 		renderLines(commits, canvas.getGraphicsContext2D(), heads, branchedCommits, pendingConnections,
-				canvas.getHeight(), null, colors[0], 0, 1, 0, true);
+				canvas.getHeight(), null, colors, 0, parents, children, true);
 
 		for (RevCommit next : commits) {
 
@@ -116,11 +122,23 @@ public class HistoryHelper extends Subapplication {
 
 			int branchIndex = heads.indexOf(head);
 
-			Color color = colors[branchIndex % colors.length];
+			for (int i = 0; i < children.length; i++) {
+				children[i]=i;
+			}
+			for (int i = 0; i < parents.length; i++) {
+				parents[i]=i;
+			}
+			
+			RevCommit[] parentCommits = next.getParents();
+			for (int i = 0; i < parentCommits.length; i++) {
+				HeadInfo headInfo = branchedCommits.get(parentCommits[i].getId());
+				parents[heads.indexOf(headInfo)] = branchIndex;
+			}
+			children[branchIndex] = branchIndex;
 
 			canvas = this.canvas[index++];
 			renderLines(commits, canvas.getGraphicsContext2D(), heads, branchedCommits, pendingConnections,
-					canvas.getHeight(), next, color, heads.indexOf(head), next.getParentCount(), 1, false);
+					canvas.getHeight(), next, colors, heads.indexOf(head), parents, children, false);
 		}
 
 		index = 0;
@@ -143,23 +161,51 @@ public class HistoryHelper extends Subapplication {
 
 	private void renderLines(List<RevCommit> commits, GraphicsContext g, List<HeadInfo> heads,
 			Map<ObjectId, HeadInfo> branchedCommits, Map<RevCommit, List<RevCommit>> pendingConnections,
-			double lineHeight, RevCommit next, Color color, int branchIndex, int parentCount, int childCount,
+			double lineHeight, RevCommit next, Color[] colors, int branchIndex, int[] parents, int[] children,
 			boolean wip) {
 
-		double x = branchIndex * lineHeight / 2;
-
 		g.setLineWidth(2);
-		g.setStroke(color.darker());
 
-		if (parentCount > 0) {
-			g.strokeLine(g.getLineWidth() / 2 + x + lineHeight / 4, lineHeight * 0.75 + g.getLineWidth() / 2,
-					g.getLineWidth() / 2 + x + lineHeight / 4, lineHeight);
+		for (int i = 0; i < heads.size(); i++) {
+			
+			double x = branchIndex * lineHeight / 2;
+			double parentX = parents[i] * lineHeight / 2;
+			double childX = children[i] * lineHeight / 2;
+
+			g.setStroke(colors[i % colors.length].darker());
+			
+			if(i != branchIndex && parents[i] != -1 && children[i] != -1) {
+				// continue parallel branches
+				g.strokeLine(g.getLineWidth() / 2 + parentX + lineHeight / 4, lineHeight,
+						g.getLineWidth() / 2 + childX + lineHeight / 4, 0);
+			} else {
+				// from parent to this
+				if (parents[i] >= 0) {
+					g.strokeLine(g.getLineWidth() / 2 + parentX + lineHeight / 4, lineHeight + lineHeight / 4,
+							g.getLineWidth() / 2 + x + lineHeight / 4, lineHeight * 0.75);
+				}
+
+				// from this to child
+
+				if (children[i] >= 0) {
+
+					// g.strokeLine(g.getLineWidth() / 2 + childX + lineHeight / 4, lineHeight,
+					// g.getLineWidth() / 2 + parentX + lineHeight / 4, 0);
+				}
+			}
 		}
 
-		if (childCount > 0) {
-			g.strokeLine(g.getLineWidth() / 2 + x + lineHeight / 4, 0, g.getLineWidth() / 2 + x + lineHeight / 4,
-					lineHeight / 4);
-		}
+		// if (parentCount > 0) {
+		// g.strokeLine(g.getLineWidth() / 2 + x + lineHeight / 4, lineHeight * 0.75 +
+		// g.getLineWidth() / 2,
+		// g.getLineWidth() / 2 + x + lineHeight / 4, lineHeight);
+		// }
+		//
+		// if (childCount > 0) {
+		// g.strokeLine(g.getLineWidth() / 2 + x + lineHeight / 4, 0, g.getLineWidth() /
+		// 2 + x + lineHeight / 4,
+		// lineHeight / 4);
+		// }
 
 	}
 
