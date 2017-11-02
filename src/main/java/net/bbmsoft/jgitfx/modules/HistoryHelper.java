@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
+import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
@@ -24,6 +25,8 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import net.bbmsoft.fxtended.annotations.app.launcher.Subapplication;
+import net.bbmsoft.jgitfx.utils.HeadComparator;
+import net.bbmsoft.jgitfx.utils.HeadInfo;
 
 public class HistoryHelper extends Subapplication {
 
@@ -66,6 +69,7 @@ public class HistoryHelper extends Subapplication {
 
 		try (RevWalk walk = new RevWalk(repo)) {
 
+			Ref head = allRefs.get(Constants.HEAD);
 			for (Entry<String, Ref> entry : allRefs.entrySet()) {
 				Matcher matcher = branchNamePattern.matcher(entry.getKey());
 				if (matcher.matches()) {
@@ -73,30 +77,51 @@ public class HistoryHelper extends Subapplication {
 					String branchName = matcher.group(4);
 					boolean local = "heads".equals(matcher.group(2));
 
-					RevCommit commit = walk.parseCommit(entry.getValue().getObjectId());
-					HeadInfo headInfo = new HeadInfo(commit, entry.getKey(), branchName, local);
-					heads.add(headInfo);
-					branchedCommits.put(commit.getId(), headInfo);
-					ArrayList<RevCommit> branch = new ArrayList<>();
-					branch.add(commit);
+					Ref ref = entry.getValue();
+					registerHead(heads, branchedCommits, walk, entry.getKey(), ref, branchName, local, ref.getObjectId().equals(head.getObjectId()));
 				}
 			}
-
+			heads.sort(new HeadComparator());
 		}
 
 		double lineHeight = 32;
 
-		// this.canvas.setHeight(lineHeight * branches.size());
-		this.canvas.setHeight(1024);
+		this.canvas.setHeight(lineHeight * commits.size());
 
 		int index = 1;
 
 		for (RevCommit next : commits) {
-			System.out.println(next.getShortMessage());
 			HeadInfo head = branchedCommits.get(next.getId());
 			detectParentBranches(next, branchedCommits, head, pendingConnections);
+		}
+		
+		for(HeadInfo head : new ArrayList<>(heads)) {
+			if(head.isEmpty()) {
+				heads.remove(head);
+			}
+		}
+
+		for (RevCommit next : commits) {
+			HeadInfo head = branchedCommits.get(next.getId());
 			renderCommit(next, g, heads, head, branchedCommits, index++, lineHeight, pendingConnections, commits);
 		}
+	}
+
+	private void registerHead(List<HeadInfo> heads, Map<ObjectId, HeadInfo> branchedCommits, RevWalk walk,
+			String refName, Ref ref, String branchName, boolean local, boolean head)
+			throws MissingObjectException, IncorrectObjectTypeException, IOException {
+		
+		RevCommit commit = walk.parseCommit(ref.getObjectId());
+		HeadInfo headInfo = new HeadInfo(head, branchName, local);
+		heads.add(headInfo);
+		
+		HeadInfo existingHead = branchedCommits.putIfAbsent(commit.getId(), headInfo);
+		if(existingHead == null) {
+			headInfo.setEmpty(false);
+		}
+		
+		ArrayList<RevCommit> branch = new ArrayList<>();
+		branch.add(commit);
 	}
 
 	private void renderCommit(RevCommit next, GraphicsContext g, List<HeadInfo> heads, HeadInfo head,
@@ -146,35 +171,6 @@ public class HistoryHelper extends Subapplication {
 				pendingConnections.put(parent, children = new ArrayList<>());
 			}
 			children.add(commit);
-		}
-	}
-
-	private class HeadInfo {
-
-		private RevCommit commit;
-		private String ref;
-		private String branchName;
-		private boolean local;
-
-		public HeadInfo(RevCommit commit, String ref, String branchName, boolean local) {
-			this.commit = commit;
-			this.ref = ref;
-			this.branchName = branchName;
-			this.local = local;
-		}
-
-		@Override
-		public String toString() {
-
-			StringBuilder sb = new StringBuilder();
-			if (local) {
-				sb.append("Local ");
-			} else {
-				sb.append("Remote ");
-			}
-			sb.append("Head of branch ").append(branchName);
-
-			return sb.toString();
 		}
 	}
 
