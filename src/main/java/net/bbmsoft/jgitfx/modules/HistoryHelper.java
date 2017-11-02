@@ -61,7 +61,7 @@ public class HistoryHelper extends Subapplication {
 		
 		this.canvas = new Canvas[commits.size()];
 		for (int i = 0; i < canvas.length; i++) {
-			canvas[i] = new Canvas(600, 32);
+			canvas[i] = new Canvas(600, 24);
 		}
 		this.root.getChildren().setAll(canvas);
 
@@ -91,8 +91,6 @@ public class HistoryHelper extends Subapplication {
 			heads.sort(new HeadComparator());
 		}
 
-		double lineHeight = 32;
-
 		int index = 0;
 
 		for (RevCommit next : commits) {
@@ -115,7 +113,8 @@ public class HistoryHelper extends Subapplication {
 			Color[] colors = { Color.RED, Color.AQUA, Color.GREEN, Color.YELLOW, Color.PURPLE, Color.DARKCYAN };
 			Color color = colors[branchIndex % colors.length];
 
-			renderLines(commits, this.canvas[index++].getGraphicsContext2D(), heads, branchedCommits, pendingConnections, lineHeight, next, color, heads.indexOf(head), next.getParentCount(), 1);
+			Canvas canvas = this.canvas[index++];
+			renderLines(commits, canvas.getGraphicsContext2D(), heads, branchedCommits, pendingConnections, canvas.getHeight(), next, color, heads.indexOf(head), next.getParentCount(), 1);
 		}
 
 		index = 0;
@@ -129,7 +128,8 @@ public class HistoryHelper extends Subapplication {
 			Color[] colors = { Color.RED, Color.AQUA, Color.GREEN, Color.YELLOW, Color.PURPLE, Color.DARKCYAN };
 			Color color = colors[branchIndex % colors.length];
 
-			randerCommit(this.canvas[index++].getGraphicsContext2D(), lineHeight, next, color, heads.indexOf(head));
+			Canvas canvas = this.canvas[index++];
+			randerCommit(canvas.getGraphicsContext2D(), canvas.getHeight(), next, color, heads.indexOf(head));
 		}
 	}
 
@@ -137,7 +137,7 @@ public class HistoryHelper extends Subapplication {
 			Map<ObjectId, HeadInfo> branchedCommits, Map<RevCommit, List<RevCommit>> pendingConnections,
 			double lineHeight, RevCommit next, Color color, int branchIndex, int parentCount, int childCount) {
 
-		double x = branchIndex * lineHeight;
+		double x = branchIndex * lineHeight/2;
 		
 		g.setStroke(color);
 		g.strokeLine(x + lineHeight / 4, 0, x + lineHeight / 4, lineHeight);
@@ -145,7 +145,7 @@ public class HistoryHelper extends Subapplication {
 
 	private void randerCommit(GraphicsContext g, double lineHeight, RevCommit next, Color color, int branchIndex) {
 		
-		double x = branchIndex * lineHeight;
+		double x = branchIndex * lineHeight/2;
 
 		g.setFill(color);
 		g.fillOval(x, lineHeight/4, lineHeight/2, lineHeight/2);
