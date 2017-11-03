@@ -1,5 +1,7 @@
 # ![logo](src/main/resources/logo/jgitfx-full-512.png)
 
+[![Build Status](https://travis-ci.org/babymotte/jgitfx.svg?branch=develop)](https://travis-ci.org/babymotte/jgitfx)
+
 ## What is it?
 
 JGitFX is a graphical user interface for JGit, a java implementation of the git source control management software.
