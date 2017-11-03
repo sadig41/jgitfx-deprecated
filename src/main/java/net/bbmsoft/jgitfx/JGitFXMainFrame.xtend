@@ -3,6 +3,7 @@ package net.bbmsoft.jgitfx
 import java.io.File
 import java.net.URL
 import java.util.ArrayList
+import java.util.Arrays
 import java.util.HashMap
 import java.util.List
 import java.util.Map
@@ -38,10 +39,11 @@ import javafx.scene.layout.BorderPane
 import javafx.scene.layout.Pane
 import javax.inject.Inject
 import net.bbmsoft.bbm.utils.concurrent.TaskHelper
-import net.bbmsoft.fxtended.annotations.app.FXMLRoot
 import net.bbmsoft.fxtended.annotations.binding.BindableProperty
+import net.bbmsoft.fxtended.annotations.layout.FXMLRoot
 import net.bbmsoft.jgitfx.event.AppStatus
 import net.bbmsoft.jgitfx.event.CommitMessageTopic
+import net.bbmsoft.jgitfx.event.DiffTopic
 import net.bbmsoft.jgitfx.event.EventBroker
 import net.bbmsoft.jgitfx.event.RepositoryOperations
 import net.bbmsoft.jgitfx.event.RepositoryTopic
@@ -73,8 +75,6 @@ import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.lib.Repository
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
-import net.bbmsoft.jgitfx.event.DiffTopic
-import java.util.Arrays
 
 @FXMLRoot
 class JGitFXMainFrame extends BorderPane {

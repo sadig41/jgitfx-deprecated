@@ -9,13 +9,14 @@ import javafx.scene.image.Image
 import javafx.stage.Stage
 import javax.inject.Inject
 import net.bbmsoft.bbm.utils.concurrent.TaskHelper
-import net.bbmsoft.fxtended.annotations.app.launcher.Subapplication
+import net.bbmsoft.bbm.utils.subapplication.SubApplication
 import net.bbmsoft.jgitfx.event.AppStatus
 import net.bbmsoft.jgitfx.event.EventBroker
 import net.bbmsoft.jgitfx.event.EventPublisher
 import net.bbmsoft.jgitfx.event.RepositoryRegistryTopic
 import net.bbmsoft.jgitfx.event.TaskTopic
 import net.bbmsoft.jgitfx.event.Topic
+import net.bbmsoft.jgitfx.event.UserInputTopic
 import net.bbmsoft.jgitfx.event.UserInteraction
 import net.bbmsoft.jgitfx.inject.impl.JGitFXModule
 import net.bbmsoft.jgitfx.messaging.Message
@@ -26,10 +27,8 @@ import net.bbmsoft.jgitfx.modules.RepositoryOpener
 import net.bbmsoft.jgitfx.registry.RepositoryRegistry
 
 import static extension net.bbmsoft.fxtended.extensions.BindingOperatorExtensions.*
-import net.bbmsoft.jgitfx.event.UserInputTopic
-import net.bbmsoft.jgitfx.modules.HistoryHelper
 
-class JGitFX extends Subapplication {
+class JGitFX extends SubApplication {
 
 	final JGitFXMainFrame jGitFXMainFrame
 	final EventBroker eventBroker
@@ -38,7 +37,7 @@ class JGitFX extends Subapplication {
 	Stage stage
 
 	def static void main(String[] args) {
-		Subapplication.launch[|Guice.createInjector(new JGitFXModule).getInstance(JGitFX)]
+		SubApplication.launch[|Guice.createInjector(new JGitFXModule).getInstance(JGitFX)]
 	}
 
 	@Inject
