@@ -26,17 +26,17 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import net.bbmsoft.fxtended.annotations.app.launcher.Subapplication;
+import net.bbmsoft.bbm.utils.subapplication.SubApplication;
 import net.bbmsoft.jgitfx.utils.HeadComparator;
 import net.bbmsoft.jgitfx.utils.HeadInfo;
 
-public class HistoryHelper extends Subapplication {
+public class HistoryHelper extends SubApplication {
 
 	private VBox root;
 	private Canvas[] canvas;
 
 	public HistoryHelper() {
-		Subapplication.launch(this);
+		SubApplication.launch(this);
 	}
 
 	public void visualize(Repository repository, List<RevCommit> commits) {
